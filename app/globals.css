@@ -1,26 +1,35 @@
-@import "tailwindcss";
+@import url("https://fontsapi.zeoseven.com/68/main/result.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*:has([data-overlay-container]),
+[data-overlay-container] {
+    height: 100%;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    font-family: "Source Han Sans VF";
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.25);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+button:disabled {
+    cursor: not-allowed;
 }

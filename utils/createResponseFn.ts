@@ -89,7 +89,7 @@ createResponseFn.use(async (context, next) => {
         context.result = {
             success: false,
             data: undefined,
-            error: error instanceof ClientError ? error.message : "服务器错误",
+            message: error instanceof ClientError ? error.message : "服务器错误",
         }
     }
 })

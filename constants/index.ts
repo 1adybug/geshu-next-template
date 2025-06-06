@@ -11,3 +11,7 @@ export const PasswordSalt = process.env.PASSWORD_SALT!
 export const PublicApiUrl = process.env.PUBLIC_API_URL!
 
 export const LoginPathname = "/login"
+
+export const CookiePrefix = process.env.COOKIE_PREFIX
+
+export const JWT_SECRET = process.env.JWT_SECRET!

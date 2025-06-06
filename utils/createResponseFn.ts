@@ -1,7 +1,6 @@
 import { styleText } from "util"
 import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
@@ -11,7 +10,7 @@ import { getParser } from "@/schemas"
 
 import { addErrorLog } from "@/server/addErrorLog"
 import { addOperationLog } from "@/server/addOperationLog"
-import { verifyToken } from "@/server/verifyPassword"
+import { getCurrentUser } from "@/server/getCurrentUser"
 
 import { ClientError } from "./clientError"
 
@@ -97,20 +96,7 @@ createResponseFn.use(async (context, next) => {
 })
 
 createResponseFn.use(async (context, next) => {
-    const cookieStore = await cookies()
-    const token = cookieStore.get("token")?.value
-
-    if (!context.fn.isAuthExempt && !token)
-        throw new ClientError({
-            message: "请先登录",
-            code: 401,
-        })
-
-    if (!context.fn.isAuthExempt && !(await verifyToken(token)))
-        throw new ClientError({
-            message: "身份验证失败",
-            code: 401,
-        })
-
+    const user = await getCurrentUser()
+    if (!context.fn.isAuthExempt && !user) throw new ClientError({ message: "请先登录", code: 401 })
     await next()
 })

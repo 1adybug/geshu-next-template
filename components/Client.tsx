@@ -1,6 +1,7 @@
 "use client"
 
 import { FC } from "react"
+import { addToast } from "@heroui/react"
 import { createRequestFn, getErrorMessage } from "deepsea-tools"
 
 import { IsBrowser } from "@/constants"
@@ -11,7 +12,10 @@ if (IsBrowser) {
         try {
             await next()
         } catch (error) {
-            globalThis.message.error(getErrorMessage(error))
+            addToast({
+                title: getErrorMessage(error),
+                color: "danger",
+            })
             throw error
         }
     })

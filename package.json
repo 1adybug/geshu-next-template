@@ -27,7 +27,7 @@
         "es-toolkit": "^1.38.0",
         "framer-motion": "^12.16.0",
         "jsonwebtoken": "^9.0.2",
-        "next": "15.4.0",
+        "next": "^15.4.0-canary.68",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "soda-next": "^0.6.1",

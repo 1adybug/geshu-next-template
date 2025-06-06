@@ -18,8 +18,12 @@ export async function watchShared() {
         const hasSchema = serverContent.includes(`@/schemas`)
 
         const content = `"use server"
-${hasSchema ? `
-import { ${name}Schema } from "@/schemas/${name}"` : ""}
+${
+    hasSchema
+        ? `
+import { ${name}Schema } from "@/schemas/${name}"`
+        : ""
+}
 import { ${name} } from "@/shared/${join(dir, name)}"
 import { createResponseFn } from "@/utils/createResponseFn"
 

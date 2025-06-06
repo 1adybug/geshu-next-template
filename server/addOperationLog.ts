@@ -1,5 +1,3 @@
-import { headers } from "next/headers"
-
 import { prisma } from "@/prisma"
 
 import { stringifyParams } from "@/utils/stringifyParams"

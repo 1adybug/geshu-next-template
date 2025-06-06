@@ -23,7 +23,7 @@ const Brand: FC<BrandProps> = ({ classNames: { mainWrapper, link, logoWrapper, l
             <div className={clsx("flex", logoWrapper)}>
                 <img src="/geshu.svg" alt="logo" width={32} className={logo} />
             </div>
-            <div className={clsx("text-lg font-bold", text)}>格数科技薪酬管理</div>
+            <div className={clsx("text-lg font-bold", text)}>格数科技项目管理</div>
         </Link>
     </h1>
 )

@@ -1,10 +1,9 @@
-import { FC, Fragment, ReactNode } from "react"
-import { cookies } from "next/headers"
+import { FC, ReactNode } from "react"
 
 import { LoginPathname } from "@/constants"
 
+import { getCurrentUser } from "@/server/getCurrentUser"
 import { getUrl } from "@/server/getUrl"
-import { verifyToken } from "@/server/verifyPassword"
 
 import { redirectFromLogin } from "@/utils/redirectFromLogin"
 import { redirectToLogin } from "@/utils/redirectToLogin"
@@ -14,19 +13,13 @@ export interface AuthProps {
 }
 
 const Auth: FC<AuthProps> = async ({ children }) => {
-    const cookieStore = await cookies()
-    const token = cookieStore.get("token")?.value
+    const user = await getCurrentUser()
     const url = await getUrl()
     const { pathname } = new URL(url)
     const isLogin = pathname === LoginPathname
-    if (!token) {
-        if (isLogin) return <Fragment>{children}</Fragment>
-        return redirectToLogin(url)
-    }
-    const auth = await verifyToken(token)
-    if (auth && isLogin) return redirectFromLogin(url)
-    if (!auth && !isLogin) return redirectToLogin(url)
-    return <Fragment>{children}</Fragment>
+    if ((isLogin && !user) || (!isLogin && user)) return children
+    if (isLogin) redirectFromLogin(url)
+    redirectToLogin(url)
 }
 
 export default Auth

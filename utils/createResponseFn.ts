@@ -1,3 +1,4 @@
+import { styleText } from "util"
 import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { cookies } from "next/headers"
@@ -77,8 +78,9 @@ createResponseFn.use(async (context, next) => {
             args: context.args,
             error: context.result?.error,
         })
-    } catch (error) {
-        console.log((error as Error).message)
+    } catch (e) {
+        const error = e as Error
+        console.log(styleText("redBright", error.message))
         if (isRedirectError(error)) throw error
         addErrorLog({
             action: context.fn.name,

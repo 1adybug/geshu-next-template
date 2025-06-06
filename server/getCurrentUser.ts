@@ -1,10 +1,9 @@
-import { headers } from "next/headers"
-
 import { prisma } from "@/prisma"
 
+import { getUserId } from "./getUserId"
+
 export async function getCurrentUser() {
-    const headersList = await headers()
-    const id = headersList.get("current-user")
+    const id = await getUserId()
     if (!id) return undefined
     const user = await prisma.user.findUnique({ where: { id } })
     return user || undefined

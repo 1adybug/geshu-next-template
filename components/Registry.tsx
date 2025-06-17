@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConfigProvider } from "antd"
 import zhCN from "antd/locale/zh_CN"
 import dayjs from "dayjs"
+import { useRouter } from "next/navigation"
 
 import "dayjs/locale/zh-cn"
 
@@ -26,14 +27,21 @@ const queryClient = new QueryClient({
     },
 })
 
+declare module "@react-types/shared" {
+    interface RouterConfig {
+        routerOptions: NonNullable<Parameters<ReturnType<typeof useRouter>["push"]>[1]>
+    }
+}
+
 const Registry: FC<RegistryProps> = props => {
     const { children } = props
+    const router = useRouter()
 
     return (
         <QueryClientProvider client={queryClient}>
             <AntdRegistry hashPriority="high">
                 <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Source Han Sans VF" } }}>
-                    <HeroUIProvider locale="zh-CN">
+                    <HeroUIProvider locale="zh-CN" navigate={router.push} className="h-full">
                         <ToastProvider />
                         {children}
                     </HeroUIProvider>

@@ -1,9 +1,12 @@
 import { getParser } from "."
 import { z } from "zod"
 
+import { accountSchema } from "./account"
+import { captchaSchema } from "./captcha"
+
 export const loginSchema = z.object({
-    username: z.string({ message: "无效的用户名" }),
-    password: z.string({ message: "无效的密码" }),
+    account: accountSchema,
+    captcha: captchaSchema,
 })
 
 export type LoginParams = z.infer<typeof loginSchema>

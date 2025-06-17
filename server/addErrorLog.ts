@@ -3,9 +3,9 @@ import { prisma } from "@/prisma"
 import { ClientError } from "@/utils/clientError"
 import { stringifyParams } from "@/utils/stringifyParams"
 
+import { getCurrentUserId } from "./getCurrentUserId"
 import { getIp } from "./getIp"
 import { getUserAgent } from "./getUserAgent"
-import { getUserId } from "./getUserId"
 
 function getConstructorName(obj: unknown): string {
     if (obj === undefined || obj === null) return "unknown"
@@ -24,7 +24,7 @@ export interface AddErrorLogParams {
 
 export async function addErrorLog({ error, action, args }: AddErrorLogParams) {
     try {
-        const userId = await getUserId()
+        const userId = await getCurrentUserId()
         const params = stringifyParams(args)
         await prisma.$transaction([
             prisma.errorLog.create({

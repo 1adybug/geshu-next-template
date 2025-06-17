@@ -79,7 +79,8 @@ createResponseFn.use(async (context, next) => {
         })
     } catch (e) {
         const error = e as Error
-        console.log(styleText("redBright", error.message))
+        console.log(styleText("red", error.message))
+        console.log(error)
         if (isRedirectError(error)) throw error
         addErrorLog({
             action: context.fn.name,

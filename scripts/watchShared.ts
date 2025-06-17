@@ -1,51 +1,61 @@
-import { mkdir, readFile, rm, writeFile } from "fs/promises"
+import { mkdir, readFile, writeFile } from "fs/promises"
 import { join, parse, relative } from "path"
 import { watch } from "chokidar"
+import { isNonNullable } from "deepsea-tools"
+
+import { deleteFileOrFolder } from "@/utils/deleteFileOrFolder"
 
 export async function watchShared() {
-    await rm("actions", { recursive: true, force: true })
+    await deleteFileOrFolder("actions")
 
     const watcher = watch("shared", {
         awaitWriteFinish: true,
         persistent: true,
     })
 
-    watcher.on("add", async path => {
+    async function createAction(path: string) {
         path = relative("shared", path).replace(/\\/g, "/")
         const { dir, name, ext } = parse(path)
         if (ext !== ".ts" && ext !== ".tsx" && ext !== ".js" && ext !== ".jsx") return
         const serverContent = await readFile(join("shared", path), "utf-8")
-        const hasSchema = serverContent.includes(`@/schemas`)
+
+        const match = serverContent.match(new RegExp(`export async function ${name}\\(.+?: (.+?)Params\\)`))
+        const schema = match?.[1].replace(/^./, char => char.toLowerCase())
+        const hasSchema = isNonNullable(schema)
 
         const content = `"use server"
 ${
     hasSchema
         ? `
-import { ${name}Schema } from "@/schemas/${name}"`
+import { ${schema}Schema } from "@/schemas/${schema}"`
         : ""
 }
 import { ${name} } from "@/shared/${join(dir, name)}"
 import { createResponseFn } from "@/utils/createResponseFn"
 
-export const ${name}Action = createResponseFn(${hasSchema ? `${name}Schema, ` : ""}${name})
+export const ${name}Action = createResponseFn(${hasSchema ? `${schema}Schema, ` : ""}${name})
 `
         const actionPath = join("actions", path)
         await mkdir(join("actions", dir), { recursive: true })
         await writeFile(actionPath, content)
         console.log(`${actionPath} created`)
-    })
+    }
+
+    watcher.on("add", createAction)
+
+    watcher.on("change", createAction)
 
     watcher.on("unlink", async path => {
         path = relative("shared", path).replace(/\\/g, "/")
         const actionPath = join("actions", path)
-        await rm(actionPath, { force: true })
+        await deleteFileOrFolder(actionPath)
         console.log(`${actionPath} deleted`)
     })
 
     watcher.on("unlinkDir", async path => {
         path = relative("shared", path).replace(/\\/g, "/")
         const actionPath = join("actions", path)
-        await rm(actionPath, { recursive: true, force: true })
+        await deleteFileOrFolder(actionPath)
         console.log(`${actionPath} deleted`)
     })
 }

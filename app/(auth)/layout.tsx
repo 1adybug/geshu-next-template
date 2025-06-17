@@ -12,7 +12,7 @@ const Layout: FC<LayoutProps> = props => {
 
     return (
         <Auth>
-            <Header />
+            <Header classNames={{ wrapper: "px-4" }} />
             <main className="h-[calc(100vh_-_64px)]">{children}</main>
         </Auth>
     )

@@ -3,6 +3,7 @@
 import { FC } from "react"
 import { addToast } from "@heroui/react"
 import { createRequestFn, getErrorMessage } from "deepsea-tools"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 import { IsBrowser } from "@/constants"
 
@@ -12,10 +13,12 @@ if (IsBrowser) {
         try {
             await next()
         } catch (error) {
-            addToast({
-                title: getErrorMessage(error),
-                color: "danger",
-            })
+            if (!isRedirectError(error)) {
+                addToast({
+                    title: getErrorMessage(error),
+                    color: "danger",
+                })
+            }
             throw error
         }
     })

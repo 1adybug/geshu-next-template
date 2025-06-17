@@ -18,8 +18,8 @@ const Auth: FC<AuthProps> = async ({ children }) => {
     const { pathname } = new URL(url)
     const isLogin = pathname === LoginPathname
     if ((isLogin && !user) || (!isLogin && user)) return children
-    if (isLogin) redirectFromLogin(url)
-    redirectToLogin(url)
+    if (isLogin) await redirectFromLogin()
+    await redirectToLogin()
 }
 
 export default Auth

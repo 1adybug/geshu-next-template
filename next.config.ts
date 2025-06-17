@@ -1,9 +1,12 @@
 import { NextConfig } from "next"
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
     experimental: {
-        nodeMiddleware: true,
+        serverActions: {
+            bodySizeLimit: "1TB",
+        },
     },
+    output: process.env.NEXT_OUTPUT as "standalone" | "export" | undefined,
 }
 
-export default nextConfig
+export default config

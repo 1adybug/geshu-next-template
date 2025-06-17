@@ -2,9 +2,12 @@ import { redirect } from "next/navigation"
 
 import { LoginPathname } from "@/constants"
 
+import { getUrl } from "@/server/getUrl"
+
 import { getPathnameAndSearchParams } from "./getPathnameAndSearchParams"
 
-export function redirectFromLogin(url: string) {
+export async function redirectFromLogin() {
+    const url = await getUrl()
     const { pathname, searchParams } = getPathnameAndSearchParams(url)
     if (pathname !== LoginPathname) return redirect(pathname)
     const from = searchParams.get("from")?.trim()

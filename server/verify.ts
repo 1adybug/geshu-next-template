@@ -1,16 +1,18 @@
-import jwt from "jsonwebtoken"
+import { jwtVerify } from "jose"
 
 import { JWT_SECRET } from "@/constants"
 
-interface Payload {
-    id: string
-}
-
-export function verify(token: unknown): string | undefined {
-    if (typeof token !== "string") return undefined
+export async function verify(token: unknown) {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as Payload
-        return decoded.id
+        if (typeof token !== "string") return undefined
+        token = token.trim()
+        if (!token) return undefined
+        const secretKey = new TextEncoder().encode(JWT_SECRET)
+        const {
+            payload: { exp, id },
+        } = await jwtVerify(token as string, secretKey)
+        if (typeof exp !== "number" || typeof id !== "string" || exp < Date.now() / 1000) return undefined
+        return id
     } catch (error) {
         return undefined
     }

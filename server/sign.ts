@@ -1,7 +1,9 @@
-import jwt from "jsonwebtoken"
+import { SignJWT } from "jose"
 
 import { JWT_SECRET } from "@/constants"
 
-export function sign(id: string) {
-    return jwt.sign({ id }, JWT_SECRET, { expiresIn: "1d" })
+export async function sign(id: string) {
+    const secretKey = new TextEncoder().encode(JWT_SECRET)
+    const token = await new SignJWT({ id }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("1 day").sign(secretKey)
+    return token
 }

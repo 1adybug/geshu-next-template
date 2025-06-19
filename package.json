@@ -6,6 +6,8 @@
         "dev": "next dev --turbopack --hostname 0.0.0.0",
         "build": "next build",
         "build:standalone": "npx cross-env NEXT_OUTPUT=standalone next build",
+        "build:windows": "bun scripts/createInstaller.ts --target=windows",
+        "build:linux": "bun scripts/createInstaller.ts --target=linux",
         "start": "next start",
         "lint": "next lint",
         "watch": "bun scripts/watchShared.ts",

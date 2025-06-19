@@ -56,3 +56,6 @@ test.mjs
 test.ts
 test
 prisma/generated
+
+installer
+installer.exe

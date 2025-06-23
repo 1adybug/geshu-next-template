@@ -6,6 +6,8 @@ import { z } from "zod"
 
 import { LoginPathname } from "@/constants"
 
+import { User } from "@/prisma/generated"
+
 import { getParser } from "@/schemas"
 
 import { addErrorLog } from "@/server/addErrorLog"
@@ -16,12 +18,12 @@ import { ClientError } from "./clientError"
 
 export interface OriginalResponseFn<T, P> {
     (arg: T): Promise<P>
-    isAuthExempt?: boolean
+    filter?: boolean | ((user: User) => boolean)
 }
 
 export interface ResponseFn<T, P> {
     (arg: T): Promise<ResponseData<P>>
-    isAuthExempt?: boolean
+    filter?: boolean | ((user: User) => boolean)
 }
 
 const globalResponseFnMiddlewares: Middleware[] = []
@@ -51,7 +53,7 @@ export function createResponseFn<T, P>(schemaOrFn: z.ZodType<T> | OriginalRespon
 
     assignFnName(newResponse, fn)
 
-    Object.defineProperty(response, "isAuthExempt", { value: fn.isAuthExempt })
+    Object.defineProperty(response, "filter", { value: fn.filter })
 
     return newResponse
 }
@@ -91,13 +93,21 @@ createResponseFn.use(async (context, next) => {
         context.result = {
             success: false,
             data: undefined,
-            message: error instanceof ClientError ? error.message : "服务器错误",
+            message: error.message,
         }
     }
 })
 
 createResponseFn.use(async (context, next) => {
     const user = await getCurrentUser()
-    if (!context.fn.isAuthExempt && !user) throw new ClientError({ message: "请先登录", code: 401 })
+    const filter = context.fn.filter ?? true
+
+    if (typeof filter === "function") {
+        if (!user) throw new ClientError({ message: "请先登录", code: 401 })
+        if (!filter(user)) throw new ClientError({ message: "无权限", code: 403 })
+    } else if (filter === true && !user) {
+        throw new ClientError({ message: "请先登录", code: 401 })
+    }
+
     await next()
 })

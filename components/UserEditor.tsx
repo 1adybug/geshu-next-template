@@ -1,9 +1,9 @@
-import { ComponentProps, FC, Fragment, useEffect, useId } from "react"
-import { Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, addToast } from "@heroui/react"
+import { ComponentProps, FC, Fragment, useEffect } from "react"
+import { Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem, addToast } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createRequestFn, isNonNullable, resolveNull } from "deepsea-tools"
-import { FormInput, addBetterToast, closeToast } from "soda-heroui"
+import { FormInput, FormSelect, addBetterToast, closeToast } from "soda-heroui"
 
 import { addUserAction } from "@/actions/addUser"
 import { getUserAction } from "@/actions/getUser"
@@ -12,15 +12,17 @@ import { updateUserAction } from "@/actions/updateUser"
 import { AddUserParams, addUserParser } from "@/schemas/addUser"
 import { idParser } from "@/schemas/id"
 import { phoneSchema } from "@/schemas/phone"
+import { Role, RoleNames, roleSchema } from "@/schemas/role"
 import { updateUserParser } from "@/schemas/updateUser"
 import { usernameSchema } from "@/schemas/username"
+
+import { getOnSubmit } from "@/utils/getOnSubmit"
 
 export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "id" | "children"> {
     id?: string
 }
 
 const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
-    const key = useId()
     const isUpdate = isNonNullable(id)
     const queryClient = useQueryClient()
     const form = useForm({
@@ -42,22 +44,21 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
 
     const { mutateAsync, isPending } = useMutation({
         mutationFn,
-        onMutate(params) {
-            addBetterToast({
-                key,
+        onMutate() {
+            const key = addBetterToast({
                 title: `${isUpdate ? "修改用户" : "新增用户"}中...`,
                 loading: true,
             })
+            return key
         },
-        onSuccess(data) {
+        onSuccess() {
             addToast({
                 title: `${isUpdate ? "修改用户" : "新增用户"}成功`,
                 color: "success",
             })
         },
-        onError(error) {},
-        onSettled(data, error) {
-            closeToast(key)
+        onSettled(data, error, variables, context) {
+            closeToast(context!)
             queryClient.invalidateQueries({ queryKey: ["query-user"] })
             queryClient.invalidateQueries({ queryKey: ["get-user", id] })
             onClose?.()
@@ -66,7 +67,7 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
 
     useEffect(() => {
         if (!isOpen || !data) return
-        form.reset(data)
+        form.reset(data as AddUserParams)
     }, [isOpen, data, form])
 
     useEffect(() => {
@@ -82,13 +83,25 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
                     <Fragment>
                         <ModalHeader>{isUpdate ? "修改用户" : "新增用户"}</ModalHeader>
                         <ModalBody>
-                            <Form onSubmit={() => form.handleSubmit()}>
+                            <Form onSubmit={getOnSubmit(form)}>
                                 <form.Field name="username" validators={{ onBlur: usernameSchema }}>
                                     {field => <FormInput isDisabled={isRequesting} field={field} label="用户名" />}
                                 </form.Field>
                                 <form.Field name="phone" validators={{ onBlur: phoneSchema }}>
                                     {field => <FormInput isDisabled={isRequesting} field={field} label="手机号" />}
                                 </form.Field>
+                                <form.Field name="role" validators={{ onBlur: roleSchema }}>
+                                    {field => (
+                                        <FormSelect isDisabled={isRequesting} field={field} label="角色">
+                                            {Object.values(Role).map(role => (
+                                                <SelectItem key={role}>{RoleNames[role]}</SelectItem>
+                                            ))}
+                                        </FormSelect>
+                                    )}
+                                </form.Field>
+                                <Button className="hidden" type="submit" isDisabled={isRequesting}>
+                                    确定
+                                </Button>
                             </Form>
                         </ModalBody>
                         <ModalFooter>

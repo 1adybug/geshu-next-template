@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma"
+import { User } from "@/prisma/generated"
 
 import { AddUserParams } from "@/schemas/addUser"
 
@@ -11,4 +12,8 @@ export async function addUser({ username, phone }: AddUserParams) {
     if (count2 > 0) throw new ClientError("手机号已存在")
     const user = await prisma.user.create({ data: { username, phone } })
     return user
+}
+
+addUser.filter = function filter(user: User) {
+    return user.role === "ADMIN"
 }

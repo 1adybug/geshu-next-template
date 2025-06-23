@@ -14,6 +14,7 @@ if (IsBrowser) {
             await next()
         } catch (error) {
             if (!isRedirectError(error)) {
+                console.error(error)
                 addToast({
                     title: getErrorMessage(error),
                     color: "danger",

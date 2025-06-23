@@ -6,7 +6,7 @@ export function getDateRangePickerInput(value: [number, number] | undefined): Ra
     const start = new Date(value[0])
     const end = new Date(value[1])
     return {
-        start: new CalendarDate(start.getFullYear(), start.getMonth(), start.getDate()),
-        end: new CalendarDate(end.getFullYear(), end.getMonth(), end.getDate()),
+        start: new CalendarDate(start.getFullYear(), start.getMonth() + 1, start.getDate()),
+        end: new CalendarDate(end.getFullYear(), end.getMonth() + 1, end.getDate()),
     }
 }

@@ -5,7 +5,7 @@ import { Button, Form, SortDescriptor, Table, TableBody, TableCell, TableColumn,
 import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createRequestFn, formatTime, isNonNullable, naturalParser, positiveIntParser } from "deepsea-tools"
+import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser, positiveIntParser } from "deepsea-tools"
 import { FormInput, addBetterToast, closeToast } from "soda-heroui"
 import { useQueryState } from "soda-next"
 
@@ -18,7 +18,7 @@ import { DateRangePicker } from "@/components/RangePicker"
 import UserEditor from "@/components/UserEditor"
 
 import { getParser } from "@/schemas"
-import { Role, RoleNames } from "@/schemas/role"
+import { Role } from "@/schemas/role"
 import { sortOrderSchema } from "@/schemas/sortOrder"
 import { UserSortByParams, userSortBySchema } from "@/schemas/userSortBy"
 
@@ -252,7 +252,7 @@ const Page: FC = () => {
                                 <TableCell>{data!.pageSize * (data!.pageNum - 1) + index + 1}</TableCell>
                                 <TableCell>{username}</TableCell>
                                 <TableCell>{phone}</TableCell>
-                                <TableCell>{RoleNames[role]}</TableCell>
+                                <TableCell>{getEnumKey(Role, role)}</TableCell>
                                 <TableCell>{formatTime(createdAt)}</TableCell>
                                 <TableCell>{formatTime(updatedAt)}</TableCell>
                                 <TableCell>

@@ -2,7 +2,7 @@ import { ComponentProps, FC, Fragment, useEffect } from "react"
 import { Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem, addToast } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createRequestFn, isNonNullable, resolveNull } from "deepsea-tools"
+import { createRequestFn, getEnumKey, isNonNullable, resolveNull } from "deepsea-tools"
 import { FormInput, FormSelect, addBetterToast, closeToast } from "soda-heroui"
 
 import { addUserAction } from "@/actions/addUser"
@@ -12,7 +12,7 @@ import { updateUserAction } from "@/actions/updateUser"
 import { AddUserParams, addUserParser } from "@/schemas/addUser"
 import { idParser } from "@/schemas/id"
 import { phoneSchema } from "@/schemas/phone"
-import { Role, RoleNames, roleSchema } from "@/schemas/role"
+import { Role, roleSchema } from "@/schemas/role"
 import { updateUserParser } from "@/schemas/updateUser"
 import { usernameSchema } from "@/schemas/username"
 
@@ -94,7 +94,7 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
                                     {field => (
                                         <FormSelect isDisabled={isRequesting} field={field} label="角色">
                                             {Object.values(Role).map(role => (
-                                                <SelectItem key={role}>{RoleNames[role]}</SelectItem>
+                                                <SelectItem key={role}>{getEnumKey(Role, role)}</SelectItem>
                                             ))}
                                         </FormSelect>
                                     )}

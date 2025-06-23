@@ -1,17 +1,15 @@
 import { getParser } from "."
 import { z } from "zod"
 
-import { Role } from "@/prisma/generated"
+export const Role = {
+    管理员: "ADMIN",
+    用户: "USER",
+} as const
 
-export { Role } from "@/prisma/generated"
+export type Role = (typeof Role)[keyof typeof Role]
 
 export const roleSchema = z.nativeEnum(Role, { message: "无效的角色" })
 
 export type RoleParams = z.infer<typeof roleSchema>
-
-export const RoleNames: Record<Role, string> = {
-    ADMIN: "管理员",
-    USER: "用户",
-}
 
 export const roleParser = getParser(roleSchema)

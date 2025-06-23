@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 项目介绍
 
-## Getting Started
+格数科技 Next.js 项目模板
 
-First, run the development server:
+## env 文件
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+根据项目需求，env 文件分为服务端环境变量和公共环境环境变量，服务端环境变量仅服务端可以读取，公共环境环境变量客户端和服务端都能读取。
+
+```env
+# 服务端环境变量，仅服务端可以读取
+DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres"
+JWT_SECRET="123456"
+NEXT_TELEMETRY_DISABLED="1"
+ALIYUN_ACCESS_KEY_ID="ALIYUN_ACCESS_KEY_ID"
+ALIYUN_ACCESS_KEY_SECRET="ALIYUN_ACCESS_KEY_SECRET"
+QJP_SMS_URL="QJP_SMS_URL"
+
+# 公共环境环境变量，客户端和服务端都能读取
+NEXT_PUBLIC_COOKIE_PREFIX="NEXT_PUBLIC_COOKIE_PREFIX"
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

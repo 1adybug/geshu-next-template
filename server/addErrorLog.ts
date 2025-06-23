@@ -3,7 +3,7 @@ import { prisma } from "@/prisma"
 import { ClientError } from "@/utils/clientError"
 import { stringifyParams } from "@/utils/stringifyParams"
 
-import { getCurrentUserId } from "./getCurrentUserId"
+import { getCurrentUser } from "./getCurrentUser"
 import { getIp } from "./getIp"
 import { getUserAgent } from "./getUserAgent"
 
@@ -24,7 +24,7 @@ export interface AddErrorLogParams {
 
 export async function addErrorLog({ error, action, args }: AddErrorLogParams) {
     try {
-        const userId = await getCurrentUserId()
+        const user = await getCurrentUser()
         const params = stringifyParams(args)
         await prisma.$transaction([
             prisma.errorLog.create({
@@ -36,7 +36,8 @@ export async function addErrorLog({ error, action, args }: AddErrorLogParams) {
                     params,
                     ip: await getIp(),
                     userAgent: await getUserAgent(),
-                    userId,
+                    currentUser: user,
+                    userId: user?.id,
                 },
             }),
         ])

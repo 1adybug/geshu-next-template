@@ -14,6 +14,8 @@ import Brand from "@/components/Brand"
 
 import { LoginParams } from "@/schemas/login"
 
+import { getOnSubmit } from "@/utils/getOnSubmit"
+
 const mutationFn = createRequestFn(loginAction)
 
 const mutationFn2 = createRequestFn(sendCaptchaAction)
@@ -56,7 +58,7 @@ const Page: FC = () => {
             <div className="relative p-8">
                 <Brand />
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <Form className="w-64" onSubmit={() => form.handleSubmit()}>
+                    <Form className="w-64" onSubmit={getOnSubmit(form)}>
                         <form.Field name="account">{field => <FormInput field={field} placeholder="用户名或手机号" autoComplete="off" />}</form.Field>
                         <div className="flex items-center gap-2">
                             <form.Field name="captcha">{field => <FormInput field={field} placeholder="验证码" autoComplete="off" />}</form.Field>
@@ -77,13 +79,7 @@ const Page: FC = () => {
                         </div>
                         <form.Subscribe selector={state => state.values}>
                             {({ account, captcha }) => (
-                                <Button
-                                    className="mt-4"
-                                    color="primary"
-                                    fullWidth
-                                    isDisabled={isRequesting || !account || !captcha}
-                                    onPress={() => form.handleSubmit()}
-                                >
+                                <Button className="mt-4" color="primary" fullWidth isDisabled={isRequesting || !account || !captcha} type="submit">
                                     登录
                                 </Button>
                             )}

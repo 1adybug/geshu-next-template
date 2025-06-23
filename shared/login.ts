@@ -24,4 +24,4 @@ export async function login({ account, captcha }: LoginParams) {
     await redirectFromLogin()
 }
 
-login.isAuthExempt = true
+login.filter = false

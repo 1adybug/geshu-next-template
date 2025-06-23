@@ -3,13 +3,17 @@ import { z } from "zod"
 
 import { createdAfterSchema } from "./createdAfter"
 import { createdBeforeSchema } from "./createdBefore"
+import { idSchema } from "./id"
 import { pageNumSchema } from "./pageNum"
 import { pageSizeSchema } from "./pageSize"
+import { sortOrderSchema } from "./sortOrder"
 import { updatedAfterSchema } from "./updatedAfter"
 import { updatedBeforeSchema } from "./updatedBefore"
+import { userSortBySchema } from "./userSortBy"
 
 export const queryUserSchema = z.object(
     {
+        id: idSchema.optional(),
         username: z.string({ message: "无效的用户名" }).optional(),
         phone: z.string({ message: "无效的手机号" }).optional(),
         createdBefore: createdBeforeSchema.optional(),
@@ -18,6 +22,8 @@ export const queryUserSchema = z.object(
         updatedAfter: updatedAfterSchema.optional(),
         pageNum: pageNumSchema.optional(),
         pageSize: pageSizeSchema.optional(),
+        sortBy: userSortBySchema.optional(),
+        sortOrder: sortOrderSchema.optional(),
     },
     {
         message: "无效的查询参数",

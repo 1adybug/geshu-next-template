@@ -2,7 +2,7 @@ import { styleText } from "util"
 import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { redirect } from "next/navigation"
-import { ZodType, z } from "zod"
+import { ZodType } from "zod"
 
 import { LoginPathname } from "@/constants"
 
@@ -16,28 +16,46 @@ import { getCurrentUser } from "@/server/getCurrentUser"
 
 import { ClientError } from "./clientError"
 
-export interface OriginalResponseFn<T, P> {
+export interface OriginalResponseFn<P, T> {
     (arg: T): Promise<P>
     filter?: boolean | ((user: User) => boolean)
 }
 
-export interface ResponseFn<T, P> {
+export interface ResponseFn<P, T> {
     (arg: T): Promise<ResponseData<P>>
+    filter?: boolean | ((user: User) => boolean)
+}
+
+export interface OriginalResponseFnWithoutArgs<P> {
+    (): Promise<P>
+    filter?: boolean | ((user: User) => boolean)
+}
+
+export interface ResponseFnWithoutArgs<P> {
+    (): Promise<ResponseData<P>>
     filter?: boolean | ((user: User) => boolean)
 }
 
 const globalResponseFnMiddlewares: Middleware[] = []
 
-export interface CreateResponseFnParams<T extends ZodType<any, any, any>, P> {
-    fn: OriginalResponseFn<z.infer<T>, P>
-    schema?: T
+export interface CreateResponseFnParams<P, T> {
+    fn: OriginalResponseFn<P, T>
+    schema?: ZodType<T, any, any>
     name?: string
 }
 
-export function createResponseFn<T extends ZodType<any, any, any>, P>({ fn, schema, name }: CreateResponseFnParams<T, P>): ResponseFn<z.infer<T>, P> {
-    async function response(arg: z.infer<T>) {
-        arg = schema ? getParser(schema)(arg) : arg
-        const data = await fn!(arg)
+export interface CreateResponseFnParamsWithoutArgs<P> {
+    fn: OriginalResponseFnWithoutArgs<P>
+    name?: string
+}
+
+export function createResponseFn<P>({ fn, name }: CreateResponseFnParamsWithoutArgs<P>): ResponseFnWithoutArgs<P>
+export function createResponseFn<P, T>({ fn, schema, name }: CreateResponseFnParams<P, T>): ResponseFn<P, T>
+export function createResponseFn<P, T>({ fn, schema, name }: CreateResponseFnParams<P, T>): ResponseFn<P, T> {
+    async function response(...args: [T]) {
+        args = args.slice(0, 1) as [T]
+        if (args.length > 0 && schema) args = [getParser(schema)(args[0])]
+        const data = await fn!(...args)
         return {
             success: true,
             data,

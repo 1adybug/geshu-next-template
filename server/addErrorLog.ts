@@ -19,7 +19,7 @@ function getStringProperty(obj: unknown, key: string): string | undefined {
 export interface AddErrorLogParams {
     error: unknown
     action?: string
-    args?: unknown
+    args?: unknown[]
 }
 
 export async function addErrorLog({ error, action, args }: AddErrorLogParams) {

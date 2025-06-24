@@ -8,7 +8,7 @@ import { getUserAgent } from "./getUserAgent"
 
 export interface AddOperationLogParams {
     action?: string
-    args?: unknown
+    args?: unknown[]
 }
 
 export async function addOperationLog({ action, args }: AddOperationLogParams) {

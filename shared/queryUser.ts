@@ -71,6 +71,7 @@ export async function queryUser({
 
     return getPagination({
         data,
+        exact: true,
         total,
         pageNum,
         pageSize,

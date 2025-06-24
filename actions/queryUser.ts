@@ -4,4 +4,7 @@ import { queryUser } from "@/shared/queryUser"
 
 import { createResponseFn } from "@/utils/createResponseFn"
 
-export const queryUserAction = createResponseFn(queryUser)
+export const queryUserAction = createResponseFn({
+    fn: queryUser,
+    name: "queryUser",
+})

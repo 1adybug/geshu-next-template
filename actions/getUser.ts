@@ -6,4 +6,8 @@ import { getUser } from "@/shared/getUser"
 
 import { createResponseFn } from "@/utils/createResponseFn"
 
-export const getUserAction = createResponseFn(idSchema, getUser)
+export const getUserAction = createResponseFn({
+    fn: getUser,
+    schema: idSchema,
+    name: "getUser",
+})

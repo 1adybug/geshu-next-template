@@ -3,7 +3,7 @@ import { join, parse, relative } from "path"
 import { watch } from "chokidar"
 import { isNonNullable } from "deepsea-tools"
 
-import { deleteFileOrFolder } from "@/utils/deleteFileOrFolder"
+import { deleteFileOrFolder } from "../utils/deleteFileOrFolder"
 
 export async function watchShared() {
     await deleteFileOrFolder("actions")
@@ -27,13 +27,23 @@ export async function watchShared() {
 ${
     hasSchema
         ? `
-import { ${schema}Schema } from "@/schemas/${schema}"`
+import { ${schema}Schema } from "@/schemas/${schema}"
+`
         : ""
 }
 import { ${name} } from "@/shared/${join(dir, name)}"
+
 import { createResponseFn } from "@/utils/createResponseFn"
 
-export const ${name}Action = createResponseFn(${hasSchema ? `${schema}Schema, ` : ""}${name})
+export const ${name}Action = createResponseFn({
+    fn: ${name},${
+        hasSchema
+            ? `
+    schema: ${schema}Schema,`
+            : ""
+    }
+    name: "${name}",
+})
 `
         const actionPath = join("actions", path)
         await mkdir(join("actions", dir), { recursive: true })

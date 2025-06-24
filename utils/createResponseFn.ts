@@ -2,7 +2,7 @@ import { styleText } from "util"
 import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { redirect } from "next/navigation"
-import { z } from "zod"
+import { ZodType, z } from "zod"
 
 import { LoginPathname } from "@/constants"
 
@@ -28,14 +28,14 @@ export interface ResponseFn<T, P> {
 
 const globalResponseFnMiddlewares: Middleware[] = []
 
-export function createResponseFn<T, P>(fn: OriginalResponseFn<T, P>): ResponseFn<T, P>
-export function createResponseFn<T, P>(schema: z.ZodType<T>, fn: OriginalResponseFn<T, P>): ResponseFn<T, P>
-export function createResponseFn<T, P>(schemaOrFn: z.ZodType<T> | OriginalResponseFn<T, P>, fn?: OriginalResponseFn<T, P>): ResponseFn<T, P> {
-    const params = typeof fn === "function" ? { schema: schemaOrFn as z.ZodType<T>, fn } : { schema: undefined, fn: schemaOrFn as OriginalResponseFn<T, P> }
-    const schema = params.schema
-    fn = params.fn
+export interface CreateResponseFnParams<T extends ZodType<any, any, any>, P> {
+    fn: OriginalResponseFn<z.infer<T>, P>
+    schema?: T
+    name?: string
+}
 
-    async function response(arg: T) {
+export function createResponseFn<T extends ZodType<any, any, any>, P>({ fn, schema, name }: CreateResponseFnParams<T, P>): ResponseFn<z.infer<T>, P> {
+    async function response(arg: z.infer<T>) {
         arg = schema ? getParser(schema)(arg) : arg
         const data = await fn!(arg)
         return {
@@ -45,13 +45,13 @@ export function createResponseFn<T, P>(schemaOrFn: z.ZodType<T> | OriginalRespon
         }
     }
 
-    assignFnName(response, fn)
+    assignFnName(response, name ?? fn)
 
     const newResponse = createFnWithMiddleware(response, {
         global: globalResponseFnMiddlewares,
     })
 
-    assignFnName(newResponse, fn)
+    assignFnName(newResponse, name ?? fn)
 
     Object.defineProperty(response, "filter", { value: fn.filter })
 

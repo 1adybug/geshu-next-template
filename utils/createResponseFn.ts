@@ -66,7 +66,7 @@ createResponseFn.use = function use(middleware: Middleware<OriginalResponseFn<an
 createResponseFn.use(async context =>
     addOperationLog({
         action: context.fn.name,
-        args: context.args,
+        args: context.arguments,
     }),
 )
 
@@ -76,7 +76,7 @@ createResponseFn.use(async (context, next) => {
         if (context.result?.success !== false) return
         addErrorLog({
             action: context.fn.name,
-            args: context.args,
+            args: context.arguments,
             error: context.result?.error,
         })
     } catch (e) {
@@ -86,7 +86,7 @@ createResponseFn.use(async (context, next) => {
         if (isRedirectError(error)) throw error
         addErrorLog({
             action: context.fn.name,
-            args: context.args,
+            args: context.arguments,
             error,
         })
         if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)

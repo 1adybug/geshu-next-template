@@ -1,17 +1,27 @@
-import { FC, useState } from "react"
+import { useState } from "react"
 import { StrictOmit } from "deepsea-tools"
-import { FormDateRangePicker, FormDateRangePickerProps } from "soda-heroui"
+import { FormDateRangePicker, FormDateRangePickerProps, TimeValueModeMap } from "soda-heroui"
 
 import { getDateRangePickerInput } from "@/utils/getDateRangePickerInput"
 import { getDateRangePickerOutput } from "@/utils/getDateRangePickerOutput"
 
-export interface DateRangePickerProps extends StrictOmit<FormDateRangePickerProps<"timestamp">, "valueMode"> {}
+export interface DateRangePickerProps<
+    FieldValue extends [TimeValueModeMap<"timestamp">, TimeValueModeMap<"timestamp">] | null | undefined =
+        | [TimeValueModeMap<"timestamp">, TimeValueModeMap<"timestamp">]
+        | null
+        | undefined,
+> extends StrictOmit<FormDateRangePickerProps<"timestamp", FieldValue>, "valueMode"> {}
 
-export const DateRangePicker: FC<DateRangePickerProps> = ({ field, ...rest }) => {
+function DateRangePicker<
+    FieldValue extends [TimeValueModeMap<"timestamp">, TimeValueModeMap<"timestamp">] | null | undefined =
+        | [TimeValueModeMap<"timestamp">, TimeValueModeMap<"timestamp">]
+        | null
+        | undefined,
+>({ field, ...rest }: DateRangePickerProps<FieldValue>) {
     const [isOpen, setIsOpen] = useState(false)
 
     return (
-        <FormDateRangePicker<"timestamp">
+        <FormDateRangePicker<"timestamp", FieldValue>
             field={field}
             selectorIcon={
                 field.state.value ? (
@@ -24,10 +34,12 @@ export const DateRangePicker: FC<DateRangePickerProps> = ({ field, ...rest }) =>
                 ) : undefined
             }
             isOpen={isOpen}
-            onOpenChange={isOpen => (field.state.value && isOpen ? field.handleChange(null as unknown as undefined) : setIsOpen(isOpen))}
+            onOpenChange={isOpen => (field.state.value && isOpen ? field.handleChange(null as FieldValue) : setIsOpen(isOpen))}
             value={getDateRangePickerInput(field.state.value as [number, number] | undefined)}
-            onChange={value => field.handleChange(getDateRangePickerOutput(value))}
+            onChange={value => field.handleChange(getDateRangePickerOutput(value) as FieldValue)}
             {...rest}
         />
     )
 }
+
+export default DateRangePicker

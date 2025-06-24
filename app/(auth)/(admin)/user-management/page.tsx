@@ -13,8 +13,8 @@ import { deleteUserAction } from "@/actions/deleteUser"
 import { queryUserAction } from "@/actions/queryUser"
 
 import Confirm from "@/components/Confirm"
+import DateRangePicker from "@/components/DateRangePicker"
 import Pagination from "@/components/Pagination"
-import { DateRangePicker } from "@/components/RangePicker"
 import UserEditor from "@/components/UserEditor"
 
 import { getParser } from "@/schemas"

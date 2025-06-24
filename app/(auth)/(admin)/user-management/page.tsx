@@ -218,7 +218,7 @@ const Page: FC = () => {
                         <Pagination
                             pageSize={data?.pageSize ?? 10}
                             pageNum={data?.pageNum ?? 1}
-                            total={data?.pages ?? 1}
+                            total={data?.total ?? 1}
                             onPageSizeChange={value => setQuery(prev => ({ ...prev, pageSize: value, pageNum: 1 }))}
                             onPageNumChange={value => setQuery(prev => ({ ...prev, pageNum: value }))}
                         />

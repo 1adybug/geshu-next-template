@@ -11,7 +11,8 @@
         "start": "next start",
         "lint": "next lint",
         "watch": "bun scripts/watchShared.ts",
-        "format": "npx prettier --config prettier.config.mjs --write . && npx prettier --config .prettierrc.mjs --write ."
+        "format": "prettier --config prettier.config.mjs --write . && prettier --config .prettierrc.mjs --write .",
+        "fg": "npm run format && git add . && git commit -m \"✨feature: format\""
     },
     "dependencies": {
         "@alicloud/dysmsapi20170525": "^4.1.1",

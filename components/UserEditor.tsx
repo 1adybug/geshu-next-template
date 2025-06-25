@@ -85,10 +85,10 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
                         <ModalBody>
                             <Form onSubmit={getOnSubmit(form)}>
                                 <form.Field name="username" validators={{ onBlur: usernameSchema }}>
-                                    {field => <FormInput isDisabled={isRequesting} field={field} label="用户名" />}
+                                    {field => <FormInput size="sm" isDisabled={isRequesting} field={field} label="用户名" />}
                                 </form.Field>
                                 <form.Field name="phone" validators={{ onBlur: phoneSchema }}>
-                                    {field => <FormInput isDisabled={isRequesting} field={field} label="手机号" />}
+                                    {field => <FormInput size="sm" isDisabled={isRequesting} field={field} label="手机号" />}
                                 </form.Field>
                                 <form.Field name="role" validators={{ onBlur: roleSchema }}>
                                     {field => (
@@ -105,10 +105,10 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
                             </Form>
                         </ModalBody>
                         <ModalFooter>
-                            <Button isDisabled={isRequesting} variant="light" onPress={onClose}>
+                            <Button size="sm" isDisabled={isRequesting} variant="light" onPress={onClose}>
                                 取消
                             </Button>
-                            <Button isDisabled={isRequesting} color="primary" onPress={form.handleSubmit}>
+                            <Button size="sm" isDisabled={isRequesting} color="primary" onPress={form.handleSubmit}>
                                 确定
                             </Button>
                         </ModalFooter>

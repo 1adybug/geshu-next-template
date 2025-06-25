@@ -1,5 +1,5 @@
 import { getParser } from "."
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const Role = {
     管理员: "ADMIN",

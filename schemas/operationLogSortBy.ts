@@ -1,5 +1,5 @@
 import { getParser } from "."
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const operationLogSortBySchema = z.enum(["createdAt", "action", "ip", "userAgent", "username"], { message: "无效的排序字段" })
 

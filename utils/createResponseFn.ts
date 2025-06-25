@@ -16,45 +16,28 @@ import { getCurrentUser } from "@/server/getCurrentUser"
 
 import { ClientError } from "./clientError"
 
-export interface OriginalResponseFn<P, T> {
-    (arg: T): Promise<P>
+export interface OriginalResponseFn<T extends [arg?: unknown], P> {
+    (...args: T): Promise<P>
     filter?: boolean | ((user: User) => boolean)
 }
 
-export interface ResponseFn<P, T> {
-    (arg: T): Promise<ResponseData<P>>
-    filter?: boolean | ((user: User) => boolean)
-}
-
-export interface OriginalResponseFnWithoutArgs<P> {
-    (): Promise<P>
-    filter?: boolean | ((user: User) => boolean)
-}
-
-export interface ResponseFnWithoutArgs<P> {
-    (): Promise<ResponseData<P>>
+export interface ResponseFn<T extends [arg?: unknown], P> {
+    (...args: T): Promise<ResponseData<P>>
     filter?: boolean | ((user: User) => boolean)
 }
 
 const globalResponseFnMiddlewares: Middleware[] = []
 
-export interface CreateResponseFnParams<P, T> {
-    fn: OriginalResponseFn<P, T>
-    schema?: $ZodType<T>
+export interface CreateResponseFnParams<T extends [arg?: unknown], P> {
+    fn: OriginalResponseFn<T, P>
+    schema?: T extends [] ? undefined : $ZodType<T[0]>
     name?: string
 }
 
-export interface CreateResponseFnParamsWithoutArgs<P> {
-    fn: OriginalResponseFnWithoutArgs<P>
-    name?: string
-}
-
-export function createResponseFn<P>({ fn, name }: CreateResponseFnParamsWithoutArgs<P>): ResponseFnWithoutArgs<P>
-export function createResponseFn<P, T>({ fn, schema, name }: CreateResponseFnParams<P, T>): ResponseFn<P, T>
-export function createResponseFn<P, T>({ fn, schema, name }: CreateResponseFnParams<P, T>): ResponseFn<P, T> {
-    async function response(...args: [T]) {
-        args = args.slice(0, 1) as [T]
-        if (args.length > 0 && schema) args = [getParser(schema)(args[0])]
+export function createResponseFn<T extends [arg?: unknown], P>({ fn, schema, name }: CreateResponseFnParams<T, P>): ResponseFn<T, P> {
+    async function response(...args: T) {
+        args = args.slice(0, 1) as T
+        if (args.length > 0 && schema) args = [getParser(schema)(args[0])] as unknown as T
         const data = await fn!(...args)
         return {
             success: true,

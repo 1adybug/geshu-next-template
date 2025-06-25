@@ -282,7 +282,12 @@ const Page: FC = () => {
                                         <Link
                                             size="sm"
                                             className="line-clamp-1 max-w-48 cursor-pointer break-all"
-                                            onPress={() => setInfo({ header: "错误参数", body: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(params)} /> })}
+                                            onPress={() =>
+                                                setInfo({
+                                                    header: "错误参数",
+                                                    body: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(params)} />,
+                                                })
+                                            }
                                         >
                                             {params}
                                         </Link>

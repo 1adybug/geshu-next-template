@@ -1,6 +1,6 @@
 import { DefaultArgs } from "@prisma/client/runtime/library"
 
-import { Prisma } from "./generated"
+import { Prisma } from "./generated/client"
 
 export function getErrorLogWhere<T extends Prisma.ErrorLogFindManyArgs, P extends Prisma.SelectSubset<T, Prisma.ErrorLogFindManyArgs<DefaultArgs>>["where"]>(
     where: P,

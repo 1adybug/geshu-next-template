@@ -2,7 +2,7 @@ import { styleText } from "util"
 import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { redirect } from "next/navigation"
-import { ZodType } from "zod"
+import { $ZodType } from "zod/v4/core"
 
 import { LoginPathname } from "@/constants"
 
@@ -40,7 +40,7 @@ const globalResponseFnMiddlewares: Middleware[] = []
 
 export interface CreateResponseFnParams<P, T> {
     fn: OriginalResponseFn<P, T>
-    schema?: ZodType<T, any, any>
+    schema?: $ZodType<T>
     name?: string
 }
 

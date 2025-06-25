@@ -1,5 +1,5 @@
 import { getParser } from "."
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const sortOrderSchema = z.enum(["asc", "desc"], { message: "无效的排序方向" })
 

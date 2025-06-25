@@ -1,5 +1,5 @@
 import { getParser } from "."
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const usernameSchema = z
     .string({ message: "无效的用户名" })

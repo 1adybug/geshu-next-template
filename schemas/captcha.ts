@@ -1,5 +1,5 @@
 import { getParser } from "."
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const captchaSchema = z.string({ message: "无效的验证码" }).regex(/^\d{4}$/, { message: "无效的验证码" })
 

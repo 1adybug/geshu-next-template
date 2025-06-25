@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma"
-import { User } from "@/prisma/generated"
+import { User } from "@/prisma/generated/client"
 
 import { AccountParams } from "@/schemas/account"
 import { phoneRegex } from "@/schemas/phone"

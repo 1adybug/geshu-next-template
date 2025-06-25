@@ -1,4 +1,4 @@
-import { PrismaClient } from "./generated"
+import { PrismaClient } from "./generated/client"
 
 function getPrisma() {
     return new PrismaClient()

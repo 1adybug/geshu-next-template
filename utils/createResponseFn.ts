@@ -6,7 +6,7 @@ import { $ZodType } from "zod/v4/core"
 
 import { LoginPathname } from "@/constants"
 
-import { User } from "@/prisma/generated"
+import { User } from "@/prisma/generated/client"
 
 import { getParser } from "@/schemas"
 

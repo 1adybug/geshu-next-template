@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma"
-import { User } from "@/prisma/generated"
+import { User } from "@/prisma/generated/client"
 
 import { AddUserParams } from "@/schemas/addUser"
 

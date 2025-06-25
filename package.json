@@ -11,7 +11,7 @@
         "start": "next start",
         "lint": "next lint",
         "watch": "bun scripts/watchShared.ts",
-        "format": "prettier --config-path prettier.config.mjs --write . && prettier --config-path .prettierrc.mjs --write ."
+        "format": "prettier --config-path prettier.config.mjs --write . --experimental-cli && prettier --config-path .prettierrc.mjs --write . --experimental-cli"
     },
     "dependencies": {
         "@alicloud/dysmsapi20170525": "^4.1.1",

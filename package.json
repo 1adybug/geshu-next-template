@@ -25,6 +25,7 @@
         "@tabler/icons-react": "^3.34.0",
         "@tanstack/react-form": "^1.12.3",
         "@tanstack/react-query": "^5.81.2",
+        "@uiw/react-json-view": "^2.0.0-alpha.32",
         "antd": "^5.26.2",
         "dayjs": "^1.11.13",
         "deepsea-components": "^5.15.10",

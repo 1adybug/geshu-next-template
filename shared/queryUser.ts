@@ -5,6 +5,8 @@ import { QueryMode, UserOrderByWithRelationInput } from "@/prisma/generated/inte
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 import { getUserWhere } from "@/prisma/getUserWhere"
 
+import { defaultPageNum } from "@/schemas/pageNum"
+import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryUserParams } from "@/schemas/queryUser"
 
 export async function queryUser({
@@ -15,8 +17,8 @@ export async function queryUser({
     createdBefore,
     updatedAfter,
     updatedBefore,
-    pageNum = 1,
-    pageSize = 10,
+    pageNum = defaultPageNum,
+    pageSize = defaultPageSize,
     sortBy = "createdAt",
     sortOrder = "asc",
 }: QueryUserParams) {

@@ -1,15 +1,17 @@
 "use client"
 
-import { FC } from "react"
-import { Button, Form, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
+import { FC, useState } from "react"
+import { Button, Form, Link, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useQuery } from "@tanstack/react-query"
+import JsonView from "@uiw/react-json-view"
 import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser } from "deepsea-tools"
 import { FormInput } from "soda-heroui"
 import { useQueryState } from "soda-next"
 
 import { queryOperationLogAction } from "@/actions/queryOperationLog"
 
+import Blackboard, { BlackboardProps } from "@/components/Blackboard"
 import DateRangePicker from "@/components/DateRangePicker"
 import Pagination from "@/components/Pagination"
 import User from "@/components/User"
@@ -35,6 +37,8 @@ const Page: FC = () => {
             sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
         },
     })
+
+    const [info, setInfo] = useState<Pick<BlackboardProps, "header" | "body">>()
 
     const sortDescriptor: SortDescriptor | undefined = query.sortBy && {
         column: query.sortBy,
@@ -167,6 +171,7 @@ const Page: FC = () => {
                 </Form>
             </div>
             <div className="px-4">
+                <Blackboard isOpen={isNonNullable(info)} onClose={() => setInfo(undefined)} {...info} />
                 <Table
                     bottomContent={
                         <Pagination
@@ -208,7 +213,24 @@ const Page: FC = () => {
                                 <TableCell>{phone || "—"}</TableCell>
                                 <TableCell>{(role && getEnumKey(Role, role)) || "—"}</TableCell>
                                 <TableCell>{action}</TableCell>
-                                <TableCell>{params ?? "—"}</TableCell>
+                                <TableCell>
+                                    {params ? (
+                                        <Link
+                                            size="sm"
+                                            className="line-clamp-1 max-w-48 cursor-pointer break-all"
+                                            onPress={() =>
+                                                setInfo({
+                                                    header: "错误参数",
+                                                    body: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(params)} />,
+                                                })
+                                            }
+                                        >
+                                            {params}
+                                        </Link>
+                                    ) : (
+                                        "—"
+                                    )}
+                                </TableCell>
                                 <TableCell>{ip}</TableCell>
                                 <TableCell>{userAgent ?? "—"}</TableCell>
                                 <TableCell>{formatTime(createdAt)}</TableCell>

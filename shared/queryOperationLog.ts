@@ -4,6 +4,8 @@ import { prisma } from "@/prisma"
 import { OperationLogOrderByWithRelationInput, QueryMode } from "@/prisma/generated/internal/prismaNamespace"
 import { getOperationLogWhere } from "@/prisma/getOperationLogWhere"
 
+import { defaultPageNum } from "@/schemas/pageNum"
+import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryOperationLogParams } from "@/schemas/queryOperationLog"
 
 import { getCurrentUser } from "@/server/getCurrentUser"
@@ -15,8 +17,8 @@ export async function queryOperationLog({
     ip = "",
     userAgent = "",
     username = "",
-    pageNum = 1,
-    pageSize = 10,
+    pageNum = defaultPageNum,
+    pageSize = defaultPageSize,
     sortBy = "createdAt",
     sortOrder = "desc",
 }: QueryOperationLogParams) {

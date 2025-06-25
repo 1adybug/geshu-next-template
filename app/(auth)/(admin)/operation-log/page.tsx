@@ -4,7 +4,7 @@ import { FC } from "react"
 import { Button, Form, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useQuery } from "@tanstack/react-query"
-import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser, positiveIntParser } from "deepsea-tools"
+import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser } from "deepsea-tools"
 import { FormInput } from "soda-heroui"
 import { useQueryState } from "soda-next"
 
@@ -16,6 +16,8 @@ import User from "@/components/User"
 
 import { getParser } from "@/schemas"
 import { OperationLogSortByParams, operationLogSortBySchema } from "@/schemas/operationLogSortBy"
+import { pageNumParser } from "@/schemas/pageNum"
+import { pageSizeParser } from "@/schemas/pageSize"
 import { Role } from "@/schemas/role"
 import { sortOrderSchema } from "@/schemas/sortOrder"
 
@@ -27,8 +29,8 @@ const Page: FC = () => {
         parse: {
             createdBefore: naturalParser,
             createdAfter: naturalParser,
-            pageNum: positiveIntParser,
-            pageSize: positiveIntParser,
+            pageNum: pageNumParser,
+            pageSize: pageSizeParser,
             sortBy: getParser(operationLogSortBySchema.optional().catch(undefined)),
             sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
         },
@@ -168,8 +170,8 @@ const Page: FC = () => {
                 <Table
                     bottomContent={
                         <Pagination
-                            pageSize={data?.pageSize ?? 10}
-                            pageNum={data?.pageNum ?? 1}
+                            pageSize={query.pageSize}
+                            pageNum={query.pageNum}
                             total={data?.total ?? 1}
                             onPageSizeChange={value => setQuery(prev => ({ ...prev, pageSize: value, pageNum: 1 }))}
                             onPageNumChange={value => setQuery(prev => ({ ...prev, pageNum: value }))}

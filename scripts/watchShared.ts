@@ -19,7 +19,7 @@ export async function watchShared() {
         if (ext !== ".ts" && ext !== ".tsx" && ext !== ".js" && ext !== ".jsx") return
         const serverContent = await readFile(join("shared", path), "utf-8")
 
-        const match = serverContent.match(new RegExp(`export async function ${name}\\(.+?: (.+?)Params\\)`))
+        const match = serverContent.match(new RegExp(`export async function ${name}\\(.+?: (.+?)Params\\)`, "s"))
         const schema = match?.[1].replace(/^./, char => char.toLowerCase())
         const hasSchema = isNonNullable(schema)
 

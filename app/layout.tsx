@@ -15,9 +15,7 @@ export interface RootLayoutProps {
     children?: ReactNode
 }
 
-const RootLayout: FC<RootLayoutProps> = props => {
-    const { children } = props
-
+const RootLayout: FC<RootLayoutProps> = ({ children }) => {
     return (
         <html lang="zh">
             <link rel="icon" href="/geshu.svg" type="image/svg+xml" />

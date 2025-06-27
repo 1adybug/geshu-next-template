@@ -14,6 +14,6 @@ export const LoginPathname = "/login"
 
 export const CookiePrefix = process.env.COOKIE_PREFIX
 
-export const JWT_SECRET = process.env.JWT_SECRET!
+export const JwtSecrect = process.env.JWT_SECRET!
 
 export const IsIntranet = !!process.env.IS_INTRANET

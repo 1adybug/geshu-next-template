@@ -16,13 +16,4 @@ export const CookiePrefix = process.env.COOKIE_PREFIX
 
 export const JWT_SECRET = process.env.JWT_SECRET!
 
-async function getIsIntranet() {
-    try {
-        await fetch("https://www.baidu.com")
-        return false
-    } catch (error) {
-        return true
-    }
-}
-
-export const IsIntranet = await getIsIntranet()
+export const IsIntranet = !!process.env.IS_INTRANET

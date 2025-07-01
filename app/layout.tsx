@@ -18,7 +18,6 @@ export interface RootLayoutProps {
 const RootLayout: FC<RootLayoutProps> = ({ children }) => {
     return (
         <html lang="zh">
-            <link rel="icon" href="/geshu.svg" type="image/svg+xml" />
             <body>
                 <Client />
                 <Registry>{children}</Registry>

@@ -10,7 +10,39 @@ import { StrictOmit } from "soda-type"
 import { getUserOwnAction } from "@/actions/getUserOwn"
 import { logoutAction } from "@/actions/logout"
 
+import { User } from "@/prisma/generated/client"
+
+import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
+
 import Brand from "./Brand"
+
+interface NavItem {
+    href: string
+    name: string
+    filter?: (user: User) => boolean
+}
+
+const navs: NavItem[] = [
+    {
+        href: "/",
+        name: "首页",
+    },
+    {
+        href: "/user-management",
+        name: "用户管理",
+        filter: user => user.role === "ADMIN",
+    },
+    {
+        href: "/operation-log",
+        name: "操作日志",
+        filter: user => user.role === "ADMIN",
+    },
+    {
+        href: "/system-log",
+        name: "系统日志",
+        filter: user => user.role === "ADMIN",
+    },
+]
 
 export interface HeaderProps extends StrictOmit<ComponentProps<typeof Navbar>, "children"> {}
 
@@ -28,11 +60,16 @@ const Header: FC<HeaderProps> = props => {
                 <Brand className="flex-none" />
             </NavbarBrand>
             <NavbarContent className="hidden gap-4 sm:flex" justify="start">
-                <NavbarItem isActive={pathname === "/"}>
-                    <Link color={pathname === "/" ? "primary" : "foreground"} href="/">
-                        首页
-                    </Link>
-                </NavbarItem>
+                {navs.map(
+                    ({ href, name, filter }) =>
+                        (!filter || (!!data && filter(data))) && (
+                            <NavbarItem key={href} isActive={pathname === getPathnameAndSearchParams(href).pathname}>
+                                <Link color={pathname === getPathnameAndSearchParams(href).pathname ? "primary" : "foreground"} href={href}>
+                                    {name}
+                                </Link>
+                            </NavbarItem>
+                        ),
+                )}
             </NavbarContent>
             <NavbarContent justify="end">
                 <div>{data?.username}</div>

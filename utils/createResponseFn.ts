@@ -67,37 +67,9 @@ createResponseFn.use = function use(middleware: Middleware<OriginalResponseFn<an
 createResponseFn.use(async context =>
     addOperationLog({
         action: context.fn.name,
-        args: context.arguments,
+        args: context.args,
     }),
 )
-
-createResponseFn.use(async (context, next) => {
-    try {
-        await next()
-        if (context.result?.success !== false) return
-        addErrorLog({
-            action: context.fn.name,
-            args: context.arguments,
-            error: context.result?.error,
-        })
-    } catch (e) {
-        const error = e as Error
-        console.log(styleText("red", error.message))
-        console.log(error)
-        if (isRedirectError(error)) throw error
-        addErrorLog({
-            action: context.fn.name,
-            args: context.arguments,
-            error,
-        })
-        if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)
-        context.result = {
-            success: false,
-            data: undefined,
-            message: error.message,
-        }
-    }
-})
 
 createResponseFn.use(async (context, next) => {
     const user = await getCurrentUser()
@@ -111,4 +83,32 @@ createResponseFn.use(async (context, next) => {
     }
 
     await next()
+})
+
+createResponseFn.use(async (context, next) => {
+    try {
+        await next()
+        if (context.result?.success !== false) return
+        addErrorLog({
+            action: context.fn.name,
+            args: context.args,
+            error: context.result?.error,
+        })
+    } catch (e) {
+        const error = e as Error
+        console.log(styleText("red", error.message))
+        console.log(error)
+        if (isRedirectError(error)) throw error
+        addErrorLog({
+            action: context.fn.name,
+            args: context.args,
+            error,
+        })
+        if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)
+        context.result = {
+            success: false,
+            data: undefined,
+            message: error.message,
+        }
+    }
 })

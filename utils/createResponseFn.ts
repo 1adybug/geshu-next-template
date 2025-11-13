@@ -57,6 +57,7 @@ export function createResponseFn<T extends [arg?: unknown], P>({ fn, schema, nam
     return newResponse
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 createResponseFn.use = function use(middleware: Middleware<OriginalResponseFn<any, any>>) {
     globalResponseFnMiddlewares.push(middleware)
     return createResponseFn

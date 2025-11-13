@@ -7,8 +7,9 @@ const config = {
     semi: false,
     tabWidth: 4,
     arrowParens: "avoid",
+    endOfLine: "lf",
     printWidth: 160,
-    plugins: ["prettier-plugin-organize-imports"],
+    plugins: ["./prettier-plugin-sort-imports.mjs"],
 }
 
 export default config

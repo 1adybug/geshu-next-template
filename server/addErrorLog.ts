@@ -1,5 +1,4 @@
 import { prisma } from "@/prisma"
-
 import { ClientError } from "@/utils/clientError"
 import { stringifyParams } from "@/utils/stringifyParams"
 
@@ -43,6 +42,7 @@ export async function addErrorLog({ error, action, args }: AddErrorLogParams) {
                 },
             }),
         ])
+
         if (error instanceof ClientError && error.origin) {
             await addErrorLog({
                 error: error.origin,

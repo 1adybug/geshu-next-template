@@ -11,6 +11,7 @@ export interface ClientErrorOptions {
 export class ClientError extends Error {
     /** 原始的错误 */
     origin?: unknown
+
     /** 错误代码 */
     code?: number
 
@@ -19,6 +20,7 @@ export class ClientError extends Error {
             super(messageOrOptions)
             return
         }
+
         const { message, code, origin } = messageOrOptions ?? {}
         super(message)
         this.origin = origin

@@ -1,15 +1,13 @@
 import { styleText } from "util"
-import { Middleware, ResponseData, assignFnName, createFnWithMiddleware } from "deepsea-tools"
+
+import { assignFnName, createFnWithMiddleware, Middleware, ResponseData } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { redirect } from "next/navigation"
 import { $ZodType } from "zod/v4/core"
 
 import { LoginPathname } from "@/constants"
-
 import { User } from "@/prisma/generated/client"
-
 import { getParser } from "@/schemas"
-
 import { addErrorLog } from "@/server/addErrorLog"
 import { addOperationLog } from "@/server/addOperationLog"
 import { getCurrentUser } from "@/server/getCurrentUser"
@@ -68,8 +66,7 @@ createResponseFn.use(async context =>
     addOperationLog({
         action: context.fn.name,
         args: context.args,
-    }),
-)
+    }))
 
 createResponseFn.use(async (context, next) => {
     const user = await getCurrentUser()
@@ -89,6 +86,7 @@ createResponseFn.use(async (context, next) => {
     try {
         await next()
         if (context.result?.success !== false) return
+
         addErrorLog({
             action: context.fn.name,
             args: context.args,
@@ -99,11 +97,13 @@ createResponseFn.use(async (context, next) => {
         console.log(styleText("red", error.message))
         console.log(error)
         if (isRedirectError(error)) throw error
+
         addErrorLog({
             action: context.fn.name,
             args: context.args,
             error,
         })
+
         if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)
         context.result = {
             success: false,

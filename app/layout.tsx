@@ -1,4 +1,5 @@
 import { FC, ReactNode } from "react"
+
 import { Metadata } from "next"
 
 import Client from "@/components/Client"

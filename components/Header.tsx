@@ -1,6 +1,7 @@
 "use client"
 
 import { ComponentProps, FC } from "react"
+
 import { Button, Link, Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react"
 import { useQuery } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
@@ -9,9 +10,7 @@ import { StrictOmit } from "soda-type"
 
 import { getUserOwnAction } from "@/actions/getUserOwn"
 import { logoutAction } from "@/actions/logout"
-
 import { User } from "@/prisma/generated/client"
-
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 import Brand from "./Brand"

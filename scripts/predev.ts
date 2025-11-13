@@ -1,4 +1,5 @@
 import { join, relative } from "path"
+
 import { watch } from "chokidar"
 
 import { deleteFileOrFolder } from "../utils/deleteFileOrFolder"

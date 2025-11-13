@@ -1,8 +1,6 @@
 import { prisma } from "@/prisma"
 import { User } from "@/prisma/generated/client"
-
 import { UpdateUserParams } from "@/schemas/updateUser"
-
 import { ClientError } from "@/utils/clientError"
 
 export async function updateUser({ id, username, phone, role }: UpdateUserParams) {

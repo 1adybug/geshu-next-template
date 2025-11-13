@@ -1,5 +1,4 @@
 import { prisma } from "@/prisma"
-
 import { getCurrentUserId } from "@/server/getCurrentUserId"
 
 export async function getUserOwn() {

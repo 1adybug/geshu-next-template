@@ -9,9 +9,11 @@ await deleteFileOrFolder("actions")
 
 async function build(dir: string) {
     const content = await readdir(dir)
+
     for (const item of content) {
         const path = join(dir, item)
         const stats = await stat(path)
+
         if (stats.isDirectory()) {
             await build(path)
         } else {

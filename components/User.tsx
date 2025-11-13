@@ -1,7 +1,8 @@
 import { ComponentProps, FC } from "react"
+
 import { Button, Link } from "@heroui/react"
 
-import { type User } from "@/prisma/generated/client"
+import type { User } from "@/prisma/generated/client"
 
 export interface UserProps extends Omit<ComponentProps<typeof Button<typeof Link>>, "children"> {
     data: Pick<User, "id" | "username">

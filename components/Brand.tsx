@@ -1,4 +1,5 @@
 import { ComponentProps, FC } from "react"
+
 import { clsx } from "deepsea-tools"
 import Link from "next/link"
 import { StrictOmit } from "soda-type"

@@ -1,13 +1,9 @@
 import { IsDevelopment, IsIntranet, IsProduction } from "@/constants"
-
 import { prisma } from "@/prisma"
-
 import { AccountParams } from "@/schemas/account"
-
 import { getUserFromAccount } from "@/server/getUserFromAccount"
 import { sendAliyunSms } from "@/server/sendAliyunSms"
 import { sendQjpSms } from "@/server/sendQjpSms"
-
 import { ClientError } from "@/utils/clientError"
 
 export async function sendCaptcha(account: AccountParams) {
@@ -16,6 +12,7 @@ export async function sendCaptcha(account: AccountParams) {
     const captcha = await prisma.captcha.findUnique({ where: { userId: user.id } })
     if (captcha && captcha.createdAt.valueOf() + 60 * 1000 > Date.now()) throw new ClientError({ message: "操作频繁，请稍后再试", code: 400 })
     const code = IsDevelopment ? "1234" : Math.random().toString().slice(2, 6).padEnd(4, "0")
+
     if (IsProduction) {
         if (IsIntranet) {
             await sendQjpSms({
@@ -31,6 +28,7 @@ export async function sendCaptcha(account: AccountParams) {
             })
         }
     }
+
     await prisma.captcha.upsert({
         create: { userId: user.id, code, createdAt: new Date(), expiredAt: new Date(Date.now() + 60 * 1000) },
         update: { code, createdAt: new Date(), expiredAt: new Date(Date.now() + 60 * 1000) },

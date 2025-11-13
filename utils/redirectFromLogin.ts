@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 
 import { LoginPathname } from "@/constants"
-
 import { getUrl } from "@/server/getUrl"
 
 import { getPathnameAndSearchParams } from "./getPathnameAndSearchParams"

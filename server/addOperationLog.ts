@@ -1,5 +1,4 @@
 import { prisma } from "@/prisma"
-
 import { stringifyParams } from "@/utils/stringifyParams"
 
 import { getCurrentUser } from "./getCurrentUser"

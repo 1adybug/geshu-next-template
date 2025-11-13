@@ -1,21 +1,20 @@
 import { ComponentProps, FC, Fragment, useEffect } from "react"
-import { Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem, addToast } from "@heroui/react"
+
+import { addToast, Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createRequestFn, getEnumKey, isNonNullable, resolveNull } from "deepsea-tools"
-import { FormInput, FormSelect, addBetterToast, closeToast } from "soda-heroui"
+import { addBetterToast, closeToast, FormInput, FormSelect } from "soda-heroui"
 
 import { addUserAction } from "@/actions/addUser"
 import { getUserAction } from "@/actions/getUser"
 import { updateUserAction } from "@/actions/updateUser"
-
 import { AddUserParams, addUserParser } from "@/schemas/addUser"
 import { idParser } from "@/schemas/id"
 import { phoneSchema } from "@/schemas/phone"
 import { Role, roleSchema } from "@/schemas/role"
 import { updateUserParser } from "@/schemas/updateUser"
 import { usernameSchema } from "@/schemas/username"
-
 import { getOnSubmit } from "@/utils/getOnSubmit"
 
 export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "id" | "children"> {
@@ -25,6 +24,7 @@ export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "id"
 const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
     const isUpdate = isNonNullable(id)
     const queryClient = useQueryClient()
+
     const form = useForm({
         defaultValues: {} as AddUserParams,
         onSubmit({ value }) {
@@ -49,6 +49,7 @@ const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
                 title: `${isUpdate ? "修改用户" : "新增用户"}中...`,
                 loading: true,
             })
+
             return key
         },
         onSuccess() {

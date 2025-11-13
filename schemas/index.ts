@@ -5,6 +5,7 @@ import { ClientError } from "@/utils/clientError"
 export function getParser<T extends $ZodType>(schema: T) {
     return function parser(arg: unknown): output<T> {
         const { data, error } = safeParse(schema, arg)
+
         if (error) {
             const { formErrors, fieldErrors } = flattenError(error)
             throw new ClientError({

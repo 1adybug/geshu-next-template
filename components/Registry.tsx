@@ -1,6 +1,7 @@
 "use client"
 
 import { FC, ReactNode } from "react"
+
 import { AntdRegistry } from "@ant-design/nextjs-registry"
 import { HeroUIProvider, ToastProvider } from "@heroui/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"

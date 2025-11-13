@@ -26,12 +26,14 @@ export async function sendAliyunSms({ phone, signName, templateCode, params }: S
     config.accessKeySecret = process.env.ALIYUN_ACCESS_KEY_SECRET
     config.endpoint = `dysmsapi.aliyuncs.com`
     const client = new Dysmsapi(config)
+
     const sendSmsRequest = new SendSmsRequest({
         phoneNumbers: phone,
         signName,
         templateCode,
         templateParam: JSON.stringify(params),
     })
+
     const response = await client.sendSmsWithOptions(sendSmsRequest, new RuntimeOptions({}))
     if (response.body?.code !== "OK") throw new Error(response.body?.message)
     return response

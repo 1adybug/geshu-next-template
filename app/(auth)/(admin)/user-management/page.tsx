@@ -1,29 +1,27 @@
 "use client"
 
 import { FC, useState } from "react"
+
 import { Button, Form, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
 import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser } from "deepsea-tools"
-import { FormInput, addBetterToast, closeToast } from "soda-heroui"
+import { addBetterToast, closeToast, FormInput } from "soda-heroui"
 import { useQueryState } from "soda-next"
 
 import { deleteUserAction } from "@/actions/deleteUser"
 import { queryUserAction } from "@/actions/queryUser"
-
 import Confirm from "@/components/Confirm"
 import DateRangePicker from "@/components/DateRangePicker"
 import Pagination from "@/components/Pagination"
 import UserEditor from "@/components/UserEditor"
-
 import { getParser } from "@/schemas"
 import { pageNumParser } from "@/schemas/pageNum"
 import { pageSizeParser } from "@/schemas/pageSize"
 import { Role } from "@/schemas/role"
 import { sortOrderSchema } from "@/schemas/sortOrder"
 import { UserSortByParams, userSortBySchema } from "@/schemas/userSortBy"
-
 import { getOnSubmit } from "@/utils/getOnSubmit"
 
 const Page: FC = () => {
@@ -115,10 +113,12 @@ const Page: FC = () => {
         mutationFn,
         onMutate() {
             setDeleteUserId(undefined)
+
             const key = addBetterToast({
                 title: "删除用户",
                 description: "正在删除用户",
             })
+
             return key
         },
         onSuccess() {

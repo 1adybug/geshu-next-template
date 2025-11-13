@@ -1,5 +1,6 @@
-import { mkdir, readFile, readdir, writeFile } from "fs/promises"
+import { mkdir, readdir, readFile, writeFile } from "fs/promises"
 import { join, parse, relative } from "path"
+
 import { isNonNullable } from "deepsea-tools"
 
 await mkdir(".vscode", { recursive: true })
@@ -58,6 +59,7 @@ export const ${name}Action = createResponseFn({
     name: "${name}",
 })
 `
+
     const actionPath = join("actions", path)
     await mkdir(join("actions", dir), { recursive: true })
     await writeFile(actionPath, content)

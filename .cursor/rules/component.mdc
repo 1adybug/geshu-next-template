@@ -1,0 +1,130 @@
+---
+alwaysApply: true
+---
+
+# Component 文档
+
+## 规则
+
+-   你应该将根组件的 `props` 当做基础的 `props` 类型，将当前组件所需的原始数据当做 `data` 属性
+
+    ```tsx
+    import { ComponentProps, FC } from "react"
+    import { clsx } from "deepsea-tools"
+    import { StrictOmit } from "deepsea-tools"
+
+    export interface Book {
+        id: string
+        name: string
+        isbn: string
+    }
+
+    export interface BookProps extends StrictOmit<ComponentProps<"div">, "children"> {
+        data?: Book
+    }
+
+    const Book: FC<BookProps> = ({ className, data, ...rest }) => {
+        return (
+            <div className={clsx("container", className)} {...rest}>
+                <div>{data?.name}</div>
+                <div>{data?.isbn}</div>
+            </div>
+        )
+    }
+
+    export default Book
+    ```
+
+    因为 `Book` 组件的根元素是 `div`，所以 `BookProps` 类型应该继承自 `StrictOmit<ComponentProps<"div">, "children">`，如果 `Book` 组件的根组件不是 `html` 元素，例如 `Container` 组件，则应该继承自 `StrictOmit<ComponentProps<typeof Container>, "children">`，或者如果存在 `ContainerProps` 类型，则应该继承自 `StrictOmit<ContainerProps, "children">`
+
+    `data` 属性是指整个项目中某种数据的原始类型，例如从 `queryBook` 接口等 api 函数中获取到的数据，这时 `data` 的类型就是 `Book` 类型
+
+-   尽量直接在函数式组件的参数中解构 `props`，获取需要使用的属性，将剩余的属性作为 `rest` 属性
+
+-   如果你需要根组件设置 `className`，请使用从 `deepsea-tools` 中导入的 `clsx` 函数来合并 `className`，例如上方的：
+
+    ```tsx
+    <div className={clsx("container", className)} {...rest}>
+    ```
+
+-   如果组件是一个受控组件，请使用 `value` 和 `onValueChange` 来实现受控组件，这两个属性都应该是可选，并且在组件内部，你应该使用从 `soda-hooks` 中导入的 `useInputState` 的钩子来实现内部状态与外部状态的同步，例如：
+
+    ```tsx
+    import { ComponentProps, FC } from "react"
+    import { StrictOmit } from "deepsea-tools"
+
+    export interface MyInputProps extends StrictOmit<ComponentProps<typeof OtherInput>, "value" | "onValueChange"> {
+        value?: string
+        onValueChange?: (value: string) => void
+    }
+
+    const MyInput: FC<MyInputProps> = ({ value: _value, onValueChange: _onValueChange, ...rest }) => {
+        const [value, setValue] = useInputState(_value)
+
+        function onValueChange(value: string) {
+            setValue(value)
+            _onValueChange?.(value)
+        }
+
+        return <OtherInput value={value} onValueChange={onValueChange} {...rest} />
+    }
+
+    export default MyInput
+    ```
+
+-   如果你需要使用 `React` 中的某个导入，请使用 `import { xxx } from "react"` 而不是 `React.xxx` 的形式，如果已经存在同名的变量或者类型，请使用 `import { xxx as reactXxx } from "react"`，变量使用小驼峰命名，类型使用大驼峰命名
+
+-   如果你需要在组件内部添加一个事件处理函数，而组件的 `props` 中存在同名的事件处理函数，你应该这样处理：
+
+    ```tsx
+    // 因为 global 中存在 MouseEvent 类型，与 react 中的 MouseEvent 类型冲突，所以需要将 react 中的 MouseEvent 类型重命名为 ReactMouseEvent
+    import { ComponentProps, FC, MouseEvent as ReactMouseEvent } from "react"
+
+    import { StrictOmit } from "deepsea-tools"
+
+    export interface AppProps extends StrictOmit<ComponentProps<"div">, "children"> {}
+
+    // 将 props 中的同名事件处理函数加一个下划线前缀
+    const App: FC<AppProps> = ({ onClick: _onClick, ...rest }) => {
+        function onClick(event: ReactMouseEvent<HTMLDivElement, MouseEvent>) {
+            // 优先处理内部逻辑
+            console.log("onClick")
+            // 然后调用外部的事件处理函数
+            _onClick?.(event)
+        }
+
+        return (
+            <div onClick={onClick} {...rest}>
+                Hello World!
+            </div>
+        )
+    }
+
+    export default App
+    ```
+
+-   如果你的组件内部没有任何逻辑，只有 `return` 一个组件，请直接返回该组件，不要使用 `return` 关键字，例如：
+
+    ```tsx
+    const App: FC<AppProps> = ({ className, ...rest }) => (
+        <div className={clsx("container", className)} {...rest}>
+            Hello World!
+        </div>
+    )
+    ```
+
+-   当你在组件内部需要获取根组件的 `ref`，而 `props` 中也有 `ref` 属性时，你应该这样处理：
+
+    ```tsx
+    const App: FC<AppProps> = ({ ref, ...rest }) => {
+        const container = useRef<HTMLDivElement>(null)
+
+        useImperativeHandle(ref, () => container.current!)
+
+        return (
+            <div ref={container} {...rest}>
+                Hello World!
+            </div>
+        )
+    }
+    ```

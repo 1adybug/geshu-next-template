@@ -13,7 +13,8 @@
         "start": "next start",
         "lint": "eslint .",
         "format": "prettier --write .",
-        "fg": "npm run format && git add . && git commit -m \"✨feature: format\""
+        "fg": "npm run format && git add . && git commit -m \"✨feature: format\"",
+        "ucr": "npx zixulu acr"
     },
     "dependencies": {
         "@alicloud/dysmsapi20170525": "^4.2.0",

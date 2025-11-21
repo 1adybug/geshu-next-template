@@ -17,15 +17,13 @@ export interface RootLayoutProps {
     children?: ReactNode
 }
 
-const RootLayout: FC<RootLayoutProps> = ({ children }) => {
-    return (
-        <html lang="zh">
-            <body>
-                <Client />
-                <Registry>{children}</Registry>
-            </body>
-        </html>
-    )
-}
+const RootLayout: FC<RootLayoutProps> = ({ children }) => (
+    <html lang="zh">
+        <body>
+            <Client />
+            <Registry>{children}</Registry>
+        </body>
+    </html>
+)
 
 export default RootLayout

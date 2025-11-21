@@ -76,8 +76,10 @@ createResponseFn.use(async (context, next) => {
     if (typeof filter === "function") {
         if (!user) throw new ClientError({ message: "请先登录", code: 401 })
         if (!filter(user)) throw new ClientError({ message: "无权限", code: 403 })
-    } else if (filter === true && !user) {
-        throw new ClientError({ message: "请先登录", code: 401 })
+    } else {
+        if (filter === true && !user) {
+            throw new ClientError({ message: "请先登录", code: 401 })
+        }
     }
 
     await next()

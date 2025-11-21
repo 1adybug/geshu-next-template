@@ -59,3 +59,5 @@ prisma/generated
 
 installer
 installer.exe
+dist*
+test*

@@ -70,12 +70,14 @@ export async function queryOperationLog({
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
-        } else if (sortBy === "username") {
-            orderBy.unshift({
-                user: {
-                    username: sortOrder,
-                },
-            })
+        } else {
+            if (sortBy === "username") {
+                orderBy.unshift({
+                    user: {
+                        username: sortOrder,
+                    },
+                })
+            }
         }
     }
 

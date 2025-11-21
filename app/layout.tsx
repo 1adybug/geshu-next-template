@@ -5,6 +5,8 @@ import { Metadata } from "next"
 import Client from "@/components/Client"
 import Registry from "@/components/Registry"
 
+import "source-han-sans-sc-vf"
+
 import "./globals.css"
 
 // eslint-disable-next-line react-refresh/only-export-components

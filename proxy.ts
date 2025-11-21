@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set("current-url", request.url)
 

@@ -1,7 +1,7 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
-import { ErrorLogOrderByWithRelationInput, QueryMode } from "@/prisma/generated/internal/prismaNamespace"
+import { ErrorLogOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { getErrorLogWhere } from "@/prisma/getErrorLogWhere"
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
@@ -26,27 +26,27 @@ export async function queryErrorLog({
             ...type
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ type: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ type: { contains: item } })),
             ...message
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ message: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ message: { contains: item } })),
             ...action
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ action: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ action: { contains: item } })),
             ...ip
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ ip: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ ip: { contains: item } })),
             ...userAgent
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ userAgent: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ userAgent: { contains: item } })),
             ...username
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ username: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ username: { contains: item } })),
         ],
         createdAt: {
             gte: createdAfter,
@@ -61,7 +61,7 @@ export async function queryErrorLog({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type")
+        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type" || sortBy === "message")
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })

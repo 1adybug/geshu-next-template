@@ -17,3 +17,7 @@ export const CookiePrefix = process.env.COOKIE_PREFIX
 export const JwtSecrect = process.env.JWT_SECRET!
 
 export const IsIntranet = !!process.env.IS_INTRANET
+
+export const IsBun = typeof Bun !== "undefined"
+
+export const DatabaseUrl = IsDevelopment ? "file:./prisma/development.db" : "file:./prisma/production.db"

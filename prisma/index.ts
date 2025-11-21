@@ -1,7 +1,18 @@
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaLibSql } from "@prisma/adapter-libsql"
+
+import { DatabaseUrl, IsBun } from "@/constants"
+
 import { PrismaClient } from "./generated/client"
 
+const adapter = new (IsBun ? PrismaLibSql : PrismaBetterSqlite3)({
+    url: DatabaseUrl,
+})
+
 function getPrisma() {
-    return new PrismaClient()
+    return new PrismaClient({
+        adapter,
+    })
 }
 
 declare global {

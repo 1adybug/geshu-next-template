@@ -21,7 +21,6 @@ export interface RootLayoutProps {
 const RootLayout: FC<RootLayoutProps> = ({ children }) => (
     <html lang="zh">
         <body>
-            
             <Registry>{children}</Registry>
         </body>
     </html>

@@ -1,4 +1,4 @@
-import { DefaultArgs } from "@prisma/client/runtime/library"
+import { DefaultArgs } from "@prisma/client/runtime/client"
 
 import { Prisma } from "./generated/client"
 

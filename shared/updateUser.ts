@@ -16,7 +16,7 @@ export async function updateUser({ id, username, phone, role }: UpdateUserParams
         if (count === 1) throw new ClientError("不能将最后一个管理员降级为普通用户")
     }
 
-    const response = await prisma.user.update({ where: { id }, data: { username, phone } })
+    const response = await prisma.user.update({ where: { id }, data: { username, phone, role } })
     return response
 }
 

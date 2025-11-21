@@ -1,7 +1,7 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
-import { QueryMode, UserOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
+import { UserOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 import { getUserWhere } from "@/prisma/getUserWhere"
 import { defaultPageNum } from "@/schemas/pageNum"
@@ -21,13 +21,13 @@ export async function queryUser({
     sortBy = "createdAt",
     sortOrder = "asc",
 }: QueryUserParams) {
-    username = username.trim()
+    // phone 需要 trim，因为它没有使用 split
     phone = phone.trim()
 
     const where = id
         ? { id }
         : getUserWhere({
-              phone: phone ? { contains: phone } : undefined,
+              phone: phone.length > 0 ? { contains: phone } : undefined,
               createdAt: {
                   gte: createdAfter,
                   lte: createdBefore,
@@ -37,12 +37,14 @@ export async function queryUser({
                   lte: updatedBefore,
               },
               AND: [
-                  ...username.split(" ").map(item => ({
-                      username: {
-                          contains: item,
-                          mode: QueryMode.insensitive,
-                      },
-                  })),
+                  ...username
+                      .split(" ")
+                      .filter(Boolean)
+                      .map(item => ({
+                          username: {
+                              contains: item,
+                          },
+                      })),
               ],
           })
 

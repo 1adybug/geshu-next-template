@@ -1,7 +1,7 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
-import { OperationLogOrderByWithRelationInput, QueryMode } from "@/prisma/generated/internal/prismaNamespace"
+import { OperationLogOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { getOperationLogWhere } from "@/prisma/getOperationLogWhere"
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
@@ -27,19 +27,19 @@ export async function queryOperationLog({
             ...action
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ action: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ action: { contains: item } })),
             ...ip
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ ip: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ ip: { contains: item } })),
             ...userAgent
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ userAgent: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ userAgent: { contains: item } })),
             ...username
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ username: { contains: item, mode: QueryMode.insensitive } })),
+                .map(item => ({ username: { contains: item } })),
         ],
         createdAt: {
             gte: createdAfter,

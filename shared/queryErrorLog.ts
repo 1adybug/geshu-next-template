@@ -61,18 +61,17 @@ export async function queryErrorLog({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type") {
+        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type")
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
-        } else {
-            if (sortBy === "username") {
+        else {
+            if (sortBy === "username")
                 orderBy.unshift({
                     user: {
                         username: sortOrder,
                     },
                 })
-            }
         }
     }
 

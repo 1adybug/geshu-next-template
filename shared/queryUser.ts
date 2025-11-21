@@ -53,11 +53,10 @@ export async function queryUser({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "username" || sortBy === "phone" || sortBy === "role" || sortBy === "updatedAt") {
+        if (sortBy === "username" || sortBy === "phone" || sortBy === "role" || sortBy === "updatedAt")
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
-        }
     }
 
     const data = await prisma.user.findMany({

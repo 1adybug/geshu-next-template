@@ -3,6 +3,7 @@
 import { readFileSync } from "fs"
 import { builtinModules } from "module"
 
+import removeBraces from "@1adybug/prettier-plugin-remove-braces"
 import { createPlugin } from "@1adybug/prettier-plugin-sort-imports"
 import JSON5 from "json5"
 import blockPadding from "prettier-plugin-block-padding"
@@ -81,5 +82,5 @@ export default createPlugin({
     separator: "",
     sortSideEffect: true,
     removeUnusedImports: true,
-    otherPlugins: [blockPadding, tailwindcss],
+    otherPlugins: [blockPadding, tailwindcss, removeBraces],
 })

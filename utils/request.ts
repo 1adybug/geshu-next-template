@@ -1,6 +1,7 @@
 /* eslint-disable */
 
 import { isJSONArray, isJSONObject } from "es-toolkit"
+
 import { PublicApiUrl } from "@/constants"
 
 export interface ResponseData<T = any> {

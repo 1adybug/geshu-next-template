@@ -14,11 +14,8 @@ async function build(dir: string) {
         const path = join(dir, item)
         const stats = await stat(path)
 
-        if (stats.isDirectory()) {
-            await build(path)
-        } else {
-            await createAction(path)
-        }
+        if (stats.isDirectory()) await build(path)
+        else await createAction(path)
     }
 }
 

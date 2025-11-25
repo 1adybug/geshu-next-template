@@ -5,6 +5,8 @@ import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 import "dayjs/locale/zh-cn"
 
+dayjs.locale("zh-cn")
+
 createRequestFn.use(async (context, next) => {
     try {
         await next()
@@ -21,5 +23,3 @@ createRequestFn.use(async (context, next) => {
         throw error
     }
 })
-
-dayjs.locale("zh-cn")

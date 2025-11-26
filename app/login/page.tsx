@@ -1,11 +1,12 @@
 "use client"
 
-import { FC, useEffect, useState } from "react"
+import { FC, useEffect, useMemo, useState } from "react"
 
 import { addToast, Button, Form } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
+import { useSearchParams } from "next/navigation"
 import { FormInput } from "soda-heroui"
 
 import { loginAction } from "@/actions/login"
@@ -34,6 +35,13 @@ const Page: FC = () => {
     })
 
     const [left, setleft] = useState(0)
+    const searchParams = useSearchParams()
+
+    const oidcLoginUrl = useMemo(() => {
+        const from = searchParams?.get("from") ?? ""
+        if (!from) return "/api/auth/oidc/authorize"
+        return `/api/auth/oidc/authorize?from=${encodeURIComponent(from)}`
+    }, [searchParams])
 
     const form = useForm({
         defaultValues: {
@@ -84,6 +92,9 @@ const Page: FC = () => {
                                 </Button>
                             )}
                         </form.Subscribe>
+                        <Button className="mt-2" color="secondary" fullWidth variant="flat" onPress={() => (window.location.href = oidcLoginUrl)}>
+                            使用 OIDC 授权登录
+                        </Button>
                     </Form>
                 </div>
             </div>

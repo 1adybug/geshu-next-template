@@ -1,6 +1,8 @@
 import { prisma } from "@/prisma"
 import { User } from "@/prisma/generated/client"
+
 import { AddUserParams } from "@/schemas/addUser"
+
 import { ClientError } from "@/utils/clientError"
 
 export async function addUser({ username, phone }: AddUserParams) {

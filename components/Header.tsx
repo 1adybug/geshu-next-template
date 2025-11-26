@@ -10,7 +10,9 @@ import { StrictOmit } from "soda-type"
 
 import { getUserOwnAction } from "@/actions/getUserOwn"
 import { logoutAction } from "@/actions/logout"
+
 import { User } from "@/prisma/generated/client"
+
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 import Brand from "./Brand"

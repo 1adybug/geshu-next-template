@@ -1,9 +1,13 @@
 import { IsDevelopment, IsIntranet, IsProduction } from "@/constants"
+
 import { prisma } from "@/prisma"
+
 import { AccountParams } from "@/schemas/account"
+
 import { getUserFromAccount } from "@/server/getUserFromAccount"
 import { sendAliyunSms } from "@/server/sendAliyunSms"
 import { sendQjpSms } from "@/server/sendQjpSms"
+
 import { ClientError } from "@/utils/clientError"
 
 export async function sendCaptcha(account: AccountParams) {

@@ -1,6 +1,8 @@
 import { prisma } from "@/prisma"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
+
 import { IdParams } from "@/schemas/id"
+
 import { ClientError } from "@/utils/clientError"
 
 export async function getUser(id: IdParams) {

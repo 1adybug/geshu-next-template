@@ -10,6 +10,8 @@ import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser }
 import { addBetterToast, closeToast, FormInput } from "soda-heroui"
 import { useQueryState } from "soda-next"
 
+import { getParser } from "@/schemas"
+
 import { deleteUserAction } from "@/actions/deleteUser"
 import { queryUserAction } from "@/actions/queryUser"
 
@@ -18,7 +20,6 @@ import DateRangePicker from "@/components/DateRangePicker"
 import Pagination from "@/components/Pagination"
 import UserEditor from "@/components/UserEditor"
 
-import { getParser } from "@/schemas"
 import { pageNumParser } from "@/schemas/pageNum"
 import { pageSizeParser } from "@/schemas/pageSize"
 import { Role } from "@/schemas/role"

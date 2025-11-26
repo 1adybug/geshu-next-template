@@ -2,7 +2,6 @@ import { getParser } from "."
 import { z } from "zod"
 
 import { phoneSchema } from "./phone"
-
 import { usernameSchema } from "./username"
 
 export const createFirstUserSchema = z.object(

@@ -1,6 +1,7 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
+
 import { UserOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 import { getUserWhere } from "@/prisma/getUserWhere"

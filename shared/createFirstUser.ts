@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma"
+
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 
 import { createFirstUserParser } from "@/schemas/createFirstUser"

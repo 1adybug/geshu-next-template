@@ -1,5 +1,4 @@
 import { IsDevelopment, IsIntranet, IsProduction } from "@/constants"
-
 import { prisma } from "@/prisma"
 
 import { AccountParams } from "@/schemas/account"

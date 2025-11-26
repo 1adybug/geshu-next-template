@@ -2,9 +2,9 @@ import { join, relative } from "path"
 
 import { watch } from "chokidar"
 
-import { deleteFileOrFolder } from "../utils/deleteFileOrFolder"
-
 import { createAction } from "./createAction"
+
+import { deleteFileOrFolder } from "../utils/deleteFileOrFolder"
 
 await deleteFileOrFolder("actions")
 

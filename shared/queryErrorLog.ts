@@ -1,6 +1,7 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
+
 import { ErrorLogOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { getErrorLogWhere } from "@/prisma/getErrorLogWhere"
 

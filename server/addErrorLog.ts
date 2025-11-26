@@ -4,9 +4,7 @@ import { ClientError } from "@/utils/clientError"
 import { stringifyParams } from "@/utils/stringifyParams"
 
 import { getCurrentUser } from "./getCurrentUser"
-
 import { getIp } from "./getIp"
-
 import { getUserAgent } from "./getUserAgent"
 
 function getConstructorName(obj: unknown): string {

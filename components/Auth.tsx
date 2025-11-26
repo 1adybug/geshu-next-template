@@ -1,8 +1,10 @@
 import { FC, ReactNode } from "react"
 
 import { LoginPathname } from "@/constants"
+
 import { getCurrentUser } from "@/server/getCurrentUser"
 import { getUrl } from "@/server/getUrl"
+
 import { redirectFromLogin } from "@/utils/redirectFromLogin"
 import { redirectToLogin } from "@/utils/redirectToLogin"
 

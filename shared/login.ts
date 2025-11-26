@@ -1,9 +1,12 @@
 import { cookies } from "next/headers"
 
 import { prisma } from "@/prisma"
+
 import { LoginParams } from "@/schemas/login"
+
 import { getUserFromAccount } from "@/server/getUserFromAccount"
 import { sign } from "@/server/sign"
+
 import { ClientError } from "@/utils/clientError"
 import { getCookieKey } from "@/utils/getCookieKey"
 import { redirectFromLogin } from "@/utils/redirectFromLogin"

@@ -117,7 +117,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ id, isOpen, onClose, ...r
                         <ModalBody>
                             <Form onSubmit={getOnSubmit(form)}>
                                 <div className="grid gap-3">
-                                    <form.Field name="name" validators={{ onBlur: value => value.trim().length > 0 || "请输入名称" }}>
+                                    <form.Field name="name" validators={{ onBlur: ({ value }) => value.trim().length > 0 || "请输入名称" }}>
                                         {field => <FormInput size="sm" isDisabled={isRequesting} field={field} label="名称" />}
                                     </form.Field>
                                     <form.Field name="description">

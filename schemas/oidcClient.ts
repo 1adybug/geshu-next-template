@@ -1,6 +1,6 @@
 import { z } from "zod/v4"
 
-import { DefaultGrantTypes, DefaultResponseTypes, TokenEndpointAuthMethods } from "@/constants/oidc"
+import { DefaultGrantTypes, DefaultResponseTypes, TokenEndpointAuthMethod, TokenEndpointAuthMethods } from "@/constants/oidc"
 
 export function splitToList(value?: string | null) {
     if (!value) return []
@@ -22,7 +22,7 @@ function isValidUrl(value: string) {
 }
 
 export const redirectUrisSchema = z
-    .string({ required_error: "请填写回调地址" })
+    .string()
     .trim()
     .min(1, { message: "请填写回调地址" })
     .refine(value => splitToList(value).length > 0, { message: "至少需要一个回调地址" })
@@ -47,9 +47,9 @@ export const responseTypesSchema = z
     .transform(value => (value && splitToList(value).length > 0 ? value : DefaultResponseTypes.join(" ")))
 
 export const tokenEndpointAuthMethodSchema = z
-    .enum(TokenEndpointAuthMethods as unknown as [(typeof TokenEndpointAuthMethods)[number], ...(typeof TokenEndpointAuthMethods)[number][]])
+    .enum(TokenEndpointAuthMethods as unknown as [TokenEndpointAuthMethod, ...TokenEndpointAuthMethod[]])
     .optional()
-    .transform(value => value ?? "client_secret_basic")
+    .transform<TokenEndpointAuthMethod>(value => value ?? "client_secret_basic")
 
 export const scopeSchema = z
     .string()

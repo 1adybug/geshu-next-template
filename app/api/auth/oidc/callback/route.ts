@@ -3,8 +3,10 @@ import { Buffer } from "node:buffer"
 import { decodeJwt } from "jose"
 import { NextRequest, NextResponse } from "next/server"
 
-import { issuer, selfClientId, selfClientSecret, selfRedirectUri } from "@/server/oidc/settings"
 import { sign } from "@/server/sign"
+
+import { issuer, selfClientId, selfClientSecret, selfRedirectUri } from "@/server/oidc/settings"
+
 import { getCookieKey } from "@/utils/getCookieKey"
 
 export async function GET(request: NextRequest) {

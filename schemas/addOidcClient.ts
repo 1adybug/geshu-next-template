@@ -15,7 +15,7 @@ import {
 
 export const addOidcClientSchema = z.object(
     {
-        name: z.string({ required_error: "请输入名称" }).trim().min(1, { message: "请输入名称" }).max(64, { message: "名称过长" }),
+        name: z.string().trim().min(1, { message: "请输入名称" }).max(64, { message: "名称过长" }),
         description: descriptionSchema,
         redirectUris: redirectUrisSchema,
         postLogoutRedirectUris: uriListSchema,
@@ -31,6 +31,6 @@ export const addOidcClientSchema = z.object(
     { message: "无效的客户端参数" },
 )
 
-export type AddOidcClientParams = z.infer<typeof addOidcClientSchema>
+export interface AddOidcClientParams extends z.infer<typeof addOidcClientSchema> {}
 
 export const addOidcClientParser = getParser(addOidcClientSchema)

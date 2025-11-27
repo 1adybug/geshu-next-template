@@ -18,7 +18,7 @@ import Provider, {
     // 交互完成返回的结果结构。
     type JWKS,
     // JSON Web Key Set 类型。
-    type KoaContextWithOIDC, // oidc-provider 内部使用的 Koa 上下文类型。,,
+    type KoaContextWithOIDC, // oidc-provider 内部使用的 Koa 上下文类型。,,,,
 } from "oidc-provider"
 
 import { DefaultGrantTypes, DefaultResponseTypes } from "@/constants/oidc" // OIDC 默认授权类型/响应类型。
@@ -29,7 +29,7 @@ import { OidcClient } from "@/prisma/generated/client"
 
 import { verify } from "@/server/verify" // 校验业务 JWT 的工具，解析出用户 ID。
 
-import { normalizeGrantTypes, normalizeResponseTypes, oidcClientTable, parseList } from "@/shared/oidcClientUtils"
+import { normalizeGrantTypes, normalizeResponseTypes, normalizeTokenEndpointAuthMethod, oidcClientTable, parseList } from "@/shared/oidcClientUtils"
 
 import { getCookieKey } from "@/utils/getCookieKey" // 构造带前缀的 cookie key，统一命名。
 
@@ -78,6 +78,7 @@ function mapDbClientToMetadata(client: OidcClient): ClientMetadata | undefined {
     const postLogoutRedirectUris = parseList(client.postLogoutRedirectUris)
     const grantTypes = normalizeGrantTypes(client.grantTypes)
     const responseTypes = normalizeResponseTypes(client.responseTypes)
+    const tokenEndpointAuthMethod = normalizeTokenEndpointAuthMethod(client.tokenEndpointAuthMethod)
     const scope = client.scope?.trim() || undefined
 
     return {
@@ -87,7 +88,7 @@ function mapDbClientToMetadata(client: OidcClient): ClientMetadata | undefined {
         post_logout_redirect_uris: postLogoutRedirectUris.length > 0 ? postLogoutRedirectUris : undefined,
         grant_types: grantTypes.length > 0 ? grantTypes : [...DefaultGrantTypes],
         response_types: responseTypes.length > 0 ? responseTypes : [...DefaultResponseTypes],
-        token_endpoint_auth_method: client.tokenEndpointAuthMethod,
+        token_endpoint_auth_method: tokenEndpointAuthMethod,
         scope,
     }
 }
@@ -114,7 +115,7 @@ function getEnvironmentClients(): ClientMetadata[] {
             .map(client => ({
                 grant_types: client.grant_types ?? [...DefaultGrantTypes],
                 response_types: client.response_types ?? [...DefaultResponseTypes],
-                token_endpoint_auth_method: client.token_endpoint_auth_method ?? "client_secret_basic",
+                token_endpoint_auth_method: normalizeTokenEndpointAuthMethod(client.token_endpoint_auth_method),
                 ...client,
             }))
     } catch (error) {
@@ -129,19 +130,17 @@ async function getAllClients() {
     const databaseClients = await getDatabaseClients()
     const environmentClients = getEnvironmentClients()
 
-    return [
-        {
-            // 应用自身作为 OAuth 客户端。
-            client_id: selfClientId, // 客户端 ID。
-            client_secret: selfClientSecret, // 客户端密钥。
-            redirect_uris: [selfRedirectUri], // 回调地址列表。
-            grant_types: [...DefaultGrantTypes], // 授权类型：授权码与刷新令牌。
-            response_types: [...DefaultResponseTypes], // 响应类型：code。
-            token_endpoint_auth_method: "client_secret_basic", // 令牌端点认证方式：Basic。
-        },
-        ...databaseClients,
-        ...environmentClients,
-    ]
+    const selfClient: ClientMetadata = {
+        // 应用自身作为 OAuth 客户端。
+        client_id: selfClientId, // 客户端 ID。
+        client_secret: selfClientSecret, // 客户端密钥。
+        redirect_uris: [selfRedirectUri], // 回调地址列表。
+        grant_types: [...DefaultGrantTypes], // 授权类型：授权码与刷新令牌。
+        response_types: [...DefaultResponseTypes], // 响应类型：code。
+        token_endpoint_auth_method: normalizeTokenEndpointAuthMethod("client_secret_basic"), // 令牌端点认证方式：Basic。
+    }
+
+    return [selfClient, ...databaseClients, ...environmentClients]
 }
 
 async function buildJwks(): Promise<JWKS> {

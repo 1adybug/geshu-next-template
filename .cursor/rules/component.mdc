@@ -23,14 +23,12 @@ alwaysApply: true
         data?: Book
     }
 
-    const Book: FC<BookProps> = ({ className, data, ...rest }) => {
-        return (
-            <div className={clsx("container", className)} {...rest}>
-                <div>{data?.name}</div>
-                <div>{data?.isbn}</div>
-            </div>
-        )
-    }
+    const Book: FC<BookProps> = ({ className, data, ...rest }) => (
+        <div className={clsx("container", className)} {...rest}>
+            <div>{data?.name}</div>
+            <div>{data?.isbn}</div>
+        </div>
+    )
 
     export default Book
     ```

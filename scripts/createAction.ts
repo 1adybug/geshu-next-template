@@ -7,7 +7,7 @@ await mkdir(".vscode", { recursive: true })
 
 const content = await readdir(".vscode")
 
-if (!content.includes("settings.json"))
+if (!content.includes("settings.json")) {
     await writeFile(
         ".vscode/settings.json",
         JSON.stringify(
@@ -20,7 +20,7 @@ if (!content.includes("settings.json"))
             4,
         ),
     )
-else {
+} else {
     const json = await readFile(".vscode/settings.json", "utf-8")
     const data = JSON.parse(json)
     data["files.exclude"] ??= {}

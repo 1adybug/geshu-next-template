@@ -86,8 +86,6 @@ const Page: FC = () => {
         },
     })
 
-    console.log(data)
-
     const isRequesting = isLoading
 
     return (

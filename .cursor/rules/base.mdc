@@ -146,7 +146,7 @@ alwaysApply: true
     🔵 other: Select when fixing a bug
     ```
 
-    当然，你也可以使用你自己的 `emoji` 和 `type`。如果你的提交记录包含了多种内容，你可以使用多行比如：
+    你必须使用预设的 `emoji` 和 `type`。如果你的提交记录包含了多种内容，你可以使用多行比如：
 
     ```text
     ✨ feature: some feature u did

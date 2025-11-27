@@ -42,7 +42,6 @@ ${
     hasSchema
         ? `
 import { ${schema}Schema } from "@/schemas/${schema}"
-
 `
         : ""
 }

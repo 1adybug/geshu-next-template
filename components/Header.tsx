@@ -43,6 +43,11 @@ const navs: NavItem[] = [
         name: "系统日志",
         filter: user => user.role === "ADMIN",
     },
+    {
+        href: "/integrations",
+        name: "第三方接入",
+        filter: user => user.role === "ADMIN",
+    },
 ]
 
 export interface HeaderProps extends StrictOmit<ComponentProps<typeof Navbar>, "children"> {}

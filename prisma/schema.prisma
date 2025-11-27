@@ -70,3 +70,20 @@ model Captcha {
     userId    String   @unique
     user      User     @relation(fields: [userId], references: [id])
 }
+
+model OidcClient {
+    id                      String   @id @default(uuid())
+    createdAt               DateTime @default(now())
+    updatedAt               DateTime @updatedAt
+    name                    String
+    description             String?
+    clientId                String   @unique
+    clientSecret            String
+    redirectUris            String
+    postLogoutRedirectUris  String?
+    grantTypes              String   @default("authorization_code refresh_token")
+    responseTypes           String   @default("code")
+    scope                   String?
+    tokenEndpointAuthMethod String   @default("client_secret_basic")
+    enabled                 Boolean  @default(true)
+}

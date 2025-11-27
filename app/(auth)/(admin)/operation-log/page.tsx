@@ -153,6 +153,7 @@ const Page: FC = () => {
                     <form.Field name="created">
                         {field => (
                             <DateRangePicker
+                                classNames={{ base: "!pb-0" }}
                                 size="sm"
                                 field={field}
                                 fullWidth={false}
@@ -171,7 +172,7 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="px-4">
+            <div className="px-4 mt-4">
                 <Blackboard isOpen={isNonNullable(info)} onClose={() => setInfo(undefined)} {...info} />
                 <Table
                     bottomContent={

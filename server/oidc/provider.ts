@@ -18,11 +18,19 @@ import Provider, {
     // 交互完成返回的结果结构。
     type JWKS,
     // JSON Web Key Set 类型。
-    type KoaContextWithOIDC, // oidc-provider 内部使用的 Koa 上下文类型。,
+    type KoaContextWithOIDC, // oidc-provider 内部使用的 Koa 上下文类型。,,
 } from "oidc-provider"
 
+import { DefaultGrantTypes, DefaultResponseTypes } from "@/constants/oidc" // OIDC 默认授权类型/响应类型。
+
 import { prisma } from "@/prisma" // Prisma 客户端，用于查询用户。
+
+import { OidcClient } from "@/prisma/generated/client"
+
 import { verify } from "@/server/verify" // 校验业务 JWT 的工具，解析出用户 ID。
+
+import { normalizeGrantTypes, normalizeResponseTypes, oidcClientTable, parseList } from "@/shared/oidcClientUtils"
+
 import { getCookieKey } from "@/utils/getCookieKey" // 构造带前缀的 cookie key，统一命名。
 
 import { issuer, selfClientId, selfClientSecret, selfRedirectUri } from "./settings" // 读取 issuer 与自注册客户端配置。
@@ -63,7 +71,33 @@ async function getAccountIdFromRequest(request: IncomingMessage) {
     return verify(token) // 验证并解析用户 ID。
 }
 
-function getAdditionalClients(): ClientMetadata[] {
+function mapDbClientToMetadata(client: OidcClient): ClientMetadata | undefined {
+    const redirectUris = parseList(client.redirectUris)
+    if (redirectUris.length === 0) return undefined
+
+    const postLogoutRedirectUris = parseList(client.postLogoutRedirectUris)
+    const grantTypes = normalizeGrantTypes(client.grantTypes)
+    const responseTypes = normalizeResponseTypes(client.responseTypes)
+    const scope = client.scope?.trim() || undefined
+
+    return {
+        client_id: client.clientId,
+        client_secret: client.clientSecret,
+        redirect_uris: redirectUris,
+        post_logout_redirect_uris: postLogoutRedirectUris.length > 0 ? postLogoutRedirectUris : undefined,
+        grant_types: grantTypes.length > 0 ? grantTypes : [...DefaultGrantTypes],
+        response_types: responseTypes.length > 0 ? responseTypes : [...DefaultResponseTypes],
+        token_endpoint_auth_method: client.tokenEndpointAuthMethod,
+        scope,
+    }
+}
+
+async function getDatabaseClients(): Promise<ClientMetadata[]> {
+    const list = await oidcClientTable.findMany({ where: { enabled: true } })
+    return list.map(mapDbClientToMetadata).filter((item): item is ClientMetadata => !!item)
+}
+
+function getEnvironmentClients(): ClientMetadata[] {
     // 从环境变量读取额外的 OIDC 客户端配置。
     const raw = process.env.OIDC_CLIENTS?.trim() // 获取环境变量并去掉空白。
 
@@ -75,13 +109,39 @@ function getAdditionalClients(): ClientMetadata[] {
 
         if (!Array.isArray(parsed)) return [] // 如果不是数组则返回空。
 
-        return parsed.filter((item): item is ClientMetadata => !!item?.client_id && !!item?.redirect_uris?.length) // 过滤出合法的客户端对象。
+        return parsed
+            .filter((item): item is ClientMetadata => !!item?.client_id && !!item?.redirect_uris?.length) // 过滤出合法的客户端对象。
+            .map(client => ({
+                grant_types: client.grant_types ?? [...DefaultGrantTypes],
+                response_types: client.response_types ?? [...DefaultResponseTypes],
+                token_endpoint_auth_method: client.token_endpoint_auth_method ?? "client_secret_basic",
+                ...client,
+            }))
     } catch (error) {
         // 捕获解析错误。
         console.warn("[oidc] Failed to parse OIDC_CLIENTS, using defaults instead.", error) // 打印警告，继续使用默认。
 
         return [] // 返回空列表。
     }
+}
+
+async function getAllClients() {
+    const databaseClients = await getDatabaseClients()
+    const environmentClients = getEnvironmentClients()
+
+    return [
+        {
+            // 应用自身作为 OAuth 客户端。
+            client_id: selfClientId, // 客户端 ID。
+            client_secret: selfClientSecret, // 客户端密钥。
+            redirect_uris: [selfRedirectUri], // 回调地址列表。
+            grant_types: [...DefaultGrantTypes], // 授权类型：授权码与刷新令牌。
+            response_types: [...DefaultResponseTypes], // 响应类型：code。
+            token_endpoint_auth_method: "client_secret_basic", // 令牌端点认证方式：Basic。
+        },
+        ...databaseClients,
+        ...environmentClients,
+    ]
 }
 
 async function buildJwks(): Promise<JWKS> {
@@ -102,19 +162,7 @@ async function createProvider() {
             short: { signed: true, secure: issuer.startsWith("https://") }, // 短期 cookie 同样需要签名与安全标志。
         },
         jwks: await buildJwks(), // 设置 JWKS，供 token 签发校验。
-        clients: [
-            // 静态注册的客户端列表。
-            {
-                // 应用自身作为 OAuth 客户端。
-                client_id: selfClientId, // 客户端 ID。
-                client_secret: selfClientSecret, // 客户端密钥。
-                redirect_uris: [selfRedirectUri], // 回调地址列表。
-                grant_types: ["authorization_code", "refresh_token"], // 授权类型：授权码与刷新令牌。
-                response_types: ["code"], // 响应类型：code。
-                token_endpoint_auth_method: "client_secret_basic", // 令牌端点认证方式：Basic。
-            },
-            ...getAdditionalClients(), // 合并环境变量中的第三方客户端。
-        ],
+        clients: await getAllClients(), // 静态注册的客户端列表（包含数据库 + 环境变量）。
         features: {
             // 开启/关闭特性。
             devInteractions: { enabled: false }, // 关闭默认的开发交互页面，使用自定义流程。
@@ -174,6 +222,10 @@ async function createProvider() {
 }
 
 let providerPromise: Promise<Provider> | undefined // 缓存 provider 单例的 Promise，避免重复创建。
+
+export function resetOidcProvider() {
+    providerPromise = undefined
+}
 
 export function getOidcProvider() {
     // 获取（或创建） provider 实例的辅助函数。

@@ -175,6 +175,7 @@ const Page: FC = () => {
                     <form.Field name="created">
                         {field => (
                             <DateRangePicker
+                                classNames={{ base: "!pb-0" }}
                                 size="sm"
                                 field={field}
                                 fullWidth={false}
@@ -188,6 +189,7 @@ const Page: FC = () => {
                     <form.Field name="updated">
                         {field => (
                             <DateRangePicker
+                                classNames={{ base: "!pb-0" }}
                                 size="sm"
                                 field={field}
                                 fullWidth={false}
@@ -209,7 +211,7 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="px-4">
+            <div className="px-4 mt-4">
                 <UserEditor id={editId} isOpen={showEditor} onClose={onClose} />
                 <Confirm
                     title="确认删除用户？"

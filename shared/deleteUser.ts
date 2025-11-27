@@ -1,7 +1,7 @@
 import { prisma } from "@/prisma"
+import { defaultUserSelect } from "@/prisma/getUserSelect"
 
 import { User } from "@/prisma/generated/client"
-import { defaultUserSelect } from "@/prisma/getUserSelect"
 
 import { ClientError } from "@/utils/clientError"
 

@@ -1,9 +1,9 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
+import { getErrorLogWhere } from "@/prisma/getErrorLogWhere"
 
 import { ErrorLogOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
-import { getErrorLogWhere } from "@/prisma/getErrorLogWhere"
 
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
@@ -63,17 +63,18 @@ export async function queryErrorLog({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type" || sortBy === "message")
+        if (sortBy === "action" || sortBy === "ip" || sortBy === "userAgent" || sortBy === "type" || sortBy === "message") {
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
-        else {
-            if (sortBy === "username")
+        } else {
+            if (sortBy === "username") {
                 orderBy.unshift({
                     user: {
                         username: sortOrder,
                     },
                 })
+            }
         }
     }
 

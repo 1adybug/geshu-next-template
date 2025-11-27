@@ -1,10 +1,10 @@
 import { getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
-
-import { UserOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 import { getUserWhere } from "@/prisma/getUserWhere"
+
+import { UserOrderByWithRelationInput } from "@/prisma/generated/internal/prismaNamespace"
 
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
@@ -57,10 +57,11 @@ export async function queryUser({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "username" || sortBy === "phone" || sortBy === "role" || sortBy === "updatedAt")
+        if (sortBy === "username" || sortBy === "phone" || sortBy === "role" || sortBy === "updatedAt") {
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
+        }
     }
 
     const data = await prisma.user.findMany({

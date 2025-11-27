@@ -45,12 +45,13 @@ export async function addErrorLog({ error, action, args }: AddErrorLogParams) {
             }),
         ])
 
-        if (error instanceof ClientError && error.origin)
+        if (error instanceof ClientError && error.origin) {
             await addErrorLog({
                 error: error.origin,
                 action,
                 args,
             })
+        }
     } catch (error) {
         console.error(error)
     }

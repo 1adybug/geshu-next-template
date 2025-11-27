@@ -6,9 +6,10 @@ import { redirect } from "next/navigation"
 import { $ZodType } from "zod/v4/core"
 
 import { LoginPathname } from "@/constants"
-import { getParser } from "@/schemas"
 
 import { User } from "@/prisma/generated/client"
+
+import { getParser } from "@/schemas"
 
 import { addErrorLog } from "@/server/addErrorLog"
 import { addOperationLog } from "@/server/addOperationLog"

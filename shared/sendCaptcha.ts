@@ -1,4 +1,5 @@
 import { IsDevelopment, IsIntranet, IsProduction } from "@/constants"
+
 import { prisma } from "@/prisma"
 
 import { AccountParams } from "@/schemas/account"
@@ -17,18 +18,19 @@ export async function sendCaptcha(account: AccountParams) {
     const code = IsDevelopment ? "1234" : Math.random().toString().slice(2, 6).padEnd(4, "0")
 
     if (IsProduction) {
-        if (IsIntranet)
+        if (IsIntranet) {
             await sendQjpSms({
                 phone: user.phone,
                 content: `格数科技项目管理，你的登录验证码为 ${code}`,
             })
-        else
+        } else {
             await sendAliyunSms({
                 phone: user.phone,
                 signName: "格数科技",
                 templateCode: "SMS_478995533",
                 params: { code },
             })
+        }
     }
 
     await prisma.captcha.upsert({

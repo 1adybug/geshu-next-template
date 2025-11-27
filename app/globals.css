@@ -31,3 +31,8 @@
 button:disabled {
     cursor: not-allowed;
 }
+
+input,
+textarea {
+    outline-width: 0;
+}

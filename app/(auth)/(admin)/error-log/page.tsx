@@ -202,7 +202,7 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="px-4 mt-4">
+            <div className="mt-4 px-4">
                 <Blackboard isOpen={isNonNullable(info)} onClose={() => setInfo(undefined)} {...info} />
                 <Table
                     bottomContent={

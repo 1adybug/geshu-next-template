@@ -211,7 +211,7 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="px-4 mt-4">
+            <div className="mt-4 px-4">
                 <UserEditor id={editId} isOpen={showEditor} onClose={onClose} />
                 <Confirm
                     title="确认删除用户？"

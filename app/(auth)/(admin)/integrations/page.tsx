@@ -148,7 +148,7 @@ const Page: FC = () => {
             setInfo({
                 header: `${data.name} 的新密钥`,
                 body: (
-                    <div className="font-mono break-words text-sm">
+                    <div className="break-words font-mono text-sm">
                         <div className="mb-2 text-xs text-foreground-500">client_id</div>
                         <div className="mb-4">{data.clientId}</div>
                         <div className="mb-2 text-xs text-foreground-500">client_secret</div>
@@ -239,7 +239,7 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="px-4 mt-4">
+            <div className="mt-4 px-4">
                 <OidcClientEditor id={editId} isOpen={showEditor} onClose={onCloseEditor} />
                 <Confirm
                     title="确认删除客户端？"

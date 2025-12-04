@@ -1,24 +1,28 @@
-import crypto from "crypto" // 引入 Node 内置加密库，用于生成随机密钥/UUID。
-import type { IncomingMessage, ServerResponse } from "http" // 引入 HTTP 请求和响应的类型，便于类型标注。
+// 引入 Node 内置加密库，用于生成随机密钥/UUID。
+import crypto from "crypto"
+// 引入 HTTP 请求和响应的类型，便于类型标注。
+import type { IncomingMessage, ServerResponse } from "http"
 
-import { exportJWK, generateKeyPair } from "jose" // 引入 jose，用来生成密钥对并导出 JWK。
+// 引入 jose，用来生成密钥对并导出 JWK。
+import { exportJWK, generateKeyPair } from "jose"
+// 引入 oidc-provider 主类和相关类型，确保配置与调用类型安全。
 import Provider, {
-    // 引入 oidc-provider 主类和相关类型，确保配置与调用类型安全。
-    type Client,
     // OIDC 客户端实例类型。
-    type ClientMetadata,
+    type Client,
     // 客户端元数据类型，用于静态注册。
-    type Configuration,
+    type ClientMetadata,
     // Provider 配置类型。
-    type Grant,
+    type Configuration,
     // 授权票据类型，保存 scope/claims。
-    type Interaction,
+    type Grant,
     // 交互上下文类型，记录登录/授权信息。
-    type InteractionResults,
+    type Interaction,
     // 交互完成返回的结果结构。
-    type JWKS,
+    type InteractionResults,
     // JSON Web Key Set 类型。
-    type KoaContextWithOIDC, // oidc-provider 内部使用的 Koa 上下文类型。,,,,
+    type JWKS,
+    // oidc-provider 内部使用的 Koa 上下文类型。
+    type KoaContextWithOIDC,
 } from "oidc-provider"
 
 import { DefaultGrantTypes, DefaultResponseTypes } from "@/constants/oidc" // OIDC 默认授权类型/响应类型。

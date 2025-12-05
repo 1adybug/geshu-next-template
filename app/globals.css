@@ -1,4 +1,8 @@
-@tailwind base;
+@layer tailwind-base, antd;
+
+@layer tailwind-base {
+    @tailwind base;
+}
 @tailwind components;
 @tailwind utilities;
 
@@ -8,7 +12,7 @@
 }
 
 :root {
-    font-family: "Source Han Sans VF";
+    font-family: '"Source Han Sans SC VF", sans-serif';
 }
 
 ::-webkit-scrollbar {

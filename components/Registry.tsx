@@ -38,8 +38,8 @@ const Registry: FC<RegistryProps> = props => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <AntdRegistry hashPriority="high">
-                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Source Han Sans VF" } }}>
+            <AntdRegistry layer>
+                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: '"Source Han Sans SC VF", sans-serif' } }}>
                     <HeroUIProvider locale="zh-CN" navigate={router.push} className="h-full">
                         <ToastProvider />
                         {children}

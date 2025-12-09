@@ -3,14 +3,13 @@
 import { FC, useState } from "react"
 
 import { IconEdit, IconTrash } from "@tabler/icons-react"
-import { Button, DatePicker, Form, Input, Table, TableProps } from "antd"
+import { Button, DatePicker, Form, Input, Popconfirm, Table, TableProps } from "antd"
 import FormItem from "antd/es/form/FormItem"
-import { formatTime, getEnumKey, isNonNullable, naturalParser, showTotal } from "deepsea-tools"
+import { formatTime, getEnumKey, naturalParser, showTotal } from "deepsea-tools"
 import { Columns, getTimeRange } from "soda-antd"
 import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
-import Confirm from "@/components/Confirm"
 import UserEditor from "@/components/UserEditor"
 
 import { useDeleteUser } from "@/hooks/useDeleteUser"
@@ -68,7 +67,6 @@ const Page: FC = () => {
 
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
-    const [deleteUserId, setDeleteUserId] = useState<string | undefined>(undefined)
 
     const columns: Columns<User> = [
         {
@@ -138,15 +136,9 @@ const Page: FC = () => {
                             icon={<IconEdit className="w-5" />}
                             onClick={() => onUpdate(value)}
                         />
-                        <Button
-                            size="small"
-                            shape="circle"
-                            color="danger"
-                            variant="text"
-                            disabled={isRequesting}
-                            icon={<IconTrash className="w-5" />}
-                            onClick={() => setDeleteUserId(value)}
-                        />
+                        <Popconfirm title="确认删除用户" description="请在删除用户前，确保已备份相关数据" onConfirm={() => deleteUserAsync(value)}>
+                            <Button size="small" shape="circle" color="danger" variant="text" disabled={isRequesting} icon={<IconTrash className="w-5" />} />
+                        </Popconfirm>
                     </div>
                 )
             },
@@ -182,7 +174,6 @@ const Page: FC = () => {
 
     const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser({
         onMutate() {
-            setDeleteUserId(undefined)
             const key = uuid()
 
             message.loading({
@@ -249,13 +240,6 @@ const Page: FC = () => {
             </div>
             <div className="mt-4 px-4">
                 <UserEditor userId={editId} open={showEditor} onClose={onClose} />
-                <Confirm
-                    title="确认删除用户？"
-                    description="请在删除用户前，确保已备份相关数据。"
-                    onConfirm={() => deleteUserAsync(deleteUserId!)}
-                    isOpen={isNonNullable(deleteUserId)}
-                    onClose={() => setDeleteUserId(undefined)}
-                />
                 <Table<User>
                     columns={columns}
                     dataSource={data?.list}

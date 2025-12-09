@@ -3,13 +3,11 @@
 import { FC, ReactNode, useEffect } from "react"
 
 import { AntdRegistry } from "@ant-design/nextjs-registry"
-import { HeroUIProvider } from "@heroui/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConfigProvider } from "antd"
 import { MessageInstance } from "antd/es/message/interface"
 import useMessage from "antd/es/message/useMessage"
 import zhCN from "antd/locale/zh_CN"
-import { useRouter } from "next/navigation"
 
 export interface RegistryProps {
     children?: ReactNode
@@ -28,19 +26,12 @@ const queryClient = new QueryClient({
     },
 })
 
-declare module "@react-types/shared" {
-    interface RouterConfig {
-        routerOptions: NonNullable<Parameters<ReturnType<typeof useRouter>["push"]>[1]>
-    }
-}
-
 declare global {
     var message: MessageInstance
 }
 
 const Registry: FC<RegistryProps> = ({ children }) => {
     const [message, context] = useMessage()
-    const router = useRouter()
 
     useEffect(() => {
         globalThis.message = message
@@ -50,10 +41,8 @@ const Registry: FC<RegistryProps> = ({ children }) => {
         <QueryClientProvider client={queryClient}>
             <AntdRegistry hashPriority="high">
                 <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Source Han Sans VF" } }}>
-                    <HeroUIProvider locale="zh-CN" navigate={router.push} className="h-full">
-                        {context}
-                        {children}
-                    </HeroUIProvider>
+                    {context}
+                    {children}
                 </ConfigProvider>
             </AntdRegistry>
         </QueryClientProvider>

@@ -2,9 +2,9 @@
 
 import { FC, useEffect, useState } from "react"
 
-import { Button, Form } from "@heroui/react"
-import { useForm } from "@tanstack/react-form"
-import { FormInput } from "soda-heroui"
+import { Button, Form, Input } from "antd"
+import { useForm, useWatch } from "antd/es/form/Form"
+import FormItem from "antd/es/form/FormItem"
 
 import Brand from "@/components/Brand"
 
@@ -13,10 +13,11 @@ import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 
 import { LoginParams } from "@/schemas/login"
 
-import { getOnSubmit } from "@/utils/getOnSubmit"
-
 const Page: FC = () => {
+    const [form] = useForm<LoginParams>()
     const [left, setleft] = useState(0)
+    const account = useWatch("account", form)
+    const captcha = useWatch("captcha", form)
 
     const { mutateAsync: login, isPending: isLoginPending } = useLogin()
 
@@ -24,16 +25,6 @@ const Page: FC = () => {
         onSuccess(data) {
             message.success(`验证码已发送至 ${data}`)
             setleft(60)
-        },
-    })
-
-    const form = useForm({
-        defaultValues: {
-            account: "",
-            captcha: "",
-        } as LoginParams,
-        onSubmit({ value }) {
-            login(value)
         },
     })
 
@@ -50,32 +41,27 @@ const Page: FC = () => {
             <div className="relative p-8">
                 <Brand />
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <Form className="w-64" onSubmit={getOnSubmit(form)}>
-                        <form.Field name="account">{field => <FormInput field={field} placeholder="用户名或手机号" autoComplete="off" />}</form.Field>
+                    <Form<LoginParams> form={form} className="flex w-64 flex-col gap-4" onFinish={login}>
+                        <FormItem<LoginParams> name="account" noStyle>
+                            <Input placeholder="用户名或手机号" autoComplete="off" />
+                        </FormItem>
                         <div className="flex items-center gap-2">
-                            <form.Field name="captcha">{field => <FormInput field={field} placeholder="验证码" autoComplete="off" />}</form.Field>
-                            <form.Subscribe selector={state => state.values.account.trim()}>
-                                {account => (
-                                    <Button
-                                        role="button"
-                                        className="min-w-24"
-                                        color="secondary"
-                                        variant="light"
-                                        isDisabled={isRequesting || left > 0 || !account}
-                                        onPress={() => sendCaptcha(account)}
-                                    >
-                                        {left > 0 ? `${left} 秒后重试` : "发送验证码"}
-                                    </Button>
-                                )}
-                            </form.Subscribe>
+                            <FormItem<LoginParams> name="captcha" noStyle>
+                                <Input placeholder="验证码" autoComplete="off" />
+                            </FormItem>
+                            <Button
+                                className="min-w-24"
+                                color="purple"
+                                variant="solid"
+                                disabled={isRequesting || left > 0 || !account}
+                                onClick={() => sendCaptcha(account)}
+                            >
+                                {left > 0 ? `${left} 秒后重试` : "发送验证码"}
+                            </Button>
                         </div>
-                        <form.Subscribe selector={state => state.values}>
-                            {({ account, captcha }) => (
-                                <Button className="mt-4" color="primary" fullWidth isDisabled={isRequesting || !account || !captcha} type="submit">
-                                    登录
-                                </Button>
-                            )}
-                        </form.Subscribe>
+                        <Button className="mt-4" type="primary" block disabled={isRequesting || !account || !captcha} htmlType="submit">
+                            登录
+                        </Button>
                     </Form>
                 </div>
             </div>

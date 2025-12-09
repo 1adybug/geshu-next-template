@@ -3,9 +3,8 @@
 import { ComponentProps, FC } from "react"
 
 import { Button } from "antd"
-import { clsx } from "deepsea-tools"
+import { clsx, StrictOmit } from "deepsea-tools"
 import { usePathname } from "next/navigation"
-import { StrictOmit } from "soda-type"
 
 import { logoutAction } from "@/actions/logout"
 

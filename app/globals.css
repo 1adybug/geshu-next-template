@@ -1,15 +1,9 @@
 @layer tailwind-base, antd;
-
 @layer tailwind-base {
     @tailwind base;
 }
 @tailwind components;
 @tailwind utilities;
-
-*:has([data-overlay-container]),
-[data-overlay-container] {
-    height: 100%;
-}
 
 html,
 body {
@@ -39,9 +33,4 @@ body {
 
 button:disabled {
     cursor: not-allowed;
-}
-
-input,
-textarea {
-    outline-width: 0;
 }

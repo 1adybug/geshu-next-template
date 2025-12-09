@@ -4,35 +4,28 @@ import { FC, useEffect, useState } from "react"
 
 import { Button, Form } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
-import { useMutation } from "@tanstack/react-query"
-import { createRequestFn } from "deepsea-tools"
 import { FormInput } from "soda-heroui"
 
-import { loginAction } from "@/actions/login"
-import { sendCaptchaAction } from "@/actions/sendCaptcha"
-
 import Brand from "@/components/Brand"
+
+import { useLogin } from "@/hooks/useLogin"
+import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 
 import { LoginParams } from "@/schemas/login"
 
 import { getOnSubmit } from "@/utils/getOnSubmit"
 
-const mutationFn = createRequestFn(loginAction)
-
-const mutationFn2 = createRequestFn(sendCaptchaAction)
-
 const Page: FC = () => {
-    const { mutateAsync: login, isPending: isLoginPending } = useMutation({ mutationFn })
+    const [left, setleft] = useState(0)
 
-    const { mutateAsync: sendCaptcha, isPending: isSendCaptchaPending } = useMutation({
-        mutationFn: mutationFn2,
+    const { mutateAsync: login, isPending: isLoginPending } = useLogin()
+
+    const { mutateAsync: sendCaptcha, isPending: isSendCaptchaPending } = useSendCaptcha({
         onSuccess(data) {
             message.success(`验证码已发送至 ${data}`)
             setleft(60)
         },
     })
-
-    const [left, setleft] = useState(0)
 
     const form = useForm({
         defaultValues: {

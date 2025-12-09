@@ -4,14 +4,12 @@ import { FC } from "react"
 
 import { Button, Form } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
-import { useMutation } from "@tanstack/react-query"
-import { createRequestFn } from "deepsea-tools"
 import { useRouter } from "next/navigation"
 import { FormInput } from "soda-heroui"
 
-import { createFirstUserAction } from "@/actions/createFirstUser"
-
 import Brand from "@/components/Brand"
+
+import { useCreateFirstUser } from "@/hooks/useCreateFirstUser"
 
 import { CreateFirstUserParams } from "@/schemas/createFirstUser"
 import { phoneSchema } from "@/schemas/phone"
@@ -19,13 +17,10 @@ import { usernameSchema } from "@/schemas/username"
 
 import { getOnSubmit } from "@/utils/getOnSubmit"
 
-const mutationFn = createRequestFn(createFirstUserAction)
-
 const Page: FC = () => {
     const router = useRouter()
 
-    const { mutateAsync, isPending } = useMutation({
-        mutationFn,
+    const { mutateAsync, isPending } = useCreateFirstUser({
         onSuccess() {
             message.success("初始化成功")
             router.replace("/login")

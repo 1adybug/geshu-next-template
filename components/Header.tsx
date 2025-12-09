@@ -2,14 +2,14 @@
 
 import { ComponentProps, FC } from "react"
 
-import { useQuery } from "@tanstack/react-query"
 import { Button } from "antd"
-import { clsx, createRequestFn } from "deepsea-tools"
+import { clsx } from "deepsea-tools"
 import { usePathname } from "next/navigation"
 import { StrictOmit } from "soda-type"
 
-import { getUserOwnAction } from "@/actions/getUserOwn"
 import { logoutAction } from "@/actions/logout"
+
+import { useGetUserOwn } from "@/hooks/useGetUserOwn"
 
 import { User } from "@/prisma/generated/client"
 
@@ -50,10 +50,7 @@ export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "child
 const Header: FC<HeaderProps> = ({ className, ...rest }) => {
     const pathname = usePathname()
 
-    const { data } = useQuery({
-        queryKey: ["get-user-own"],
-        queryFn: createRequestFn(getUserOwnAction),
-    })
+    const { data } = useGetUserOwn()
 
     return (
         <header className={clsx("flex h-16 items-center gap-2 px-4", className)} {...rest}>

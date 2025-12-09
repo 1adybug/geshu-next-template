@@ -38,8 +38,8 @@ const navs: NavItem[] = [
         filter: user => user.role === "ADMIN",
     },
     {
-        href: "/system-log",
-        name: "系统日志",
+        href: "/error-log",
+        name: "错误日志",
         filter: user => user.role === "ADMIN",
     },
 ]

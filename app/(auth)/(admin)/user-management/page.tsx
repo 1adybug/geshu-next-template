@@ -210,7 +210,7 @@ const Page: FC = () => {
     return (
         <div className="pt-4">
             <div className="px-4">
-                <Form<FormParams> layout="inline" onFinish={setQuery}>
+                <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
                     <FormItem<FormParams> name="username" label="用户名">
                         <Input />
                     </FormItem>

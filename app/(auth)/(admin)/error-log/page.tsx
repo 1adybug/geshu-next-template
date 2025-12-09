@@ -10,7 +10,7 @@ import { Columns, getTimeRange } from "soda-antd"
 import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
-import User from "@/components/User"
+import Userw from "@/components/User"
 
 import { useQueryErrorLog } from "@/hooks/useQueryErrorLog"
 
@@ -86,7 +86,7 @@ const Page: FC = () => {
             sorter: true,
             sortOrder: getSortOrder(query, "username"),
             render(value, record) {
-                return record.userId && value ? <User data={{ id: record.userId, username: value }} /> : "—"
+                return record.userId && value ? <Userw data={{ id: record.userId, username: value }} /> : "—"
             },
         },
         {
@@ -187,7 +187,18 @@ const Page: FC = () => {
             sorter: true,
             sortOrder: getSortOrder(query, "userAgent"),
             render(value) {
-                return value ?? "—"
+                return isNonNullable(value) ? (
+                    <button
+                        type="button"
+                        className="line-clamp-1 max-w-48 break-all text-blue-500"
+                        title={value}
+                        onClick={() => setInfo({ title: "UserAgent", children: value })}
+                    >
+                        {value}
+                    </button>
+                ) : (
+                    "—"
+                )
             },
         },
         {
@@ -217,7 +228,7 @@ const Page: FC = () => {
     return (
         <div className="pt-4">
             <div className="px-4">
-                <Form<FormParams> layout="inline" onFinish={setQuery}>
+                <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
                     <FormItem<FormParams> name="type" label="类型">
                         <Input allowClear />
                     </FormItem>

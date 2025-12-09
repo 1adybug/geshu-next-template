@@ -20,10 +20,10 @@ const ErrorPage: FC<ErrorPageProps> = ({ code, title, description, href, link, i
         <div className="relative p-8">
             <Brand />
             <div className="absolute left-8 top-1/2 -translate-y-1/2">
-                <div className="text-base leading-loose text-primary">{code}</div>
+                <div className="text-primary text-base leading-loose">{code}</div>
                 <div className="mt-4 text-[60px] font-bold leading-none">{title}</div>
-                <div className="mt-8 text-xl leading-8 text-foreground-500">{description}</div>
-                <div className="mt-10 text-sm leading-loose text-primary">
+                <div className="text-foreground-500 mt-8 text-xl leading-8">{description}</div>
+                <div className="text-primary mt-10 text-sm leading-loose">
                     <Link href={href}>
                         <IconArrowLeft className="inline-block h-5 w-5 align-text-bottom" /> {link}
                     </Link>

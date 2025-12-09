@@ -6,7 +6,7 @@ import Link from "next/link"
 
 import Brand from "@/components/Brand"
 
-interface ErrorPageProps extends ComponentProps<"div"> {
+export interface ErrorPageProps extends ComponentProps<"div"> {
     code: number | string
     title: string
     description: string

@@ -2,9 +2,9 @@
 
 import { ComponentProps, FC } from "react"
 
-import { Button, Link, Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react"
 import { useQuery } from "@tanstack/react-query"
-import { createRequestFn } from "deepsea-tools"
+import { Button } from "antd"
+import { clsx, createRequestFn } from "deepsea-tools"
 import { usePathname } from "next/navigation"
 import { StrictOmit } from "soda-type"
 
@@ -45,9 +45,9 @@ const navs: NavItem[] = [
     },
 ]
 
-export interface HeaderProps extends StrictOmit<ComponentProps<typeof Navbar>, "children"> {}
+export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "children"> {}
 
-const Header: FC<HeaderProps> = props => {
+const Header: FC<HeaderProps> = ({ className, ...rest }) => {
     const pathname = usePathname()
 
     const { data } = useQuery({
@@ -56,31 +56,31 @@ const Header: FC<HeaderProps> = props => {
     })
 
     return (
-        <Navbar maxWidth="full" {...props}>
-            <NavbarBrand className="flex-grow-0 basis-auto">
-                <Brand className="flex-none" />
-            </NavbarBrand>
-            <NavbarContent className="hidden gap-4 sm:flex" justify="start">
+        <header className={clsx("flex h-16 items-center gap-2 px-4", className)} {...rest}>
+            <Brand className="flex-none" />
+            <div className="flex flex-auto items-center gap-2">
                 {navs.map(
                     ({ href, name, filter }) =>
                         (!filter || (!!data && filter(data))) && (
-                            <NavbarItem key={href} isActive={pathname === getPathnameAndSearchParams(href).pathname}>
-                                <Link color={pathname === getPathnameAndSearchParams(href).pathname ? "primary" : "foreground"} href={href}>
-                                    {name}
-                                </Link>
-                            </NavbarItem>
+                            <Button
+                                key={href}
+                                type="link"
+                                color={pathname === getPathnameAndSearchParams(href).pathname ? "primary" : undefined}
+                                variant="link"
+                                href={href}
+                            >
+                                {name}
+                            </Button>
                         ),
                 )}
-            </NavbarContent>
-            <NavbarContent justify="end">
+            </div>
+            <div className="flex items-center gap-2">
                 <div>{data?.username}</div>
-                <NavbarItem>
-                    <Button as={Link} color="warning" href="#" variant="flat" onPress={logoutAction} size="sm">
-                        注销
-                    </Button>
-                </NavbarItem>
-            </NavbarContent>
-        </Navbar>
+                <Button size="small" color="orange" variant="filled" onClick={logoutAction}>
+                    注销
+                </Button>
+            </div>
+        </header>
     )
 }
 

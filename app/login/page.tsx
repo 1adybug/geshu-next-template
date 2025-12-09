@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from "react"
 
-import { addToast, Button, Form } from "@heroui/react"
+import { Button, Form } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
@@ -27,11 +27,7 @@ const Page: FC = () => {
     const { mutateAsync: sendCaptcha, isPending: isSendCaptchaPending } = useMutation({
         mutationFn: mutationFn2,
         onSuccess(data) {
-            addToast({
-                title: `验证码已发送至 ${data}`,
-                color: "success",
-            })
-
+            message.success(`验证码已发送至 ${data}`)
             setleft(60)
         },
     })

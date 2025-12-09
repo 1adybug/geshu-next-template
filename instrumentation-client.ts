@@ -1,4 +1,3 @@
-import { addToast } from "@heroui/react"
 import dayjs from "dayjs"
 import { createRequestFn, getErrorMessage } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
@@ -13,11 +12,7 @@ createRequestFn.use(async (context, next) => {
     } catch (error) {
         if (!isRedirectError(error)) {
             console.error(error)
-
-            addToast({
-                title: getErrorMessage(error),
-                color: "danger",
-            })
+            message.error(getErrorMessage(error))
         }
 
         throw error

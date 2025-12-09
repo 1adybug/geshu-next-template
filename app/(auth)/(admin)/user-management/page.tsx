@@ -2,60 +2,156 @@
 
 import { FC, useState } from "react"
 
-import { Button, Form, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
 import { IconEdit, IconTrash } from "@tabler/icons-react"
-import { useForm } from "@tanstack/react-form"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser } from "deepsea-tools"
-import { addBetterToast, closeToast, FormInput } from "soda-heroui"
+import { Button, DatePicker, Form, Input, Table, TableProps } from "antd"
+import FormItem from "antd/es/form/FormItem"
+import { formatTime, getEnumKey, isNonNullable, naturalParser, showTotal } from "deepsea-tools"
+import { Columns, getTimeRange } from "soda-antd"
+import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
-import { deleteUserAction } from "@/actions/deleteUser"
-import { queryUserAction } from "@/actions/queryUser"
-
 import Confirm from "@/components/Confirm"
-import DateRangePicker from "@/components/DateRangePicker"
-import Pagination from "@/components/Pagination"
 import UserEditor from "@/components/UserEditor"
+
+import { useDeleteUser } from "@/hooks/useDeleteUser"
+import { useQueryUser } from "@/hooks/useQueryUser"
 
 import { getParser } from "@/schemas"
 import { pageNumParser } from "@/schemas/pageNum"
 import { pageSizeParser } from "@/schemas/pageSize"
 import { Role } from "@/schemas/role"
-import { sortOrderSchema } from "@/schemas/sortOrder"
+import { SortOrderParams, sortOrderSchema } from "@/schemas/sortOrder"
 import { UserSortByParams, userSortBySchema } from "@/schemas/userSortBy"
 
-import { getOnSubmit } from "@/utils/getOnSubmit"
+import { User } from "@/shared/queryUser"
+
+import { getSortOrder } from "@/utils/getSortOrder"
+import { uuid } from "@/utils/uuid"
 
 const Page: FC = () => {
-    const queryClient = useQueryClient()
-
-    const [query, setQuery] = useQueryState({
-        keys: ["id", "username", "phone"],
-        parse: {
-            createdBefore: naturalParser,
-            createdAfter: naturalParser,
-            updatedBefore: naturalParser,
-            updatedAfter: naturalParser,
-            pageNum: pageNumParser,
-            pageSize: pageSizeParser,
-            sortBy: getParser(userSortBySchema.optional().catch(undefined)),
-            sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
+    const [query, setQuery] = transformState(
+        useQueryState({
+            keys: ["id", "username", "phone"],
+            parse: {
+                createdBefore: naturalParser,
+                createdAfter: naturalParser,
+                updatedBefore: naturalParser,
+                updatedAfter: naturalParser,
+                pageNum: pageNumParser,
+                pageSize: pageSizeParser,
+                sortBy: getParser(userSortBySchema.optional().catch(undefined)),
+                sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
+            },
+        }),
+        {
+            get({ createdAfter, createdBefore, updatedAfter, updatedBefore, ...rest }) {
+                return {
+                    createdAt: getTimeRange(createdAfter, createdBefore),
+                    updatedAt: getTimeRange(updatedAfter, updatedBefore),
+                    ...rest,
+                }
+            },
+            set({ createdAt, updatedAt, ...rest }) {
+                return {
+                    createdAfter: createdAt?.[0].valueOf(),
+                    createdBefore: createdAt?.[1].valueOf(),
+                    updatedAfter: updatedAt?.[0].valueOf(),
+                    updatedBefore: updatedAt?.[1].valueOf(),
+                    ...rest,
+                }
+            },
+            dependOnGet: false,
         },
-    })
+    )
+
+    type FormParams = typeof query
 
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
     const [deleteUserId, setDeleteUserId] = useState<string | undefined>(undefined)
 
-    const sortDescriptor: SortDescriptor | undefined = query.sortBy && {
-        column: query.sortBy,
-        direction: query.sortOrder === "desc" ? "descending" : "ascending",
-    }
-
-    function onSortChange({ column, direction }: SortDescriptor) {
-        setQuery(prev => ({ ...prev, sortBy: column as UserSortByParams, sortOrder: direction === "descending" ? "desc" : "asc" }))
-    }
+    const columns: Columns<User> = [
+        {
+            title: "序号",
+            key: "index",
+            align: "center",
+            render: (value, record, index) => index + 1,
+        },
+        {
+            title: "用户名",
+            dataIndex: "username",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "username"),
+        },
+        {
+            title: "手机号",
+            dataIndex: "phone",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "phone"),
+        },
+        {
+            title: "角色",
+            dataIndex: "role",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "role"),
+            render(value) {
+                return getEnumKey(Role, value)
+            },
+        },
+        {
+            title: "创建时间",
+            dataIndex: "createdAt",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "createdAt"),
+            render(value) {
+                return formatTime(value)
+            },
+        },
+        {
+            title: "更新时间",
+            dataIndex: "updatedAt",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "updatedAt"),
+            render(value) {
+                return formatTime(value)
+            },
+        },
+        {
+            title: "操作",
+            key: "operation",
+            dataIndex: "id",
+            align: "center",
+            render(value) {
+                return (
+                    <div className="inline-flex gap-2">
+                        <Button
+                            size="small"
+                            shape="circle"
+                            color="default"
+                            variant="text"
+                            disabled={isRequesting}
+                            icon={<IconEdit className="w-5" />}
+                            onClick={() => onUpdate(value)}
+                        />
+                        <Button
+                            size="small"
+                            shape="circle"
+                            color="danger"
+                            variant="text"
+                            disabled={isRequesting}
+                            icon={<IconTrash className="w-5" />}
+                            onClick={() => setDeleteUserId(value)}
+                        />
+                    </div>
+                )
+            },
+        },
+    ]
 
     function onAdd() {
         setEditId(undefined)
@@ -72,210 +168,109 @@ const Page: FC = () => {
         setShowEditor(false)
     }
 
-    function getFormValues({ username, phone, createdBefore, createdAfter, updatedBefore, updatedAfter }: typeof query) {
-        return {
-            username,
-            phone,
-            created: (isNonNullable(createdBefore) && isNonNullable(createdAfter) ? [createdAfter, createdBefore] : undefined) as [number, number] | undefined,
-            updated: (isNonNullable(updatedBefore) && isNonNullable(updatedAfter) ? [updatedAfter, updatedBefore] : undefined) as [number, number] | undefined,
-        } as const
-    }
+    const { createdAt, updatedAt, pageNum, pageSize, ...rest } = query
 
-    const form = useForm({
-        defaultValues: getFormValues(query),
-        onSubmit({ value: { username, phone, created, updated } }) {
-            setQuery({
-                id: undefined,
-                username,
-                phone,
-                createdBefore: created?.[0],
-                createdAfter: created?.[1],
-                updatedBefore: updated?.[0],
-                updatedAfter: updated?.[1],
-            })
-        },
+    const { data, isLoading } = useQueryUser({
+        createdAfter: createdAt?.[0].toDate(),
+        createdBefore: createdAt?.[1].toDate(),
+        updatedAfter: updatedAt?.[0].toDate(),
+        updatedBefore: updatedAt?.[1].toDate(),
+        pageNum,
+        pageSize,
+        ...rest,
     })
 
-    const { data, isLoading } = useQuery({
-        queryKey: ["query-user", query],
-        async queryFn() {
-            const { createdBefore, createdAfter, updatedBefore, updatedAfter, ...rest } = query
-            return createRequestFn(queryUserAction)({
-                createdBefore: isNonNullable(createdBefore) ? new Date(createdBefore) : undefined,
-                createdAfter: isNonNullable(createdAfter) ? new Date(createdAfter) : undefined,
-                updatedBefore: isNonNullable(updatedBefore) ? new Date(updatedBefore) : undefined,
-                updatedAfter: isNonNullable(updatedAfter) ? new Date(updatedAfter) : undefined,
-                ...rest,
-            })
-        },
-    })
-
-    const mutationFn = createRequestFn(deleteUserAction)
-
-    const { mutateAsync: deleteUser, isPending: isDeleteUserPending } = useMutation({
-        mutationFn,
+    const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser({
         onMutate() {
             setDeleteUserId(undefined)
+            const key = uuid()
 
-            const key = addBetterToast({
-                title: "删除用户",
-                description: "正在删除用户",
+            message.loading({
+                key,
+                content: "正在删除用户",
+                duration: 0,
             })
 
             return key
         },
         onSuccess() {
-            addBetterToast({
-                title: "删除成功",
-                color: "success",
-            })
+            message.success("删除成功")
         },
-        onSettled(data, error, variables, context) {
-            closeToast(context!)
-            queryClient.invalidateQueries({ queryKey: ["query-user"] })
-            queryClient.invalidateQueries({ queryKey: ["get-all-users"] })
-            queryClient.invalidateQueries({ queryKey: ["query-repository"] })
+        onSettled(data, error, variables, onMutateResult, context) {
+            message.destroy(onMutateResult!)
+            context.client.invalidateQueries({ queryKey: ["query-user"] })
+            context.client.invalidateQueries({ queryKey: ["get-all-users"] })
+            context.client.invalidateQueries({ queryKey: ["query-repository"] })
         },
     })
 
     const isRequesting = isLoading || isDeleteUserPending
 
+    const onChange: TableProps<User>["onChange"] = function onChange(pagination, filters, sorter, extra) {
+        if (Array.isArray(sorter)) return
+
+        setQuery(prev => ({
+            ...prev,
+            sortBy: sorter.field as UserSortByParams,
+            sortOrder: (sorter.order ? sorter.order.slice(0, -3) : undefined) as SortOrderParams,
+        }))
+    }
+
     return (
         <div className="pt-4">
             <div className="px-4">
-                <Form className="flex-row" onSubmit={getOnSubmit(form)}>
-                    <form.Field name="username">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="用户名"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="phone">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="手机号"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="created">
-                        {field => (
-                            <DateRangePicker
-                                classNames={{ base: "!pb-0" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                hideTimeZone
-                                label="创建时间"
-                                aria-label="创建时间"
-                                labelPlacement="outside-left"
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="updated">
-                        {field => (
-                            <DateRangePicker
-                                classNames={{ base: "!pb-0" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                hideTimeZone
-                                label="更新时间"
-                                aria-label="更新时间"
-                                labelPlacement="outside-left"
-                            />
-                        )}
-                    </form.Field>
-                    <Button type="submit" color="primary" size="sm" isDisabled={isRequesting}>
-                        查询
-                    </Button>
-                    <Button type="button" variant="flat" size="sm" isDisabled={isRequesting} onPress={() => setQuery({})}>
-                        重置
-                    </Button>
-                    <Button className="ml-auto" size="sm" color="primary" isDisabled={isRequesting} onPress={onAdd}>
+                <Form<FormParams> layout="inline" onFinish={setQuery}>
+                    <FormItem<FormParams> name="username" label="用户名">
+                        <Input />
+                    </FormItem>
+                    <FormItem<FormParams> name="phone" label="手机号">
+                        <Input />
+                    </FormItem>
+                    <FormItem<FormParams> name="createdAt" label="创建时间">
+                        <DatePicker.RangePicker />
+                    </FormItem>
+                    <FormItem<FormParams> name="updatedAt" label="更新时间">
+                        <DatePicker.RangePicker />
+                    </FormItem>
+                    <FormItem<FormParams>>
+                        <Button htmlType="submit" type="primary" disabled={isRequesting}>
+                            查询
+                        </Button>
+                    </FormItem>
+                    <FormItem<FormParams>>
+                        <Button htmlType="button" type="text" disabled={isRequesting} onClick={() => setQuery({} as FormParams)}>
+                            重置
+                        </Button>
+                    </FormItem>
+                    <Button className="ml-auto" color="primary" disabled={isRequesting} onClick={onAdd}>
                         新增
                     </Button>
                 </Form>
             </div>
             <div className="mt-4 px-4">
-                <UserEditor id={editId} isOpen={showEditor} onClose={onClose} />
+                <UserEditor userId={editId} open={showEditor} onClose={onClose} />
                 <Confirm
                     title="确认删除用户？"
                     description="请在删除用户前，确保已备份相关数据。"
-                    onConfirm={() => deleteUser(deleteUserId!)}
+                    onConfirm={() => deleteUserAsync(deleteUserId!)}
                     isOpen={isNonNullable(deleteUserId)}
                     onClose={() => setDeleteUserId(undefined)}
                 />
-                <Table
-                    bottomContent={
-                        <Pagination
-                            pageSize={query.pageSize}
-                            pageNum={query.pageNum}
-                            total={data?.total ?? 1}
-                            onPageSizeChange={value => setQuery(prev => ({ ...prev, pageSize: value, pageNum: 1 }))}
-                            onPageNumChange={value => setQuery(prev => ({ ...prev, pageNum: value }))}
-                        />
-                    }
-                    aria-label="用户列表"
-                    sortDescriptor={sortDescriptor}
-                    onSortChange={onSortChange}
-                >
-                    <TableHeader>
-                        <TableColumn align="center">序号</TableColumn>
-                        <TableColumn key="username" allowsSorting align="center">
-                            用户名
-                        </TableColumn>
-                        <TableColumn key="phone" allowsSorting align="center">
-                            手机号
-                        </TableColumn>
-                        <TableColumn key="role" allowsSorting align="center">
-                            角色
-                        </TableColumn>
-                        <TableColumn key="createdAt" allowsSorting align="center">
-                            创建时间
-                        </TableColumn>
-                        <TableColumn key="updatedAt" allowsSorting align="center">
-                            更新时间
-                        </TableColumn>
-                        <TableColumn align="center">操作</TableColumn>
-                    </TableHeader>
-                    <TableBody items={data?.list.map((item, index) => ({ ...item, index })) ?? []} isLoading={isLoading} emptyContent="暂无数据">
-                        {({ index, id, username, phone, role, createdAt, updatedAt }) => (
-                            <TableRow key={id}>
-                                <TableCell>{data!.pageSize * (data!.pageNum - 1) + index + 1}</TableCell>
-                                <TableCell>{username}</TableCell>
-                                <TableCell>{phone}</TableCell>
-                                <TableCell>{getEnumKey(Role, role)}</TableCell>
-                                <TableCell>{formatTime(createdAt)}</TableCell>
-                                <TableCell>{formatTime(updatedAt)}</TableCell>
-                                <TableCell>
-                                    <div className="inline-flex gap-2">
-                                        <Button size="sm" variant="flat" radius="full" isIconOnly isDisabled={isRequesting} onPress={() => onUpdate(id)}>
-                                            <IconEdit className="w-5 text-foreground-500" />
-                                        </Button>
-                                        <Button size="sm" variant="flat" radius="full" isIconOnly isDisabled={isRequesting} onPress={() => setDeleteUserId(id)}>
-                                            <IconTrash className="w-5 text-foreground-500" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                <Table<User>
+                    columns={columns}
+                    dataSource={data?.list}
+                    loading={isLoading}
+                    rowKey="id"
+                    onChange={onChange}
+                    pagination={{
+                        current: pageNum,
+                        pageSize,
+                        showTotal,
+                        onChange(page, pageSize) {
+                            setQuery(prev => ({ ...prev, pageNum: page, pageSize }))
+                        },
+                    }}
+                />
             </div>
         </div>
     )

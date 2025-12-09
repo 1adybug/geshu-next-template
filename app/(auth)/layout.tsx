@@ -9,7 +9,7 @@ export interface LayoutProps {
 
 const Layout: FC<LayoutProps> = ({ children }) => (
     <Auth>
-        <Header classNames={{ wrapper: "px-4" }} />
+        <Header />
         <main className="h-[calc(100vh_-_64px)]">{children}</main>
     </Auth>
 )

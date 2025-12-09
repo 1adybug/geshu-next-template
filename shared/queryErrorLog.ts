@@ -100,3 +100,5 @@ export async function queryErrorLog({
         pageSize,
     })
 }
+
+export type ErrorLog = Awaited<ReturnType<typeof queryErrorLog>>["list"][number]

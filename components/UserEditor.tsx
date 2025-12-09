@@ -1,123 +1,101 @@
-import { ComponentProps, FC, Fragment, useEffect } from "react"
+import { ComponentProps, FC, useEffect } from "react"
 
-import { addToast, Button, Form, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem } from "@heroui/react"
-import { useForm } from "@tanstack/react-form"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createRequestFn, getEnumKey, isNonNullable, resolveNull } from "deepsea-tools"
-import { addBetterToast, closeToast, FormInput, FormSelect } from "soda-heroui"
+import { useMutation } from "@tanstack/react-query"
+import { Form, Input, Modal, Select } from "antd"
+import { useForm } from "antd/es/form/Form"
+import FormItem from "antd/es/form/FormItem"
+import { getEnumOptions, isNonNullable } from "deepsea-tools"
+import { aclsm } from "soda-antd"
 
-import { addUserAction } from "@/actions/addUser"
-import { getUserAction } from "@/actions/getUser"
-import { updateUserAction } from "@/actions/updateUser"
+import { addUserClient } from "@/hooks/useAddUser"
+import { useGetUser } from "@/hooks/useGetUser"
+import { updateUserClient } from "@/hooks/useUpdateUser"
 
-import { AddUserParams, addUserParser } from "@/schemas/addUser"
-import { idParser } from "@/schemas/id"
-import { phoneSchema } from "@/schemas/phone"
-import { Role, roleSchema } from "@/schemas/role"
-import { updateUserParser } from "@/schemas/updateUser"
-import { usernameSchema } from "@/schemas/username"
+import { AddUserParams } from "@/schemas/addUser"
+import { Role } from "@/schemas/role"
+import { UpdateUserParams } from "@/schemas/updateUser"
 
-import { getOnSubmit } from "@/utils/getOnSubmit"
+import { uuid } from "@/utils/uuid"
 
-export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "id" | "children"> {
-    id?: string
+export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "onOk" | "onClose"> {
+    userId?: string
+    onClose?: () => void
 }
 
-const UserEditor: FC<UserEditorProps> = ({ id, isOpen, onClose, ...rest }) => {
-    const isUpdate = isNonNullable(id)
-    const queryClient = useQueryClient()
-
-    const form = useForm({
-        defaultValues: {} as AddUserParams,
-        onSubmit({ value }) {
-            return mutateAsync(value)
-        },
-    })
-
-    const { data, isLoading } = useQuery({
-        queryKey: ["get-user", id],
-        queryFn: isNonNullable(id) ? createRequestFn(() => getUserAction(idParser(id))) : resolveNull,
-        enabled: !!isOpen,
-    })
-
-    const mutationFn = isUpdate
-        ? createRequestFn((data: AddUserParams) => updateUserAction(updateUserParser({ ...data, id })))
-        : createRequestFn((data: AddUserParams) => addUserAction(addUserParser(data)))
+const UserEditor: FC<UserEditorProps> = ({ classNames, userId, open, onClose, okButtonProps, cancelButtonProps, ...rest }) => {
+    const isUpdate = isNonNullable(userId)
+    const [form] = useForm<AddUserParams>()
+    const action = isUpdate ? "修改用户" : "新增用户"
+    const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
 
     const { mutateAsync, isPending } = useMutation({
-        mutationFn,
+        mutationFn: isUpdate ? updateUserClient : addUserClient,
         onMutate() {
-            const key = addBetterToast({
-                title: `${isUpdate ? "修改用户" : "新增用户"}中...`,
-                loading: true,
+            const key = uuid()
+
+            message.loading({
+                key,
+                content: `${action}中`,
+                duration: 0,
             })
 
             return key
         },
         onSuccess() {
-            addToast({
-                title: `${isUpdate ? "修改用户" : "新增用户"}成功`,
-                color: "success",
-            })
+            message.success(`${action}成功`)
         },
-        onSettled(data, error, variables, context) {
-            closeToast(context!)
-            queryClient.invalidateQueries({ queryKey: ["query-user"] })
-            queryClient.invalidateQueries({ queryKey: ["get-user", id] })
+        onError() {
+            message.error(`${action}失败`)
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
             onClose?.()
+            message.destroy(onMutateResult!)
+            context.client.invalidateQueries({ queryKey: ["query-user"] })
+            context.client.invalidateQueries({ queryKey: ["get-user", userId] })
         },
     })
 
     useEffect(() => {
-        if (!isOpen || !data) return
-        form.reset(data as AddUserParams)
-    }, [isOpen, data, form])
+        if (!open || !data) return
+        form.setFieldsValue(data as AddUserParams)
+    }, [open, data, form])
 
     useEffect(() => {
-        if (isNonNullable(id)) return () => form.reset()
-    }, [id, form])
+        if (isNonNullable(userId)) return () => form.resetFields()
+    }, [userId, form])
 
     const isRequesting = isLoading || isPending
 
+    function onFinish(values: AddUserParams) {
+        mutateAsync({ id: userId, ...values } as UpdateUserParams)
+    }
+
+    function onOk() {
+        form.submit()
+    }
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} {...rest}>
-            <ModalContent>
-                {onClose => (
-                    <Fragment>
-                        <ModalHeader>{isUpdate ? "修改用户" : "新增用户"}</ModalHeader>
-                        <ModalBody>
-                            <Form onSubmit={getOnSubmit(form)}>
-                                <form.Field name="username" validators={{ onBlur: usernameSchema }}>
-                                    {field => <FormInput size="sm" isDisabled={isRequesting} field={field} label="用户名" />}
-                                </form.Field>
-                                <form.Field name="phone" validators={{ onBlur: phoneSchema }}>
-                                    {field => <FormInput size="sm" isDisabled={isRequesting} field={field} label="手机号" />}
-                                </form.Field>
-                                <form.Field name="role" validators={{ onBlur: roleSchema }}>
-                                    {field => (
-                                        <FormSelect isDisabled={isRequesting} field={field} label="角色">
-                                            {Object.values(Role).map(role => (
-                                                <SelectItem key={role}>{getEnumKey(Role, role)}</SelectItem>
-                                            ))}
-                                        </FormSelect>
-                                    )}
-                                </form.Field>
-                                <Button className="hidden" type="submit" isDisabled={isRequesting}>
-                                    确定
-                                </Button>
-                            </Form>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button size="sm" isDisabled={isRequesting} variant="light" onPress={onClose}>
-                                取消
-                            </Button>
-                            <Button size="sm" isDisabled={isRequesting} color="primary" onPress={form.handleSubmit}>
-                                确定
-                            </Button>
-                        </ModalFooter>
-                    </Fragment>
-                )}
-            </ModalContent>
+        <Modal
+            classNames={aclsm({ body: "!pt-2" }, classNames)}
+            open={open}
+            title={isUpdate ? "修改用户" : "新增用户"}
+            onOk={onOk}
+            onCancel={onClose}
+            okButtonProps={{ disabled: isRequesting, ...okButtonProps }}
+            cancelButtonProps={{ disabled: isRequesting, ...cancelButtonProps }}
+            {...rest}
+        >
+            <Form<AddUserParams> form={form} labelCol={{ flex: "56px" }} onFinish={onFinish}>
+                <FormItem<AddUserParams> name="username" label="用户名">
+                    <Input autoComplete="off" allowClear />
+                </FormItem>
+                <FormItem<AddUserParams> name="phone" label="手机号">
+                    <Input autoComplete="off" allowClear />
+                </FormItem>
+                <FormItem<AddUserParams> name="role" label="角色">
+                    <Select options={getEnumOptions(Role)} />
+                </FormItem>
+            </Form>
         </Modal>
     )
 }

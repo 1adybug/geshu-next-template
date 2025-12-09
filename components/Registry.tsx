@@ -1,11 +1,13 @@
 "use client"
 
-import { FC, ReactNode } from "react"
+import { FC, ReactNode, useEffect } from "react"
 
 import { AntdRegistry } from "@ant-design/nextjs-registry"
-import { HeroUIProvider, ToastProvider } from "@heroui/react"
+import { HeroUIProvider } from "@heroui/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ConfigProvider } from "antd"
+import { MessageInstance } from "antd/es/message/interface"
+import useMessage from "antd/es/message/useMessage"
 import zhCN from "antd/locale/zh_CN"
 import { useRouter } from "next/navigation"
 
@@ -32,16 +34,24 @@ declare module "@react-types/shared" {
     }
 }
 
-const Registry: FC<RegistryProps> = props => {
-    const { children } = props
+declare global {
+    var message: MessageInstance
+}
+
+const Registry: FC<RegistryProps> = ({ children }) => {
+    const [message, context] = useMessage()
     const router = useRouter()
+
+    useEffect(() => {
+        globalThis.message = message
+    }, [message])
 
     return (
         <QueryClientProvider client={queryClient}>
-            <AntdRegistry layer>
-                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: '"Source Han Sans SC VF", sans-serif' } }}>
+            <AntdRegistry hashPriority="high">
+                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Source Han Sans VF" } }}>
                     <HeroUIProvider locale="zh-CN" navigate={router.push} className="h-full">
-                        <ToastProvider />
+                        {context}
                         {children}
                     </HeroUIProvider>
                 </ConfigProvider>

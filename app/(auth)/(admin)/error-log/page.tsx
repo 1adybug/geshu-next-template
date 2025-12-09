@@ -2,308 +2,273 @@
 
 import { FC, useState } from "react"
 
-import { Button, Form, Link, SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react"
-import { useForm } from "@tanstack/react-form"
-import { useQuery } from "@tanstack/react-query"
 import JsonView from "@uiw/react-json-view"
-import { createRequestFn, formatTime, getEnumKey, isNonNullable, naturalParser } from "deepsea-tools"
-import { FormInput } from "soda-heroui"
+import { Button, DatePicker, Form, Input, Modal, ModalProps, Table, TableProps } from "antd"
+import FormItem from "antd/es/form/FormItem"
+import { formatTime, getEnumKey, isNonNullable, naturalParser, showTotal } from "deepsea-tools"
+import { Columns, getTimeRange } from "soda-antd"
+import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
-import { queryErrorLogAction } from "@/actions/queryErrorLog"
-
-import Blackboard, { BlackboardProps } from "@/components/Blackboard"
-import DateRangePicker from "@/components/DateRangePicker"
-import Pagination from "@/components/Pagination"
 import User from "@/components/User"
+
+import { useQueryErrorLog } from "@/hooks/useQueryErrorLog"
 
 import { getParser } from "@/schemas"
 import { ErrorLogSortByParams, errorLogSortBySchema } from "@/schemas/errorLogSortBy"
 import { pageNumParser } from "@/schemas/pageNum"
 import { pageSizeParser } from "@/schemas/pageSize"
 import { Role } from "@/schemas/role"
-import { sortOrderSchema } from "@/schemas/sortOrder"
+import { SortOrderParams, sortOrderSchema } from "@/schemas/sortOrder"
 
-import { getOnSubmit } from "@/utils/getOnSubmit"
+import { ErrorLog } from "@/shared/queryErrorLog"
+
+import { getSortOrder } from "@/utils/getSortOrder"
 
 const Page: FC = () => {
-    const [query, setQuery] = useQueryState({
-        keys: ["type", "message", "action", "ip", "userAgent", "username"],
-        parse: {
-            createdBefore: naturalParser,
-            createdAfter: naturalParser,
-            pageNum: pageNumParser,
-            pageSize: pageSizeParser,
-            sortBy: getParser(errorLogSortBySchema.optional().catch(undefined)),
-            sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
+    const [query, setQuery] = transformState(
+        useQueryState({
+            keys: ["type", "message", "action", "ip", "userAgent", "username"],
+            parse: {
+                createdBefore: naturalParser,
+                createdAfter: naturalParser,
+                pageNum: pageNumParser,
+                pageSize: pageSizeParser,
+                sortBy: getParser(errorLogSortBySchema.optional().catch(undefined)),
+                sortOrder: getParser(sortOrderSchema.optional().catch(undefined)),
+            },
+        }),
+        {
+            get({ createdAfter, createdBefore, ...rest }) {
+                return {
+                    createdAt: getTimeRange(createdAfter, createdBefore),
+                    ...rest,
+                }
+            },
+            set({ createdAt, ...rest }) {
+                return {
+                    createdAfter: createdAt?.[0].valueOf(),
+                    createdBefore: createdAt?.[1].valueOf(),
+                    ...rest,
+                }
+            },
+            dependOnGet: false,
         },
+    )
+
+    type FormParams = typeof query
+
+    const [info, setInfo] = useState<Pick<ModalProps, "title" | "children">>()
+
+    const { createdAt, pageNum, pageSize, ...rest } = query
+
+    const { data, isLoading } = useQueryErrorLog({
+        createdAfter: createdAt?.[0].toDate(),
+        createdBefore: createdAt?.[1].toDate(),
+        pageNum,
+        pageSize,
+        ...rest,
     })
 
-    const [info, setInfo] = useState<Pick<BlackboardProps, "header" | "body">>()
-
-    const sortDescriptor: SortDescriptor | undefined = query.sortBy && {
-        column: query.sortBy,
-        direction: query.sortOrder === "desc" ? "descending" : "ascending",
-    }
-
-    function onSortChange({ column, direction }: SortDescriptor) {
-        setQuery(prev => ({ ...prev, sortBy: column as ErrorLogSortByParams, sortOrder: direction === "descending" ? "desc" : "asc" }))
-    }
-
-    function getFormValues({ type, message, action, ip, userAgent, username, createdBefore, createdAfter }: typeof query) {
-        return {
-            type,
-            message,
-            action,
-            ip,
-            userAgent,
-            username,
-            created: (isNonNullable(createdBefore) && isNonNullable(createdAfter) ? [createdAfter, createdBefore] : undefined) as [number, number] | undefined,
-        } as const
-    }
-
-    const form = useForm({
-        defaultValues: getFormValues(query),
-        onSubmit({ value: { type, message, action, ip, userAgent, username, created } }) {
-            setQuery({
-                type,
-                message,
-                action,
-                ip,
-                userAgent,
-                username,
-                createdBefore: created?.[0],
-                createdAfter: created?.[1],
-            })
+    const columns: Columns<ErrorLog> = [
+        {
+            title: "序号",
+            key: "index",
+            align: "center",
+            render(value, record, index) {
+                return (pageNum - 1) * pageSize + index + 1
+            },
         },
-    })
-
-    const { data, isLoading } = useQuery({
-        queryKey: ["query-error-log", query],
-        async queryFn() {
-            const { createdBefore, createdAfter, ...rest } = query
-            return createRequestFn(queryErrorLogAction)({
-                createdBefore: isNonNullable(createdBefore) ? new Date(createdBefore) : undefined,
-                createdAfter: isNonNullable(createdAfter) ? new Date(createdAfter) : undefined,
-                ...rest,
-            })
+        {
+            title: "用户",
+            dataIndex: "username",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "username"),
+            render(value, record) {
+                return record.userId && value ? <User data={{ id: record.userId, username: value }} /> : "—"
+            },
         },
-    })
+        {
+            title: "手机号",
+            dataIndex: "phone",
+            align: "center",
+            render(value) {
+                return value || "—"
+            },
+        },
+        {
+            title: "角色",
+            dataIndex: "role",
+            align: "center",
+            render(value) {
+                return (value && getEnumKey(Role, value)) || "—"
+            },
+        },
+        {
+            title: "类型",
+            dataIndex: "type",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "type"),
+        },
+        {
+            title: "消息",
+            dataIndex: "message",
+            align: "center",
+            ellipsis: true,
+            render(value) {
+                if (!value) return "—"
+
+                return (
+                    <Button type="link" size="small" className="!px-0" onClick={() => setInfo({ title: "错误消息", children: value })}>
+                        <span className="line-clamp-1 max-w-48 break-all">{value}</span>
+                    </Button>
+                )
+            },
+        },
+        {
+            title: "堆栈",
+            dataIndex: "stack",
+            align: "center",
+            ellipsis: true,
+            render(value) {
+                if (!value) return "—"
+
+                return (
+                    <Button type="link" size="small" className="!px-0" onClick={() => setInfo({ title: "错误堆栈", children: value })}>
+                        <span className="line-clamp-1 max-w-48 break-all">{value}</span>
+                    </Button>
+                )
+            },
+        },
+        {
+            title: "操作",
+            dataIndex: "action",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "action"),
+        },
+        {
+            title: "参数",
+            dataIndex: "params",
+            align: "center",
+            ellipsis: true,
+            render(value) {
+                if (!value) return "—"
+
+                return (
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() =>
+                            setInfo({
+                                title: "错误参数",
+                                children: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(value)} />,
+                            })
+                        }
+                    >
+                        <span className="line-clamp-1 max-w-48 break-all">{value}</span>
+                    </Button>
+                )
+            },
+        },
+        {
+            title: "IP",
+            dataIndex: "ip",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "ip"),
+        },
+        {
+            title: "UserAgent",
+            dataIndex: "userAgent",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "userAgent"),
+            render(value) {
+                return value ?? "—"
+            },
+        },
+        {
+            title: "时间",
+            dataIndex: "createdAt",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "createdAt"),
+            render(value) {
+                return formatTime(value)
+            },
+        },
+    ]
+
+    const onChange: TableProps<ErrorLog>["onChange"] = function onChange(pagination, filters, sorter) {
+        if (Array.isArray(sorter)) return
+
+        setQuery(prev => ({
+            ...prev,
+            sortBy: sorter.field as ErrorLogSortByParams,
+            sortOrder: (sorter.order ? sorter.order.slice(0, -3) : undefined) as SortOrderParams,
+        }))
+    }
 
     const isRequesting = isLoading
 
     return (
         <div className="pt-4">
             <div className="px-4">
-                <Form className="flex-row" onSubmit={getOnSubmit(form)}>
-                    <form.Field name="type">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="类型"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="message">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="消息"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="action">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="函数名"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="username">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="用户名"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="ip">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="IP"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="userAgent">
-                        {field => (
-                            <FormInput
-                                classNames={{ mainWrapper: "w-36" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                label="UserAgent"
-                                labelPlacement="outside-left"
-                                autoComplete="off"
-                                isClearable
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="created">
-                        {field => (
-                            <DateRangePicker
-                                classNames={{ base: "!pb-0" }}
-                                size="sm"
-                                field={field}
-                                fullWidth={false}
-                                hideTimeZone
-                                label="创建时间"
-                                aria-label="创建时间"
-                                labelPlacement="outside-left"
-                            />
-                        )}
-                    </form.Field>
-                    <Button type="submit" color="primary" size="sm" isDisabled={isRequesting}>
-                        查询
-                    </Button>
-                    <Button type="button" variant="flat" size="sm" isDisabled={isRequesting} onPress={() => setQuery({})}>
-                        重置
-                    </Button>
+                <Form<FormParams> layout="inline" onFinish={setQuery}>
+                    <FormItem<FormParams> name="type" label="类型">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="message" label="消息">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="action" label="函数名">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="username" label="用户名">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="ip" label="IP">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="userAgent" label="UserAgent">
+                        <Input allowClear />
+                    </FormItem>
+                    <FormItem<FormParams> name="createdAt" label="创建时间">
+                        <DatePicker.RangePicker />
+                    </FormItem>
+                    <FormItem<FormParams>>
+                        <Button htmlType="submit" type="primary" disabled={isRequesting}>
+                            查询
+                        </Button>
+                    </FormItem>
+                    <FormItem<FormParams>>
+                        <Button htmlType="button" type="text" disabled={isRequesting} onClick={() => setQuery({} as FormParams)}>
+                            重置
+                        </Button>
+                    </FormItem>
                 </Form>
             </div>
             <div className="mt-4 px-4">
-                <Blackboard isOpen={isNonNullable(info)} onClose={() => setInfo(undefined)} {...info} />
-                <Table
-                    bottomContent={
-                        <Pagination
-                            pageSize={query.pageSize}
-                            pageNum={query.pageNum}
-                            total={data?.total ?? 1}
-                            onPageSizeChange={value => setQuery(prev => ({ ...prev, pageSize: value, pageNum: 1 }))}
-                            onPageNumChange={value => setQuery(prev => ({ ...prev, pageNum: value }))}
-                        />
-                    }
-                    aria-label="错误日志列表"
-                    sortDescriptor={sortDescriptor}
-                    onSortChange={onSortChange}
-                >
-                    <TableHeader>
-                        <TableColumn align="center">序号</TableColumn>
-                        <TableColumn allowsSorting key="username" align="center">
-                            用户
-                        </TableColumn>
-                        <TableColumn align="center">手机号</TableColumn>
-                        <TableColumn align="center">角色</TableColumn>
-                        <TableColumn allowsSorting key="type" align="center">
-                            类型
-                        </TableColumn>
-                        <TableColumn align="center">消息</TableColumn>
-                        <TableColumn align="center">堆栈</TableColumn>
-                        <TableColumn allowsSorting key="action" align="center">
-                            操作
-                        </TableColumn>
-                        <TableColumn align="center">参数</TableColumn>
-                        <TableColumn allowsSorting key="ip" align="center">
-                            IP
-                        </TableColumn>
-                        <TableColumn align="center" className="w-80">
-                            UserAgent
-                        </TableColumn>
-                        <TableColumn allowsSorting key="createdAt" align="center">
-                            时间
-                        </TableColumn>
-                    </TableHeader>
-                    <TableBody items={data?.list.map((item, index) => ({ ...item, index })) ?? []} isLoading={isLoading} emptyContent="暂无数据">
-                        {({ index, id, createdAt, type, message, stack, action, params, ip, userAgent, username, phone, role, userId }) => (
-                            <TableRow key={id}>
-                                <TableCell>{data!.pageSize * (data!.pageNum - 1) + index + 1}</TableCell>
-                                <TableCell>{userId && username ? <User data={{ id: userId, username }} /> : "—"}</TableCell>
-                                <TableCell>{phone || "—"}</TableCell>
-                                <TableCell>{(role && getEnumKey(Role, role)) || "—"}</TableCell>
-                                <TableCell>{type}</TableCell>
-                                <TableCell title={message}>
-                                    {message ? (
-                                        <Link
-                                            size="sm"
-                                            className="line-clamp-1 max-w-48 cursor-pointer break-all"
-                                            onPress={() => setInfo({ header: "错误消息", body: message })}
-                                        >
-                                            {message}
-                                        </Link>
-                                    ) : (
-                                        "—"
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {stack ? (
-                                        <Link
-                                            size="sm"
-                                            className="line-clamp-1 max-w-48 cursor-pointer break-all"
-                                            onPress={() => setInfo({ header: "错误堆栈", body: stack })}
-                                        >
-                                            {stack}
-                                        </Link>
-                                    ) : (
-                                        "—"
-                                    )}
-                                </TableCell>
-                                <TableCell>{action}</TableCell>
-                                <TableCell>
-                                    {params ? (
-                                        <Link
-                                            size="sm"
-                                            className="line-clamp-1 max-w-48 cursor-pointer break-all"
-                                            onPress={() =>
-                                                setInfo({
-                                                    header: "错误参数",
-                                                    body: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(params)} />,
-                                                })
-                                            }
-                                        >
-                                            {params}
-                                        </Link>
-                                    ) : (
-                                        "—"
-                                    )}
-                                </TableCell>
-                                <TableCell>{ip}</TableCell>
-                                <TableCell>{userAgent ?? "—"}</TableCell>
-                                <TableCell>{formatTime(createdAt)}</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                <Modal open={isNonNullable(info)} onCancel={() => setInfo(undefined)} footer={null} {...info} />
+                <Table<ErrorLog>
+                    columns={columns}
+                    dataSource={data?.list}
+                    loading={isLoading}
+                    rowKey="id"
+                    onChange={onChange}
+                    pagination={{
+                        current: pageNum,
+                        pageSize,
+                        total: data?.total,
+                        showTotal,
+                        onChange(page, size) {
+                            setQuery(prev => ({ ...prev, pageNum: page, pageSize: size }))
+                        },
+                    }}
+                />
             </div>
         </div>
     )

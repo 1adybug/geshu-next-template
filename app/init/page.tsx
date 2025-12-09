@@ -2,7 +2,7 @@
 
 import { FC } from "react"
 
-import { addToast, Button, Form } from "@heroui/react"
+import { Button, Form } from "@heroui/react"
 import { useForm } from "@tanstack/react-form"
 import { useMutation } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
@@ -27,11 +27,7 @@ const Page: FC = () => {
     const { mutateAsync, isPending } = useMutation({
         mutationFn,
         onSuccess() {
-            addToast({
-                title: "初始化成功",
-                color: "success",
-            })
-
+            message.success("初始化成功")
             router.replace("/login")
         },
     })

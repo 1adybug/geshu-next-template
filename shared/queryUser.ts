@@ -82,3 +82,5 @@ export async function queryUser({
         pageSize,
     })
 }
+
+export type User = Awaited<ReturnType<typeof queryUser>>["list"][number]

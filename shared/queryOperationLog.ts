@@ -106,3 +106,5 @@ export async function queryOperationLog({
         pageSize,
     })
 }
+
+export type OperationLog = Awaited<ReturnType<typeof queryOperationLog>>["list"][number]

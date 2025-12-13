@@ -1,5 +1,7 @@
 ---
-alwaysApply: false
+trigger: always_on
+glob:
+description:
 ---
 
 # Next.js Rule

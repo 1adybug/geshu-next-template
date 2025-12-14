@@ -85,7 +85,7 @@ const Page: FC = () => {
             },
         },
         {
-            title: "第一方",
+            title: "信任",
             dataIndex: "is_first_party",
             align: "center",
             render(value: boolean) {

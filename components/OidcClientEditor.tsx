@@ -202,7 +202,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                     <Input.Password disabled={isRequesting} placeholder={isUpdate ? "留空表示不变（如不想改）" : "留空将自动生成"} autoComplete="off" />
                 </FormItem>
 
-                <FormItem<FormValues> name="is_first_party" label="是否第一方（跳过 consent）" valuePropName="checked">
+                <FormItem<FormValues> name="is_first_party" label="信任应用（跳过授权提示）" valuePropName="checked">
                     <Switch disabled={isRequesting} />
                 </FormItem>
 

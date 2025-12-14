@@ -49,17 +49,19 @@ export async function GET() {
     const clients = clientIds.length
         ? await prisma.oidcClient.findMany({
               where: { client_id: { in: clientIds } },
-              select: { client_id: true, client_name: true },
+              select: { client_id: true, client_name: true, is_first_party: true },
           })
         : []
 
     const clientNameMap = new Map(clients.map(c => [c.client_id, c.client_name ?? undefined] as const))
+    const firstPartySet = new Set(clients.filter(c => c.is_first_party).map(c => c.client_id))
 
     const data: ConnectedApp[] = []
 
     for (const grant of grants) {
         const client_id = (grant.clientId || "").trim()
         if (!client_id) continue
+        if (firstPartySet.has(client_id)) continue
 
         const client_name = clientNameMap.get(client_id)
 

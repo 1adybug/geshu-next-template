@@ -7,6 +7,15 @@
 
 ---
 
+## 0. 示例项目（本仓库）
+
+本仓库内置两个“最小化第三方接入方（Relying Party）”示例（Next.js 16 + Ant Design）：
+
+- `examples/rp-pure`：无本地用户体系（纯依赖模式），直接使用 MyApp 的 `sub` 作为用户标识
+- `examples/rp-with-users`：有本地用户体系（绑定模式），把 MyApp 的 `issuer + sub` 绑定到本地用户
+
+---
+
 ## 1. 关键地址
 
 假设你的 `OIDC_ISSUER` 为：
@@ -150,11 +159,12 @@ export async function myappCallback(req, res) {
     // 绑定键：issuer + sub
     const link = await db.oidcAccountLink.findUnique({ issuer: ISSUER, sub })
 
-    if (link)
+    if (link) {
         return (
             // 已绑定：登录到第三方本地账号
             loginAsLocalUser(res, link.localUserId)
         )
+    }
 
     // 未绑定：
     // 1) 如果用户已登录第三方本地账号，则直接绑定

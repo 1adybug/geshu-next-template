@@ -67,6 +67,9 @@ sequenceDiagram
 - `grant_types`：建议 `["authorization_code","refresh_token"]`
 - `response_types`：建议 `["code"]`
 - `token_endpoint_auth_method`：建议 `client_secret_basic`
+- `is_first_party`：是否为第一方（受信任应用，跳过授权提示）
+    - 你的第一方应用可以设为 `true`（类似 Google 自家产品）
+    - 第三方网站请保持 `false`（需要授权提示）
 
 ---
 
@@ -86,6 +89,80 @@ sequenceDiagram
 
 - `issuer` + `sub`（避免未来多环境/多实例 issuer 不同导致冲突）
 
+### 4.1 推荐表结构（示例）
+
+建议在第三方数据库里增加一张“外部身份绑定表”（字段名可自行调整）：
+
+**Prisma（示例）**
+
+```prisma
+model OidcAccountLink {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 例如：https://example.com/api/oidc
+  issuer      String
+
+  // MyApp 的用户唯一标识（稳定主键）
+  sub         String
+
+  // 你第三方本地账号 ID
+  localUserId String
+
+  @@unique([issuer, sub])
+  @@index([localUserId])
+}
+```
+
+### 4.2 回调处理（伪代码）
+
+下面示例展示第三方后端在回调时如何完成“换 token -> 拉取用户信息 -> 绑定/登录”。
+
+```js
+import { Issuer } from "openid-client"
+
+const ISSUER = process.env.MYAPP_OIDC_ISSUER
+const CLIENT_ID = process.env.MYAPP_CLIENT_ID
+const CLIENT_SECRET = process.env.MYAPP_CLIENT_SECRET
+const REDIRECT_URI = process.env.MYAPP_REDIRECT_URI
+
+export async function myappCallback(req, res) {
+    const issuer = await Issuer.discover(ISSUER)
+
+    const client = new issuer.Client({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        redirect_uris: [REDIRECT_URI],
+        response_types: ["code"],
+    })
+
+    const params = client.callbackParams(req)
+    const tokenSet = await client.callback(REDIRECT_URI, params, {
+        // PKCE 场景下需要 code_verifier，请从你自己的 session 里取出
+        code_verifier: req.session.codeVerifier,
+        state: req.session.state,
+    })
+
+    const userinfo = await client.userinfo(tokenSet.access_token)
+    const sub = String(userinfo.sub)
+
+    // 绑定键：issuer + sub
+    const link = await db.oidcAccountLink.findUnique({ issuer: ISSUER, sub })
+
+    if (link)
+        return (
+            // 已绑定：登录到第三方本地账号
+            loginAsLocalUser(res, link.localUserId)
+        )
+
+    // 未绑定：
+    // 1) 如果用户已登录第三方本地账号，则直接绑定
+    // 2) 否则引导用户创建/选择本地账号后再绑定
+    return res.redirect("/bind-myapp")
+}
+```
+
 ---
 
 ## 5. 纯净模式接入（仅依赖本 IdP）
@@ -101,6 +178,19 @@ sequenceDiagram
 
 - 本 IdP 开启了 Refresh Token，并启用 **Refresh Token Rotation**（刷新会下发新的 refresh token 并废弃旧的）。
 - Access Token TTL：1 小时；Refresh Token TTL：30 天。
+
+### 5.1 用户落库（建议）
+
+纯净模式下，第三方可以只维护一张很薄的用户表：
+
+- `sub` 作为主键（或唯一键）
+- 可选字段：`createdAt`、`lastLoginAt`、`profileSnapshot`
+
+### 5.2 Access Token 校验方式选择
+
+本项目默认建议第三方资源服务器使用 **Introspection** 进行校验（最通用，支持撤销与旋转）。
+
+如果你未来将 Access Token 配置为 JWT 并允许第三方离线验签，则第三方也可以走 “JWKS 验签” 路线。
 
 ---
 
@@ -173,6 +263,46 @@ export function requireMyAppAuth(requiredScopes = []) {
             return next()
         } catch (error) {
             return response.status(401).json({ message: "Unauthorized" })
+        }
+    }
+}
+```
+
+---
+
+## 9. 接口鉴权示例（可选：JWT + JWKS 验签）
+
+说明：该方式仅适用于 Access Token 为 JWT 的场景。默认情况下建议继续使用 Introspection。
+
+```js
+import { createRemoteJWKSet, jwtVerify } from "jose"
+
+const ISSUER = process.env.MYAPP_OIDC_ISSUER // 例如：https://example.com/api/oidc
+const JWKS = createRemoteJWKSet(new URL(`${ISSUER}/jwks`))
+
+export function requireMyAppJwtAuth(requiredScopes = []) {
+    return async (req, res, next) => {
+        try {
+            const authorizationHeader = req.headers.authorization || ""
+            const [, token] = authorizationHeader.split(" ")
+            if (!token) return res.status(401).json({ message: "Missing bearer token" })
+
+            const { payload } = await jwtVerify(token, JWKS, {
+                issuer: ISSUER,
+            })
+
+            const scopes = String(payload.scope || "")
+                .split(" ")
+                .filter(Boolean)
+
+            for (const scope of requiredScopes) {
+                if (!scopes.includes(scope)) return res.status(403).json({ message: "Insufficient scope" })
+            }
+
+            req.user = { sub: String(payload.sub), scope: scopes, client_id: String(payload.client_id || "") }
+            return next()
+        } catch (error) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
     }
 }

@@ -137,7 +137,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
     }
 
     return (
-        <Modal open={open} onCancel={onClose} title={isUpdate ? `编辑：${clientId}` : "新增接入方（OIDC Client）"} footer={null} destroyOnClose {...rest}>
+        <Modal open={open} onCancel={onClose} title={isUpdate ? `编辑：${clientId}` : "新增接入方（OIDC Client）"} footer={null} destroyOnHidden {...rest}>
             <Form<FormValues> form={form} layout="vertical" onFinish={onFinish}>
                 <FormItem<FormValues> name="client_id" label="Client ID" rules={[{ required: true, message: "请输入 client_id" }]}>
                     <Input disabled={isUpdate || isRequesting} placeholder="例如：my-rp-app" autoComplete="off" />

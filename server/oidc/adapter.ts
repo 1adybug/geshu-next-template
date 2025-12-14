@@ -5,6 +5,10 @@ function getExpiresAt(expiresIn?: number) {
     return new Date(Date.now() + expiresIn * 1000)
 }
 
+function getString(value: unknown) {
+    return typeof value === "string" && value.trim() ? value : null
+}
+
 function stringify(value: unknown) {
     return JSON.stringify(value ?? null)
 }
@@ -26,11 +30,13 @@ class PrismaOidcRecordAdapter {
         const grantId = typeof payload.grantId === "string" ? payload.grantId : null
         const userCode = typeof payload.userCode === "string" ? payload.userCode : null
         const uid = typeof payload.uid === "string" ? payload.uid : null
+        const accountId = getString(payload.accountId)
+        const clientId = getString(payload.clientId)
 
         await prisma.oidcRecord.upsert({
             where: { type_id: { type: this.name, id } },
-            create: { type: this.name, id, payload: stringify(payload), expiresAt, grantId, userCode, uid },
-            update: { payload: stringify(payload), expiresAt, grantId, userCode, uid },
+            create: { type: this.name, id, payload: stringify(payload), expiresAt, grantId, accountId, clientId, userCode, uid },
+            update: { payload: stringify(payload), expiresAt, grantId, accountId, clientId, userCode, uid },
         })
     }
 
@@ -149,27 +155,7 @@ class PrismaOidcClientAdapter {
     }
 
     async find(id: string) {
-        let client = await prisma.oidcClient.findUnique({ where: { client_id: id } })
-
-        if (!client && process.env.OIDC_SELF_CLIENT_ID?.trim() && id === process.env.OIDC_SELF_CLIENT_ID.trim()) {
-            const redirectUri =
-                process.env.OIDC_SELF_REDIRECT_URI?.trim() || `${process.env.NEXTAUTH_URL?.trim() || "http://localhost:3000"}/api/auth/callback/oidc`
-            await prisma.oidcClient.create({
-                data: {
-                    client_id: id,
-                    client_secret: process.env.OIDC_SELF_CLIENT_SECRET?.trim() || "",
-                    redirect_uris: stringify([redirectUri]),
-                    grant_types: stringify(["authorization_code", "refresh_token"]),
-                    response_types: stringify(["code"]),
-                    scope: "openid profile phone offline_access",
-                    token_endpoint_auth_method: "client_secret_basic",
-                    application_type: "web",
-                    client_name: "MyApp (Self)",
-                    is_first_party: true,
-                },
-            })
-            client = await prisma.oidcClient.findUnique({ where: { client_id: id } })
-        }
+        const client = await prisma.oidcClient.findUnique({ where: { client_id: id } })
 
         if (!client) return undefined
 

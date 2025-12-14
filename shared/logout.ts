@@ -1,5 +1,0 @@
-import { redirect } from "next/navigation"
-
-export async function logout() {
-    redirect("/api/auth/signout?callbackUrl=/login")
-}

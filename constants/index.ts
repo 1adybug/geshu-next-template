@@ -6,15 +6,7 @@ export const IsBrowser = typeof window !== "undefined" && typeof window.document
 
 export const IsServer = !IsBrowser
 
-export const PasswordSalt = process.env.PASSWORD_SALT!
-
-export const PublicApiUrl = process.env.PUBLIC_API_URL!
-
 export const LoginPathname = "/login"
-
-export const CookiePrefix = process.env.COOKIE_PREFIX
-
-export const JwtSecrect = process.env.JWT_SECRET!
 
 export const IsIntranet = !!process.env.IS_INTRANET
 

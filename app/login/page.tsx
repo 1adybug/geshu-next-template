@@ -5,7 +5,8 @@ import { FC, useEffect, useState } from "react"
 import { Button, Form, Input } from "antd"
 import { useForm, useWatch } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
-import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 
 import Brand from "@/components/Brand"
 
@@ -14,7 +15,6 @@ import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 import { LoginParams } from "@/schemas/login"
 
 const Page: FC = () => {
-    const router = useRouter()
     const searchParams = useSearchParams()
     const uid = searchParams?.get("uid")?.trim()
     const from = searchParams?.get("from")?.trim()
@@ -107,18 +107,53 @@ const Page: FC = () => {
                             </Button>
                         </Form>
                     ) : (
-                        <div className="flex w-64 flex-col gap-4">
-                            <Button
-                                type="primary"
-                                block
-                                onClick={() => {
-                                    const callbackUrl = from ? `?callbackUrl=${encodeURIComponent(from)}` : ""
-                                    router.push(`/api/auth/signin${callbackUrl}`)
-                                }}
-                            >
+                        <Form<LoginParams>
+                            form={form}
+                            className="flex w-64 flex-col gap-4"
+                            onFinish={async values => {
+                                try {
+                                    setIsLoginPending(true)
+                                    const result = await signIn("captcha", {
+                                        redirect: false,
+                                        account: values.account,
+                                        captcha: values.captcha,
+                                        callbackUrl: from || "/",
+                                    })
+
+                                    if (!result?.ok) {
+                                        message.error(result?.error || "登录失败")
+                                        return
+                                    }
+
+                                    window.location.href = result.url || from || "/"
+                                } catch (e) {
+                                    message.error((e as Error)?.message || "登录失败")
+                                } finally {
+                                    setIsLoginPending(false)
+                                }
+                            }}
+                        >
+                            <FormItem<LoginParams> name="account" noStyle>
+                                <Input placeholder="用户名或手机号" autoComplete="off" />
+                            </FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormItem<LoginParams> name="captcha" noStyle>
+                                    <Input placeholder="验证码" autoComplete="off" />
+                                </FormItem>
+                                <Button
+                                    className="min-w-24"
+                                    color="purple"
+                                    variant="solid"
+                                    disabled={isRequesting || left > 0 || !account}
+                                    onClick={() => sendCaptcha(account)}
+                                >
+                                    {left > 0 ? `${left} 秒后重试` : "发送验证码"}
+                                </Button>
+                            </div>
+                            <Button className="mt-4" type="primary" block disabled={isRequesting || !account || !captcha} htmlType="submit">
                                 登录
                             </Button>
-                        </div>
+                        </Form>
                     )}
                 </div>
             </div>

@@ -1,113 +1,70 @@
 import type { NextAuthOptions } from "next-auth"
-import type { OAuthConfig } from "next-auth/providers/oauth"
+import type { JWT } from "next-auth/jwt"
+import CredentialsProvider from "next-auth/providers/credentials"
 
-function requireEnv(name: string) {
-    const value = process.env[name]?.trim()
-    if (!value) throw new Error(`Missing env ${name}`)
-    return value
-}
+import { prisma } from "@/prisma"
 
-function issuerUrl(issuer: string, path: string) {
-    const base = issuer.endsWith("/") ? issuer : `${issuer}/`
-    return new URL(path.replace(/^\//, ""), base).toString()
-}
+import { loginParser } from "@/schemas/login"
 
-type JwtToken = {
+import { getUserFromAccount } from "@/server/getUserFromAccount"
+
+export interface JwtToken {
     sub?: string
-    accessToken?: string
-    refreshToken?: string
-    accessTokenExpiresAt?: number
     username?: string
     phone?: string
     role?: string
-    error?: "RefreshAccessTokenError"
-}
-
-async function refreshAccessToken(token: JwtToken): Promise<JwtToken> {
-    if (!token.refreshToken) return { ...token, error: "RefreshAccessTokenError" }
-
-    const issuer = requireEnv("OIDC_ISSUER")
-    const clientId = requireEnv("OIDC_SELF_CLIENT_ID")
-    const clientSecret = requireEnv("OIDC_SELF_CLIENT_SECRET")
-
-    const body = new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: token.refreshToken,
-    })
-
-    const response = await fetch(issuerUrl(issuer, "token"), {
-        method: "POST",
-        headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-        },
-        body,
-    })
-
-    if (!response.ok) return { ...token, error: "RefreshAccessTokenError" }
-
-    const refreshed = (await response.json()) as {
-        access_token: string
-        refresh_token?: string
-        expires_in: number
-        id_token?: string
-    }
-
-    return {
-        ...token,
-        accessToken: refreshed.access_token,
-        refreshToken: refreshed.refresh_token ?? token.refreshToken,
-        accessTokenExpiresAt: Math.floor(Date.now() / 1000 + refreshed.expires_in),
-        error: undefined,
-    }
 }
 
 let cached: NextAuthOptions | undefined
 
 export function getAuthOptions(): NextAuthOptions {
     cached ??= {
-        secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+        secret: process.env.NEXTAUTH_SECRET,
         session: { strategy: "jwt" },
+        pages: { signIn: "/login" },
         providers: [
-            {
-                id: "oidc",
-                name: "MyApp",
-                type: "oauth",
-                wellKnown: `${requireEnv("OIDC_ISSUER")}/.well-known/openid-configuration`,
-                clientId: requireEnv("OIDC_SELF_CLIENT_ID"),
-                clientSecret: requireEnv("OIDC_SELF_CLIENT_SECRET"),
-                authorization: { params: { scope: "openid profile phone offline_access" } },
-                checks: ["pkce", "state"],
-                profile(profile: Record<string, unknown>) {
-                    const p = profile
+            CredentialsProvider({
+                id: "captcha",
+                name: "验证码登录",
+                credentials: {
+                    account: { label: "用户名或手机号", type: "text" },
+                    captcha: { label: "验证码", type: "text" },
+                },
+                async authorize(credentials) {
+                    const { account, captcha } = loginParser(credentials)
+                    const user = await getUserFromAccount(account)
+                    if (!user) throw new Error("用户不存在")
+
+                    const captchaStore = await prisma.captcha.findUnique({ where: { userId: user.id } })
+                    if (!captchaStore || captchaStore.expiredAt < new Date()) throw new Error("验证码不存在或已过期")
+                    if (captchaStore.code !== captcha) throw new Error("验证码错误")
+
+                    await prisma.captcha.delete({ where: { userId: user.id } })
+
                     return {
-                        id: String(p.sub),
-                        name: typeof p.preferred_username === "string" ? p.preferred_username : undefined,
+                        id: user.id,
+                        name: user.username,
                     }
                 },
-            } satisfies OAuthConfig<Record<string, unknown>>,
+            }),
         ],
         callbacks: {
-            async jwt({ token, account, profile }) {
+            async jwt({ token, user }) {
                 const typed = token as unknown as JwtToken
 
-                if (account) {
-                    typed.accessToken = account.access_token
-                    typed.refreshToken = account.refresh_token
-                    if (typeof account.expires_at === "number") typed.accessTokenExpiresAt = account.expires_at
+                if (user?.id) {
+                    const id = String(user.id)
+                    typed.sub = id
+                    const dbUser = await prisma.user.findUnique({ where: { id } })
 
-                    const p = profile as Record<string, unknown> | undefined
-
-                    if (p) {
-                        if (typeof p.preferred_username === "string") typed.username = p.preferred_username
-                        if (typeof p.phone_number === "string") typed.phone = p.phone_number
-                        if (typeof p.role === "string") typed.role = p.role
+                    if (dbUser) {
+                        typed.username = dbUser.username
+                        typed.phone = dbUser.phone
+                        typed.role = dbUser.role
                     }
                 }
 
-                if (typed.accessToken && typed.accessTokenExpiresAt && Date.now() / 1000 < typed.accessTokenExpiresAt - 30) return typed
-                if (typed.refreshToken) return refreshAccessToken(typed)
-                return typed
+                return token as JWT
             },
             async session({ session, token }) {
                 const typed = token as unknown as JwtToken
@@ -120,5 +77,5 @@ export function getAuthOptions(): NextAuthOptions {
         },
     }
 
-    return cached
+    return cached!
 }

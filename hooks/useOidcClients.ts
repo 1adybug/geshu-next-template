@@ -2,150 +2,148 @@ import { useMutation, UseMutationOptions, useQuery, useQueryClient } from "@tans
 
 import { OidcClientParams } from "@/schemas/oidcClient"
 
+import { request } from "@/utils/request"
+
 export interface OidcClientRecord {
     client_id: string
     client_secret: string
     redirect_uris: string[]
     grant_types: string[]
     response_types: string[]
-    scope?: string | null
-    token_endpoint_auth_method?: string | null
-    application_type?: string | null
-    client_name?: string | null
+    scope?: string
+    token_endpoint_auth_method?: string
+    application_type?: string
+    client_name?: string
     is_first_party: boolean
     createdAt: string
     updatedAt: string
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-    return (await response.json().catch(() => undefined)) as T
-}
-
-async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-    const response = await fetch(input, {
-        ...init,
-        headers: {
-            ...(init?.headers || {}),
-            accept: "application/json",
-        },
-    })
-
-    if (!response.ok) {
-        const data = await readJson<{ message?: string }>(response)
-        throw new Error(data?.message || `请求失败(${response.status})`)
-    }
-
-    return (await readJson<T>(response)) as T
-}
-
 export function useQueryOidcClients() {
     return useQuery({
-        queryKey: ["oidc-clients"],
-        queryFn: () => request<OidcClientRecord[]>("/api/admin/oidc/clients"),
+        queryKey: ["query-oidc-clients"],
+        queryFn: () => request<OidcClientRecord[]>("/api/admin/oidc/clients", { method: "GET" }),
     })
 }
 
-export function useGetOidcClient(params: { client_id?: string; enabled?: boolean }) {
-    const client_id = params.client_id?.trim()
+export interface GetOidcClientParams {
+    client_id?: string
+    enabled?: boolean
+}
+
+export function useGetOidcClient({ client_id, enabled }: GetOidcClientParams) {
+    const id = client_id?.trim()
     return useQuery({
-        queryKey: ["oidc-client", client_id],
-        enabled: !!client_id && params.enabled !== false,
-        queryFn: () => request<OidcClientRecord>(`/api/admin/oidc/clients/${encodeURIComponent(client_id!)}`),
+        queryKey: ["get-oidc-client", id],
+        enabled: !!id && enabled !== false,
+        queryFn: () => request<OidcClientRecord>(`/api/admin/oidc/clients/${encodeURIComponent(id!)}`, { method: "GET" }),
     })
 }
 
-export interface UseCreateOidcClientParams<TContext = unknown> extends Omit<
-    UseMutationOptions<OidcClientRecord, Error, OidcClientParams, TContext>,
+export interface UseCreateOidcClientParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<OidcClientRecord, Error, OidcClientParams, TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useCreateOidcClient<TContext = unknown>(params: UseCreateOidcClientParams<TContext> = {}) {
+export function useCreateOidcClient<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseCreateOidcClientParams<TOnMutateResult> = {}) {
     const queryClient = useQueryClient()
-    const { onMutate, onSuccess, onError, onSettled, ...rest } = params
     return useMutation({
-        mutationFn: (body: OidcClientParams) =>
-            request<OidcClientRecord>("/api/admin/oidc/clients", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify(body),
-            }),
+        mutationFn: (body: OidcClientParams) => request<OidcClientRecord>("/api/admin/oidc/clients", { body }),
         onMutate(variables, context) {
-            return onMutate?.(variables, context) as TContext | Promise<TContext>
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
-        onSuccess(...args) {
-            const [data] = args
-            queryClient.invalidateQueries({ queryKey: ["oidc-clients"] })
-            return (onSuccess as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args) ?? data
+        onSuccess(data, variables, onMutateResult, context) {
+            queryClient.invalidateQueries({ queryKey: ["query-oidc-clients"] })
+            return onSuccess?.(data, variables, onMutateResult, context)
         },
-        onError(...args) {
-            return (onError as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
         },
-        onSettled(...args) {
-            return (onSettled as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
         },
         ...rest,
     })
 }
 
-export interface UseUpdateOidcClientParams<TContext = unknown> extends Omit<
-    UseMutationOptions<OidcClientRecord, Error, { client_id: string; patch: Partial<OidcClientParams> }, TContext>,
+export interface UpdateOidcClientParams {
+    client_id: string
+    patch: Partial<OidcClientParams>
+}
+
+export interface UseUpdateOidcClientParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<OidcClientRecord, Error, UpdateOidcClientParams, TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useUpdateOidcClient<TContext = unknown>(params: UseUpdateOidcClientParams<TContext> = {}) {
+export function useUpdateOidcClient<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseUpdateOidcClientParams<TOnMutateResult> = {}) {
     const queryClient = useQueryClient()
-    const { onMutate, onSuccess, onError, onSettled, ...rest } = params
     return useMutation({
-        mutationFn: ({ client_id, patch }: { client_id: string; patch: Partial<OidcClientParams> }) =>
-            request<OidcClientRecord>(`/api/admin/oidc/clients/${encodeURIComponent(client_id)}`, {
-                method: "PUT",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify(patch),
-            }),
+        mutationFn: ({ client_id, patch }: UpdateOidcClientParams) =>
+            request<OidcClientRecord>(`/api/admin/oidc/clients/${encodeURIComponent(client_id)}`, { method: "PUT", body: patch }),
         onMutate(variables, context) {
-            return onMutate?.(variables, context) as TContext | Promise<TContext>
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
-        onSuccess(...args) {
-            const [data, variables] = args as [OidcClientRecord, { client_id: string; patch: Partial<OidcClientParams> }, unknown, unknown]
-            queryClient.invalidateQueries({ queryKey: ["oidc-clients"] })
-            queryClient.invalidateQueries({ queryKey: ["oidc-client", variables.client_id] })
-            return (onSuccess as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args) ?? data
+        onSuccess(data, variables, onMutateResult, context) {
+            queryClient.invalidateQueries({ queryKey: ["query-oidc-clients"] })
+            queryClient.invalidateQueries({ queryKey: ["get-oidc-client", variables.client_id] })
+            return onSuccess?.(data, variables, onMutateResult, context)
         },
-        onError(...args) {
-            return (onError as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
         },
-        onSettled(...args) {
-            return (onSettled as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
         },
         ...rest,
     })
 }
 
-export interface UseDeleteOidcClientParams<TContext = unknown> extends Omit<
-    UseMutationOptions<{ success: true }, Error, { client_id: string }, TContext>,
+export interface DeleteOidcClientParams {
+    client_id: string
+}
+
+export interface UseDeleteOidcClientParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<{ success: true }, Error, DeleteOidcClientParams, TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useDeleteOidcClient<TContext = unknown>(params: UseDeleteOidcClientParams<TContext> = {}) {
+export function useDeleteOidcClient<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseDeleteOidcClientParams<TOnMutateResult> = {}) {
     const queryClient = useQueryClient()
-    const { onMutate, onSuccess, onError, onSettled, ...rest } = params
     return useMutation({
-        mutationFn: ({ client_id }: { client_id: string }) =>
+        mutationFn: ({ client_id }: DeleteOidcClientParams) =>
             request<{ success: true }>(`/api/admin/oidc/clients/${encodeURIComponent(client_id)}`, { method: "DELETE" }),
         onMutate(variables, context) {
-            return onMutate?.(variables, context) as TContext | Promise<TContext>
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
-        onSuccess(...args) {
-            const [data, variables] = args as [{ success: true }, { client_id: string }, unknown, unknown]
-            queryClient.invalidateQueries({ queryKey: ["oidc-clients"] })
-            queryClient.invalidateQueries({ queryKey: ["oidc-client", variables.client_id] })
-            return (onSuccess as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args) ?? data
+        onSuccess(data, variables, onMutateResult, context) {
+            queryClient.invalidateQueries({ queryKey: ["query-oidc-clients"] })
+            queryClient.invalidateQueries({ queryKey: ["get-oidc-client", variables.client_id] })
+            return onSuccess?.(data, variables, onMutateResult, context)
         },
-        onError(...args) {
-            return (onError as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
         },
-        onSettled(...args) {
-            return (onSettled as unknown as ((...a: unknown[]) => unknown) | undefined)?.(...args)
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
         },
         ...rest,
     })

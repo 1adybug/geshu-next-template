@@ -4,9 +4,8 @@ import { ComponentProps, FC } from "react"
 
 import { Button } from "antd"
 import { clsx, StrictOmit } from "deepsea-tools"
+import { signOut } from "next-auth/react"
 import { usePathname } from "next/navigation"
-
-import { logoutAction } from "@/actions/logout"
 
 import { useGetUserOwn } from "@/hooks/useGetUserOwn"
 
@@ -26,6 +25,10 @@ const navs: NavItem[] = [
     {
         href: "/",
         name: "首页",
+    },
+    {
+        href: "/connected-apps",
+        name: "已连接应用",
     },
     {
         href: "/user-management",
@@ -77,7 +80,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
             </div>
             <div className="flex items-center gap-2">
                 <div>{data?.username}</div>
-                <Button size="small" color="orange" variant="filled" onClick={logoutAction}>
+                <Button size="small" color="orange" variant="filled" onClick={() => signOut({ callbackUrl: "/api/oidc/logout?returnTo=/login" })}>
                     注销
                 </Button>
             </div>

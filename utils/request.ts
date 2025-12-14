@@ -2,7 +2,12 @@
 
 import { isJSONArray, isJSONObject } from "es-toolkit"
 
-import { PublicApiUrl } from "@/constants"
+function getDefaultBase() {
+    if (typeof window !== "undefined" && window.location?.origin) return window.location.origin
+    const serverBase = process.env.NEXTAUTH_URL?.trim()
+    if (serverBase) return serverBase
+    return undefined
+}
 
 export interface ResponseData<T = any> {
     json: T
@@ -32,7 +37,8 @@ export async function request<T extends any = any, P extends ResponseType = "jso
     options?: RequestOptions<P>,
 ): Promise<ResponseData<T>[P]> {
     let { headers, type = "json", body, base, search = {}, method = "POST", ...rest } = options ?? {}
-    const url = new URL(input, typeof input === "string" ? (base ?? PublicApiUrl) : undefined)
+    const defaultBase = getDefaultBase()
+    const url = new URL(input, typeof input === "string" ? (base ?? defaultBase) : undefined)
 
     if (isJSONArray(search)) search = search.map(item => item.map(i => String(i)))
     if (isJSONObject(search)) search = Object.entries(search).map(([key, value]) => [key, String(value)])

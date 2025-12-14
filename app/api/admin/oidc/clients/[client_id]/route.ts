@@ -16,24 +16,35 @@ function getClientId(params: { client_id?: string }) {
 
 export async function GET(_request: Request, { params }: { params: { client_id: string } }) {
     const user = await getCurrentUser()
-    if (!user) return NextResponse.json({ message: "请先登录" }, { status: 401 })
-    if (user.role !== "ADMIN") return NextResponse.json({ message: "无权限" }, { status: 403 })
+    if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
+    if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
     const client_id = getClientId(params)
     const client = await prisma.oidcClient.findUnique({ where: { client_id } })
-    if (!client) return NextResponse.json({ message: "Not found" }, { status: 404 })
+    if (!client) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 })
     return NextResponse.json({
-        ...client,
-        redirect_uris: JSON.parse(client.redirect_uris) as unknown,
-        grant_types: JSON.parse(client.grant_types) as unknown,
-        response_types: JSON.parse(client.response_types) as unknown,
+        success: true,
+        data: {
+            client_id: client.client_id,
+            client_secret: client.client_secret,
+            redirect_uris: JSON.parse(client.redirect_uris) as string[],
+            grant_types: JSON.parse(client.grant_types) as string[],
+            response_types: JSON.parse(client.response_types) as string[],
+            scope: client.scope ?? undefined,
+            token_endpoint_auth_method: client.token_endpoint_auth_method ?? undefined,
+            application_type: client.application_type ?? undefined,
+            client_name: client.client_name ?? undefined,
+            is_first_party: client.is_first_party,
+            createdAt: client.createdAt,
+            updatedAt: client.updatedAt,
+        },
     })
 }
 
 export async function PUT(request: Request, { params }: { params: { client_id: string } }) {
     const user = await getCurrentUser()
-    if (!user) return NextResponse.json({ message: "请先登录" }, { status: 401 })
-    if (user.role !== "ADMIN") return NextResponse.json({ message: "无权限" }, { status: 403 })
+    if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
+    if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
     const client_id = getClientId(params)
     const body = await request.json().catch(() => undefined)
@@ -55,15 +66,31 @@ export async function PUT(request: Request, { params }: { params: { client_id: s
         },
     })
 
-    return NextResponse.json(updated)
+    return NextResponse.json({
+        success: true,
+        data: {
+            client_id: updated.client_id,
+            client_secret: updated.client_secret,
+            redirect_uris: JSON.parse(updated.redirect_uris) as string[],
+            grant_types: JSON.parse(updated.grant_types) as string[],
+            response_types: JSON.parse(updated.response_types) as string[],
+            scope: updated.scope ?? undefined,
+            token_endpoint_auth_method: updated.token_endpoint_auth_method ?? undefined,
+            application_type: updated.application_type ?? undefined,
+            client_name: updated.client_name ?? undefined,
+            is_first_party: updated.is_first_party,
+            createdAt: updated.createdAt,
+            updatedAt: updated.updatedAt,
+        },
+    })
 }
 
 export async function DELETE(_request: Request, { params }: { params: { client_id: string } }) {
     const user = await getCurrentUser()
-    if (!user) return NextResponse.json({ message: "请先登录" }, { status: 401 })
-    if (user.role !== "ADMIN") return NextResponse.json({ message: "无权限" }, { status: 403 })
+    if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
+    if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
     const client_id = getClientId(params)
     await prisma.oidcClient.delete({ where: { client_id } })
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, data: { success: true } })
 }

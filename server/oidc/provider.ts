@@ -50,7 +50,9 @@ export function getOidcProvider() {
             devInteractions: { enabled: false },
             introspection: { enabled: true },
             revocation: { enabled: true },
-            rpInitiatedLogout: { enabled: true },
+            // Google 不支持 OIDC RP-Initiated Logout（第三方不应通过标准 end_session 来“登出账号中心”）。
+            // 这里保持关闭，避免第三方的登出动作影响 IdP 全局登录态。
+            rpInitiatedLogout: { enabled: false },
         },
         interactions: {
             url(_ctx: unknown, interaction: { uid: string; prompt?: { name?: string } }) {

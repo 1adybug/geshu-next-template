@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 
+import { getCurrentUserIdFromPagesApiRequest } from "@/server/getCurrentUserIdFromPagesApi"
+
 import { getOidcProvider } from "@/server/oidc/provider"
 
 function getUid(request: NextApiRequest) {
@@ -17,6 +19,23 @@ export default async function handler(request: NextApiRequest, response: NextApi
     try {
         const details = await provider.interactionDetails(request, response)
         const prompt = details.prompt?.name
+
+        if (prompt === "login") {
+            const userId = await getCurrentUserIdFromPagesApiRequest(request)
+
+            if (userId) {
+                provider.interactionFinished(
+                    request,
+                    response,
+                    {
+                        login: { accountId: userId },
+                    },
+                    { mergeWithLastSubmission: false },
+                )
+
+                return
+            }
+        }
 
         if (prompt === "consent") return response.redirect(302, `/oidc/consent?uid=${encodeURIComponent(uid)}`)
         return response.redirect(302, `/login?uid=${encodeURIComponent(uid)}`)

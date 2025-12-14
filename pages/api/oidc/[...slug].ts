@@ -8,17 +8,17 @@ export const config = {
     },
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(request: NextApiRequest, response: NextApiResponse) {
     // oidc-provider expects to be "mounted" under the issuer pathname (e.g. /api/oidc).
-    if (req.url?.startsWith("/api/oidc")) {
+    if (request.url?.startsWith("/api/oidc")) {
         // Emulate koa-mount semantics:
         // - originalUrl includes mountPath
         // - url is stripped (so oidc-provider router matches)
-        const reqWithOriginalUrl = req as NextApiRequest & { originalUrl?: string }
-        reqWithOriginalUrl.originalUrl = req.url
-        req.url = req.url.slice("/api/oidc".length) || "/"
+        const requestWithOriginalUrl = request as NextApiRequest & { originalUrl?: string }
+        requestWithOriginalUrl.originalUrl = request.url
+        request.url = request.url.slice("/api/oidc".length) || "/"
     }
 
     const provider = getOidcProvider()
-    await provider.callback()(req, res)
+    await provider.callback()(request, response)
 }

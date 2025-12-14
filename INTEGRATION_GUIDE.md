@@ -120,14 +120,14 @@ const CLIENT_ID = process.env.MYAPP_CLIENT_ID
 const CLIENT_SECRET = process.env.MYAPP_CLIENT_SECRET
 
 export function requireMyAppAuth(requiredScopes = []) {
-    return async (req, res, next) => {
+    return async (request, response, next) => {
         try {
-            const auth = req.headers.authorization || ""
-            const [, token] = auth.split(" ")
-            if (!token) return res.status(401).json({ message: "Missing bearer token" })
+            const authorizationHeader = request.headers.authorization || ""
+            const [, token] = authorizationHeader.split(" ")
+            if (!token) return response.status(401).json({ message: "Missing bearer token" })
 
             const body = new URLSearchParams({ token })
-            const resp = await fetch(INTROSPECTION, {
+            const introspectionResponse = await fetch(INTROSPECTION, {
                 method: "POST",
                 headers: {
                     "content-type": "application/x-www-form-urlencoded",
@@ -136,21 +136,21 @@ export function requireMyAppAuth(requiredScopes = []) {
                 body,
             })
 
-            if (!resp.ok) return res.status(401).json({ message: "Introspection failed" })
-            const data = await resp.json()
-            if (!data.active) return res.status(401).json({ message: "Token inactive" })
+            if (!introspectionResponse.ok) return response.status(401).json({ message: "Introspection failed" })
+            const data = await introspectionResponse.json()
+            if (!data.active) return response.status(401).json({ message: "Token inactive" })
 
             const tokenScopes = (data.scope || "").split(" ").filter(Boolean)
 
-            for (const s of requiredScopes) {
-                if (!tokenScopes.includes(s)) return res.status(403).json({ message: "Insufficient scope" })
+            for (const scope of requiredScopes) {
+                if (!tokenScopes.includes(scope)) return response.status(403).json({ message: "Insufficient scope" })
             }
 
             // 关键：sub 即用户主键
-            req.user = { sub: data.sub, scope: tokenScopes, client_id: data.client_id }
+            request.user = { sub: data.sub, scope: tokenScopes, client_id: data.client_id }
             return next()
-        } catch (e) {
-            return res.status(401).json({ message: "Unauthorized" })
+        } catch (error) {
+            return response.status(401).json({ message: "Unauthorized" })
         }
     }
 }

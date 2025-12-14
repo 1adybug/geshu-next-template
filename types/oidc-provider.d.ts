@@ -24,9 +24,14 @@ declare module "oidc-provider" {
 
     export default class Provider {
         constructor(issuer: string, configuration: Record<string, unknown>)
-        callback(): (req: IncomingMessage, res: ServerResponse) => unknown
-        interactionDetails(req: IncomingMessage, res: ServerResponse): Promise<InteractionDetails>
-        interactionResult(req: IncomingMessage, res: ServerResponse, result: Record<string, unknown>, options: InteractionFinishedOptions): Promise<string>
-        interactionFinished(req: IncomingMessage, res: ServerResponse, result: Record<string, unknown>, options: InteractionFinishedOptions): unknown
+        callback(): (request: IncomingMessage, response: ServerResponse) => unknown
+        interactionDetails(request: IncomingMessage, response: ServerResponse): Promise<InteractionDetails>
+        interactionResult(
+            request: IncomingMessage,
+            response: ServerResponse,
+            result: Record<string, unknown>,
+            options: InteractionFinishedOptions,
+        ): Promise<string>
+        interactionFinished(request: IncomingMessage, response: ServerResponse, result: Record<string, unknown>, options: InteractionFinishedOptions): unknown
     }
 }

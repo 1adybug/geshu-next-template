@@ -17,12 +17,12 @@ export interface OidcClientRecord {
     updatedAt: string
 }
 
-async function readJson<T>(res: Response): Promise<T> {
-    return (await res.json().catch(() => undefined)) as T
+async function readJson<T>(response: Response): Promise<T> {
+    return (await response.json().catch(() => undefined)) as T
 }
 
 async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-    const res = await fetch(input, {
+    const response = await fetch(input, {
         ...init,
         headers: {
             ...(init?.headers || {}),
@@ -30,12 +30,12 @@ async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise
         },
     })
 
-    if (!res.ok) {
-        const data = await readJson<{ message?: string }>(res)
-        throw new Error(data?.message || `请求失败(${res.status})`)
+    if (!response.ok) {
+        const data = await readJson<{ message?: string }>(response)
+        throw new Error(data?.message || `请求失败(${response.status})`)
     }
 
-    return (await readJson<T>(res)) as T
+    return (await readJson<T>(response)) as T
 }
 
 export function useQueryOidcClients() {

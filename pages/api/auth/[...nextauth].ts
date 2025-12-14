@@ -3,6 +3,6 @@ import NextAuth from "next-auth"
 
 import { getAuthOptions } from "@/server/authOptions"
 
-export default async function auth(req: NextApiRequest, res: NextApiResponse) {
-    await NextAuth(req, res, getAuthOptions())
+export default async function auth(request: NextApiRequest, response: NextApiResponse) {
+    await NextAuth(request, response, getAuthOptions())
 }

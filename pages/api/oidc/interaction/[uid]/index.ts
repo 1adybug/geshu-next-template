@@ -2,26 +2,26 @@ import type { NextApiRequest, NextApiResponse } from "next"
 
 import { getOidcProvider } from "@/server/oidc/provider"
 
-function getUid(req: NextApiRequest) {
-    const uid = req.query.uid
+function getUid(request: NextApiRequest) {
+    const uid = request.query.uid
     if (typeof uid !== "string" || !uid.trim()) throw new Error("Invalid uid")
     return uid
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "GET") return res.status(405).end()
+export default async function handler(request: NextApiRequest, response: NextApiResponse) {
+    if (request.method !== "GET") return response.status(405).end()
 
-    const uid = getUid(req)
+    const uid = getUid(request)
     const provider = getOidcProvider()
 
     try {
-        const details = await provider.interactionDetails(req, res)
+        const details = await provider.interactionDetails(request, response)
         const prompt = details.prompt?.name
 
-        if (prompt === "consent") return res.redirect(302, `/oidc/consent?uid=${encodeURIComponent(uid)}`)
-        return res.redirect(302, `/login?uid=${encodeURIComponent(uid)}`)
+        if (prompt === "consent") return response.redirect(302, `/oidc/consent?uid=${encodeURIComponent(uid)}`)
+        return response.redirect(302, `/login?uid=${encodeURIComponent(uid)}`)
     } catch (e) {
         const message = (e as { error_description?: string; message?: string } | undefined)?.error_description || (e as Error)?.message || "Interaction failed"
-        return res.status(400).send(message)
+        return response.status(400).send(message)
     }
 }

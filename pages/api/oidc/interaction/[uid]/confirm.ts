@@ -21,30 +21,30 @@ function asStringArray(value: unknown): string[] | undefined {
     return strings
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST") return res.status(405).end()
+export default async function handler(request: NextApiRequest, response: NextApiResponse) {
+    if (request.method !== "POST") return response.status(405).end()
 
-    const uid = req.query.uid
-    if (typeof uid !== "string" || !uid.trim()) return res.status(400).json({ message: "Invalid uid" })
+    const uid = request.query.uid
+    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ message: "Invalid uid" })
 
     try {
-        const wantsJson = req.headers.accept?.includes("application/json") || req.headers["content-type"]?.includes("application/json")
+        const wantsJson = request.headers.accept?.includes("application/json") || request.headers["content-type"]?.includes("application/json")
         const provider = getOidcProvider()
 
-        const interactionDetails = await provider.interactionDetails(req, res)
+        const interactionDetails = await provider.interactionDetails(request, response)
 
         const accountId = interactionDetails.session?.accountId
-        if (!accountId) return res.status(401).json({ message: "Not authenticated" })
+        if (!accountId) return response.status(401).json({ message: "Not authenticated" })
 
         const clientIdRaw = interactionDetails.params.client_id
         const clientId = typeof clientIdRaw === "string" ? clientIdRaw : ""
-        if (!clientId) return res.status(400).json({ message: "Invalid client_id" })
+        if (!clientId) return response.status(400).json({ message: "Invalid client_id" })
 
         const Grant = (provider as unknown as { Grant: GrantConstructor }).Grant
 
         let grantId = interactionDetails.grantId
         const grant = grantId ? await Grant.find(grantId) : new Grant({ accountId, clientId })
-        if (!grant) return res.status(400).json({ message: "Grant not found" })
+        if (!grant) return response.status(400).json({ message: "Grant not found" })
 
         const details = interactionDetails.prompt?.details ?? {}
 
@@ -70,15 +70,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (wantsJson) {
-            const returnTo = await provider.interactionResult(req, res, result, { mergeWithLastSubmission: true })
-            res.status(200).json({ returnTo })
+            const returnTo = await provider.interactionResult(request, response, result, { mergeWithLastSubmission: true })
+            response.status(200).json({ returnTo })
             return
         }
 
-        provider.interactionFinished(req, res, result, { mergeWithLastSubmission: true })
+        provider.interactionFinished(request, response, result, { mergeWithLastSubmission: true })
         return
     } catch (e) {
         const message = (e as { error_description?: string; message?: string } | undefined)?.error_description || (e as Error)?.message || "授权失败"
-        return res.status(400).json({ message })
+        return response.status(400).json({ message })
     }
 }

@@ -15,14 +15,14 @@ type InteractionDetailsResponse = {
 }
 
 async function postAndFollow(url: string) {
-    const res = await fetch(url, { method: "POST", credentials: "include", headers: { accept: "application/json" } })
+    const response = await fetch(url, { method: "POST", credentials: "include", headers: { accept: "application/json" } })
 
-    if (!res.ok) {
-        const data = (await res.json().catch(() => undefined)) as { message?: string } | undefined
+    if (!response.ok) {
+        const data = (await response.json().catch(() => undefined)) as { message?: string } | undefined
         throw new Error(data?.message || "请求失败")
     }
 
-    const data = (await res.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
+    const data = (await response.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
     if (!data?.returnTo) throw new Error(data?.message || "请求失败")
     window.location.href = data.returnTo
 }
@@ -43,7 +43,7 @@ const Page: FC = () => {
         setLoading(true)
 
         fetch(`/api/oidc/interaction/${encodeURIComponent(uid)}/details`, { method: "GET" })
-            .then(r => r.json())
+            .then(response => response.json())
             .then(setDetails)
             .catch(e => message.error(e?.message || "加载失败"))
             .finally(() => setLoading(false))

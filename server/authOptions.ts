@@ -35,7 +35,7 @@ async function refreshAccessToken(token: JwtToken): Promise<JwtToken> {
         refresh_token: token.refreshToken,
     })
 
-    const res = await fetch(issuerUrl(issuer, "token"), {
+    const response = await fetch(issuerUrl(issuer, "token"), {
         method: "POST",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
@@ -44,9 +44,9 @@ async function refreshAccessToken(token: JwtToken): Promise<JwtToken> {
         body,
     })
 
-    if (!res.ok) return { ...token, error: "RefreshAccessTokenError" }
+    if (!response.ok) return { ...token, error: "RefreshAccessTokenError" }
 
-    const refreshed = (await res.json()) as {
+    const refreshed = (await response.json()) as {
         access_token: string
         refresh_token?: string
         expires_in: number

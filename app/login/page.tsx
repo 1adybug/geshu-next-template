@@ -55,22 +55,22 @@ const Page: FC = () => {
                             onFinish={async values => {
                                 try {
                                     setIsLoginPending(true)
-                                    const res = await fetch(`/api/oidc/interaction/${encodeURIComponent(uid)}/login`, {
+                                    const response = await fetch(`/api/oidc/interaction/${encodeURIComponent(uid)}/login`, {
                                         method: "POST",
                                         headers: { "content-type": "application/json", accept: "application/json" },
                                         body: JSON.stringify(values),
                                         credentials: "include",
                                     })
 
-                                    if (!res.ok) {
-                                        const isJson = res.headers.get("content-type")?.includes("application/json")
-                                        const data = isJson ? ((await res.json().catch(() => undefined)) as { message?: string } | undefined) : undefined
-                                        const text = !isJson ? await res.text().catch(() => "") : ""
+                                    if (!response.ok) {
+                                        const isJson = response.headers.get("content-type")?.includes("application/json")
+                                        const data = isJson ? ((await response.json().catch(() => undefined)) as { message?: string } | undefined) : undefined
+                                        const text = !isJson ? await response.text().catch(() => "") : ""
                                         message.error(data?.message || text || "登录失败")
                                         return
                                     }
 
-                                    const data = (await res.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
+                                    const data = (await response.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
 
                                     if (!data?.returnTo) {
                                         message.error(data?.message || "登录失败")

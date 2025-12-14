@@ -16,8 +16,8 @@
         "fg": "npm run format && git add . && git commit -m \"✨feature: format\"",
         "ucr": "npx zixulu acr",
         "prepare": "husky",
-        "db:dev": "cross-env NODE_ENV=development prisma db push",
-        "db:prod": "cross-env NODE_ENV=production prisma db push"
+        "db:dev": "cross-env NODE_ENV=development RUST_LOG=info prisma db push",
+        "db:prod": "cross-env NODE_ENV=production RUST_LOG=info prisma db push"
     },
     "dependencies": {
         "@alicloud/credentials": "^2.4.4",
@@ -40,6 +40,8 @@
         "es-toolkit": "^1.41.0",
         "jose": "^6.1.3",
         "next": "^16.0.8",
+        "next-auth": "^4.24.13",
+        "oidc-provider": "^9.6.0",
         "react": "^19.2.1",
         "react-dom": "^19.2.1",
         "soda-antd": "^1.0.1",

@@ -42,6 +42,11 @@ const navs: NavItem[] = [
         name: "错误日志",
         filter: user => user.role === "ADMIN",
     },
+    {
+        href: "/oidc-clients",
+        name: "接入管理",
+        filter: user => user.role === "ADMIN",
+    },
 ]
 
 export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "children"> {}

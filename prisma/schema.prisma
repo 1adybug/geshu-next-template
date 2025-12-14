@@ -70,3 +70,37 @@ model Captcha {
     userId    String   @unique
     user      User     @relation(fields: [userId], references: [id])
 }
+
+/// Generic persistence for oidc-provider models (Tokens, Sessions, Grants, etc.)
+model OidcRecord {
+    type       String
+    id         String
+    payload    String
+    expiresAt  DateTime?
+    consumedAt DateTime?
+    grantId    String?
+    userCode   String?
+    uid        String?
+
+    @@id([type, id])
+    @@index([expiresAt])
+    @@index([grantId])
+    @@index([uid])
+    @@index([userCode])
+}
+
+/// First-class client metadata for relying parties (RPs).
+model OidcClient {
+    client_id                 String   @id
+    client_secret             String
+    redirect_uris             String
+    grant_types               String
+    response_types            String
+    scope                     String?
+    token_endpoint_auth_method String?
+    application_type          String?
+    client_name               String?
+    is_first_party            Boolean  @default(false)
+    createdAt                 DateTime @default(now())
+    updatedAt                 DateTime @updatedAt
+}

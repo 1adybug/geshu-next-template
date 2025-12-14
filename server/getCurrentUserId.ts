@@ -1,11 +1,8 @@
-import { cookies } from "next/headers"
+import { getServerSession } from "next-auth/next"
 
-import { getCookieKey } from "@/utils/getCookieKey"
-
-import { verify } from "./verify"
+import { getAuthOptions } from "./authOptions"
 
 export async function getCurrentUserId() {
-    const cookieStore = await cookies()
-    const token = cookieStore.get(getCookieKey("token"))?.value
-    return verify(token)
+    const session = await getServerSession(getAuthOptions())
+    return (session?.user as unknown as { id?: string } | undefined)?.id
 }

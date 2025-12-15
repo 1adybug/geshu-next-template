@@ -9,17 +9,19 @@ import { Columns } from "soda-antd"
 
 import OidcClientEditor from "@/components/OidcClientEditor"
 
-import { OidcClientRecord, useDeleteOidcClient, useQueryOidcClients } from "@/hooks/useOidcClients"
+import { useDeleteOidcClient } from "@/hooks/useDeleteOidcClient"
+import { useListOidcClients } from "@/hooks/useListOidcClients"
+
+import { OidcClientRecord } from "@/schemas/oidcClientRecord"
 
 import { uuid } from "@/utils/uuid"
 
 const Page: FC = () => {
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
+    const { data, isLoading, refetch } = useListOidcClients()
 
-    const { data, isLoading } = useQueryOidcClients()
-
-    const { mutateAsync: deleteAsync, isPending: isDeletePending } = useDeleteOidcClient({
+    const { mutateAsync: deleteOidcClientAsync, isPending: isDeletePending } = useDeleteOidcClient({
         onMutate() {
             const key = uuid()
             message.loading({ key, content: "正在删除", duration: 0 })
@@ -28,11 +30,12 @@ const Page: FC = () => {
         onSuccess() {
             message.success("删除成功")
         },
-        onError(e) {
-            message.error(e.message || "删除失败")
+        onError(error) {
+            message.error(error.message || "删除失败")
         },
-        onSettled(_data, _error, _variables, key) {
-            if (key) message.destroy(key)
+        onSettled(data, error, variables, onMutateResult, context) {
+            message.destroy(onMutateResult!)
+            context.client.invalidateQueries({ queryKey: ["list-oidc-clients"] })
         },
     })
 
@@ -120,7 +123,7 @@ const Page: FC = () => {
                         <Popconfirm
                             title="确认删除接入方"
                             description="删除后，该第三方将无法继续使用本 IdP 登录"
-                            onConfirm={() => deleteAsync({ client_id: value })}
+                            onConfirm={() => deleteOidcClientAsync({ client_id: value })}
                         >
                             <Button size="small" shape="circle" color="danger" variant="text" disabled={isRequesting} icon={<IconTrash className="w-5" />} />
                         </Popconfirm>
@@ -143,6 +146,7 @@ const Page: FC = () => {
     function onClose() {
         setEditId(undefined)
         setShowEditor(false)
+        refetch()
     }
 
     return (

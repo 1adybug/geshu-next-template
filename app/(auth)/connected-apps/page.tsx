@@ -7,12 +7,15 @@ import { Button, Popconfirm, Table } from "antd"
 import { formatTime } from "deepsea-tools"
 import { Columns } from "soda-antd"
 
-import { ConnectedApp, useQueryConnectedApps, useRevokeConnectedApp } from "@/hooks/useConnectedApps"
+import { useListConnectedApps } from "@/hooks/useListConnectedApps"
+import { useRevokeConnectedApp } from "@/hooks/useRevokeConnectedApp"
+
+import { ConnectedApp } from "@/schemas/connectedApp"
 
 import { uuid } from "@/utils/uuid"
 
 const Page: FC = () => {
-    const { data, isLoading } = useQueryConnectedApps()
+    const { data, isLoading } = useListConnectedApps()
 
     const { mutateAsync: revokeAsync, isPending: isRevoking } = useRevokeConnectedApp({
         onMutate() {
@@ -23,11 +26,12 @@ const Page: FC = () => {
         onSuccess() {
             message.success("已撤销")
         },
-        onError(e) {
-            message.error(e.message || "撤销失败")
+        onError(error) {
+            message.error(error.message || "撤销失败")
         },
-        onSettled(_data, _error, _variables, key) {
-            if (key) message.destroy(key)
+        onSettled(data, error, variables, onMutateResult, context) {
+            message.destroy(onMutateResult!)
+            context.client.invalidateQueries({ queryKey: ["list-connected-apps"] })
         },
     })
 

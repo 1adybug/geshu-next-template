@@ -1,17 +1,19 @@
-import { ComponentProps, FC, useEffect } from "react"
+import { ComponentProps, FC, useEffect, useState } from "react"
 
 import { Button, Form, Input, Modal, Select, Switch } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { isNonNullable } from "deepsea-tools"
 
-import { useCreateOidcClient, useGetOidcClient, useUpdateOidcClient } from "@/hooks/useOidcClients"
+import { createOidcClientClient } from "@/hooks/useCreateOidcClient"
+import { useGetOidcClient } from "@/hooks/useGetOidcClient"
+import { updateOidcClientClient } from "@/hooks/useUpdateOidcClient"
 
 import { OidcClientParams } from "@/schemas/oidcClient"
 
 import { uuid } from "@/utils/uuid"
 
-type FormValues = Omit<OidcClientParams, "grant_types" | "response_types"> & {
+export interface FormValues extends Omit<OidcClientParams, "grant_types" | "response_types"> {
     grant_types?: string[]
     response_types?: string[]
 }
@@ -28,54 +30,9 @@ const knownResponseTypes = ["code", "id_token", "code id_token"]
 const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, ...rest }) => {
     const isUpdate = isNonNullable(clientId)
     const [form] = useForm<FormValues>()
+    const [isSubmitting, setSubmitting] = useState(false)
 
-    const { data, isLoading } = useGetOidcClient({ client_id: clientId, enabled: !!open && isUpdate })
-
-    const { mutateAsync: createAsync, isPending: isCreatePending } = useCreateOidcClient({
-        onMutate() {
-            const key = uuid()
-            message.loading({ key, content: "正在创建", duration: 0 })
-            return key
-        },
-        onSuccess(d) {
-            message.success("创建成功")
-
-            if (d.client_secret) {
-                Modal.info({
-                    title: "Client Secret（请妥善保存）",
-                    content: (
-                        <div className="break-all">
-                            <div className="text-xs text-neutral-500">后续列表页会对 secret 打码显示，如需再次查看请进入编辑页。</div>
-                            <div className="mt-2 font-mono">{d.client_secret}</div>
-                        </div>
-                    ),
-                })
-            }
-        },
-        onError(e) {
-            message.error(e.message || "创建失败")
-        },
-        onSettled(_data, _error, _variables, key) {
-            if (key) message.destroy(key)
-        },
-    })
-
-    const { mutateAsync: updateAsync, isPending: isUpdatePending } = useUpdateOidcClient({
-        onMutate() {
-            const key = uuid()
-            message.loading({ key, content: "正在保存", duration: 0 })
-            return key
-        },
-        onSuccess() {
-            message.success("保存成功")
-        },
-        onError(e) {
-            message.error(e.message || "保存失败")
-        },
-        onSettled(_data, _error, _variables, key) {
-            if (key) message.destroy(key)
-        },
-    })
+    const { data, isLoading, error } = useGetOidcClient({ client_id: clientId, enabled: !!open && isUpdate })
 
     useEffect(() => {
         if (!open) return
@@ -93,8 +50,15 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
 
             return
         }
+    }, [open, isUpdate, form])
 
-        if (!data) return
+    useEffect(() => {
+        if (!open || !isUpdate) return
+        if (error) message.error((error as Error).message || "加载失败")
+    }, [open, isUpdate, error])
+
+    useEffect(() => {
+        if (!open || !isUpdate || !data) return
 
         form.setFieldsValue({
             client_id: data.client_id,
@@ -110,30 +74,85 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
         })
     }, [open, isUpdate, data, form])
 
-    const isRequesting = isLoading || isCreatePending || isUpdatePending
+    const isRequesting = isLoading || isSubmitting
 
     async function onFinish(values: FormValues) {
-        const payload: OidcClientParams = {
-            client_id: values.client_id!,
-            client_secret: values.client_secret || undefined,
-            redirect_uris: values.redirect_uris || [],
-            grant_types: values.grant_types?.length ? values.grant_types : ["authorization_code", "refresh_token"],
-            response_types: values.response_types?.length ? values.response_types : ["code"],
-            scope: values.scope || undefined,
-            token_endpoint_auth_method: values.token_endpoint_auth_method || undefined,
-            application_type: values.application_type || undefined,
-            client_name: values.client_name || undefined,
-            is_first_party: values.is_first_party,
-        }
+        setSubmitting(true)
 
-        if (!isUpdate) {
-            await createAsync(payload)
+        try {
+            const payload: OidcClientParams = {
+                client_id: values.client_id!,
+                client_secret: values.client_secret || undefined,
+                redirect_uris: values.redirect_uris || [],
+                grant_types: values.grant_types?.length ? values.grant_types : ["authorization_code", "refresh_token"],
+                response_types: values.response_types?.length ? values.response_types : ["code"],
+                scope: values.scope || undefined,
+                token_endpoint_auth_method: values.token_endpoint_auth_method || undefined,
+                application_type: values.application_type || undefined,
+                client_name: values.client_name || undefined,
+                is_first_party: values.is_first_party,
+            }
+
+            const key = uuid()
+
+            if (!isUpdate) {
+                message.loading({ key, content: "正在创建", duration: 0 })
+
+                try {
+                    const d = await createOidcClientClient(payload)
+                    message.success("创建成功")
+
+                    if (d.client_secret) {
+                        Modal.info({
+                            title: "Client Secret（请妥善保存）",
+                            content: (
+                                <div className="break-all">
+                                    <div className="text-xs text-neutral-500">后续列表页会对 secret 打码显示，如需再次查看请进入编辑页。</div>
+                                    <div className="mt-2 font-mono">{d.client_secret}</div>
+                                </div>
+                            ),
+                        })
+                    }
+                } catch (e: any) {
+                    message.error(e?.message || "创建失败")
+                    throw e
+                } finally {
+                    message.destroy(key)
+                }
+
+                onClose?.()
+                return
+            }
+
+            message.loading({ key, content: "正在保存", duration: 0 })
+
+            try {
+                await updateOidcClientClient({
+                    client_id: clientId!,
+                    patch: {
+                        client_secret: values.client_secret?.trim() ? values.client_secret : undefined,
+                        redirect_uris: payload.redirect_uris,
+                        grant_types: payload.grant_types,
+                        response_types: payload.response_types,
+                        scope: payload.scope,
+                        token_endpoint_auth_method: payload.token_endpoint_auth_method,
+                        application_type: payload.application_type,
+                        client_name: payload.client_name,
+                        is_first_party: payload.is_first_party,
+                    },
+                })
+                message.success("保存成功")
+            } catch (e: any) {
+                message.error(e?.message || "保存失败")
+                throw e
+            } finally {
+                message.destroy(key)
+            }
+
             onClose?.()
-            return
+        } finally {
+            setSubmitting(false)
         }
-
-        await updateAsync({ client_id: clientId!, patch: payload })
-        onClose?.()
     }
 
     return (

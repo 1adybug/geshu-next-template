@@ -1,4 +1,5 @@
-import { z } from "zod"
+import { getParser } from "."
+import { z } from "zod/v4"
 
 export const oidcClientSchema = z.object({
     client_id: z.string().trim().min(1),
@@ -14,3 +15,5 @@ export const oidcClientSchema = z.object({
 })
 
 export type OidcClientParams = z.infer<typeof oidcClientSchema>
+
+export const oidcClientParser = getParser(oidcClientSchema)

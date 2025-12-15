@@ -1,5 +1,8 @@
 /* eslint-disable */
 
+// 说明：该工具函数用于请求第三方/外部 HTTP 服务（例如调用其他站点的 API）。
+// 站内“前端 ↔ 后端”交互更推荐使用 Server Actions 或在 Server Component 里直接调用 server 层方法。
+
 import { isJSONArray, isJSONObject } from "es-toolkit"
 
 function getDefaultBase() {

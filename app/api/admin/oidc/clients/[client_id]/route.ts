@@ -8,18 +8,20 @@ import { getCurrentUser } from "@/server/getCurrentUser"
 
 export const runtime = "nodejs"
 
-function getClientId(params: { client_id?: string }) {
-    const clientId = params.client_id?.trim()
-    if (!clientId) throw new Error("Invalid client_id")
-    return clientId
+function getClientIdFromRequest(request: Request) {
+    const url = new URL(request.url)
+    const last = url.pathname.split("/").filter(Boolean).pop()
+    const decoded = last ? decodeURIComponent(last).trim() : ""
+    if (!decoded) throw new Error("Invalid client_id")
+    return decoded
 }
 
-export async function GET(_request: Request, { params }: { params: { client_id: string } }) {
+export async function GET(request: Request) {
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
     if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
-    const client_id = getClientId(params)
+    const client_id = getClientIdFromRequest(request)
     const client = await prisma.oidcClient.findUnique({ where: { client_id } })
     if (!client) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 })
     return NextResponse.json({
@@ -41,12 +43,12 @@ export async function GET(_request: Request, { params }: { params: { client_id: 
     })
 }
 
-export async function PUT(request: Request, { params }: { params: { client_id: string } }) {
+export async function PUT(request: Request) {
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
     if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
-    const client_id = getClientId(params)
+    const client_id = getClientIdFromRequest(request)
     const body = await request.json().catch(() => undefined)
 
     if (!body) {
@@ -97,12 +99,12 @@ export async function PUT(request: Request, { params }: { params: { client_id: s
     })
 }
 
-export async function DELETE(_request: Request, { params }: { params: { client_id: string } }) {
+export async function DELETE(request: Request) {
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
     if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
-    const client_id = getClientId(params)
+    const client_id = getClientIdFromRequest(request)
     await prisma.oidcClient.delete({ where: { client_id } })
     return NextResponse.json({ success: true, data: { success: true } })
 }

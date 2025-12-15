@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, useEffect, useMemo, useState } from "react"
+import { FC, Suspense, useEffect, useMemo, useState } from "react"
 
 import { Button, Card, Descriptions, Spin } from "antd"
 import { useSearchParams } from "next/navigation"
@@ -27,7 +27,7 @@ async function postAndFollow(url: string) {
     window.location.href = data.returnTo
 }
 
-const Page: FC = () => {
+const Content: FC = () => {
     const searchParams = useSearchParams()
     const uid = searchParams?.get("uid")?.trim()
 
@@ -102,5 +102,11 @@ const Page: FC = () => {
         </main>
     )
 }
+
+const Page: FC = () => (
+    <Suspense fallback={<div className="p-6">加载中...</div>}>
+        <Content />
+    </Suspense>
+)
 
 export default Page

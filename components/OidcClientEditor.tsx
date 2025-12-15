@@ -23,6 +23,10 @@ export interface OidcClientEditorProps extends Omit<ComponentProps<typeof Modal>
     onClose?: () => void
 }
 
+export interface ErrorLike {
+    message?: unknown
+}
+
 const knownGrantTypes = ["authorization_code", "refresh_token", "client_credentials", "implicit"]
 
 const knownResponseTypes = ["code", "id_token", "code id_token"]
@@ -76,6 +80,15 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
 
     const isRequesting = isLoading || isSubmitting
 
+    function getErrorMessage(error: unknown, fallback: string) {
+        if (error instanceof Error && error.message) return error.message
+        if (typeof error !== "object" || !error) return fallback
+        if (!("message" in error)) return fallback
+        const { message } = error as ErrorLike
+        if (typeof message !== "string" || !message.trim()) return fallback
+        return message
+    }
+
     async function onFinish(values: FormValues) {
         setSubmitting(true)
 
@@ -113,8 +126,8 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                             ),
                         })
                     }
-                } catch (e: any) {
-                    message.error(e?.message || "创建失败")
+                } catch (e: unknown) {
+                    message.error(getErrorMessage(e, "创建失败"))
                     throw e
                 } finally {
                     message.destroy(key)
@@ -142,8 +155,8 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                     },
                 })
                 message.success("保存成功")
-            } catch (e: any) {
-                message.error(e?.message || "保存失败")
+            } catch (e: unknown) {
+                message.error(getErrorMessage(e, "保存失败"))
                 throw e
             } finally {
                 message.destroy(key)

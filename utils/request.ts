@@ -9,6 +9,17 @@ function getDefaultBase() {
     return undefined
 }
 
+function isJsonBody(body: unknown) {
+    if (!body) return false
+    if (typeof body !== "object") return false
+    if (body instanceof ArrayBuffer) return false
+    if (ArrayBuffer.isView(body as any)) return false
+    if (typeof Blob !== "undefined" && body instanceof Blob) return false
+    if (typeof FormData !== "undefined" && body instanceof FormData) return false
+    if (typeof URLSearchParams !== "undefined" && body instanceof URLSearchParams) return false
+    return true
+}
+
 export interface ResponseData<T = any> {
     json: T
     blob: Blob
@@ -51,10 +62,10 @@ export async function request<T extends any = any, P extends ResponseType = "jso
 
     headers = new Headers(headers)
 
-    if (body && (isJSONObject(body) || isJSONArray(body))) {
+    if (isJsonBody(body)) {
         headers.set("Content-Type", "application/json")
         method ??= "POST"
-        body = JSON.stringify(body)
+        body = JSON.stringify(body as any)
     }
 
     const response = await fetch(url, { headers, body, method, ...rest } as RequestInit)

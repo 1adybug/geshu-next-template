@@ -171,3 +171,10 @@ export async function proxy(request: NextRequest) {
     return response
 }
 ```
+
+## Api Route
+
+- 只有当你的某个功能必须通过 `HTTP` 接口的方式才能实现时，比如需要允许第三方调用的接口或者 `server action` 无法满足需求时，你才需要创建一个 `api route`，否则你应该创建一个 `server action`
+- 你依然需要遵守 `server action` 的规则，核心的实现逻辑与 `server action` 一致，比如 `schema` （负责校验数据）的创建、`shared` 函数（负责核心逻辑）的创建等，这些规则同样适用于 `api route`
+- 所以 `api route` 的创建规则与 `server action` 的创建规则一致，你只需要按照 `server action` 的创建规则创建即可，唯一不同的地方是，你需要将 `api route` 按照 Next.js 的 `api route` 规则创建，而不是 `@/actions` 目录下
+- 当然如果这个功能可以通过 `server action` 实现并且是给内部使用的，你也可以同时按照 `server action` 的创建规则创建一个 `server action`，这样 `server action` 和 `api route` 都可以使用，但是 `server action` 是给内部使用的，而 `api route` 是给外部使用的

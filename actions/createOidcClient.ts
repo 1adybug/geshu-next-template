@@ -2,9 +2,9 @@
 
 import { createOidcClientSchema } from "@/schemas/createOidcClient"
 
-import { createOidcClient } from "@/shared/createOidcClient"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { createOidcClient } from "@/shared/createOidcClient"
 
 export const createOidcClientAction = createResponseFn({
     fn: createOidcClient,

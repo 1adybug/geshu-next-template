@@ -15,7 +15,7 @@ import { addErrorLog } from "@/server/addErrorLog"
 import { addOperationLog } from "@/server/addOperationLog"
 import { getCurrentUser } from "@/server/getCurrentUser"
 
-import { ClientError } from "./clientError"
+import { ClientError } from "@/utils/clientError"
 
 export interface OriginalResponseFn<T extends [arg?: unknown], P> {
     (...args: T): Promise<P>

@@ -23,13 +23,12 @@ export async function queryUser({
     sortBy = "createdAt",
     sortOrder = "asc",
 }: QueryUserParams) {
-    // phone 需要 trim，因为它没有使用 split
-    phone = phone.trim()
+    const phoneItems = phone.split(/\s+/).filter(Boolean)
+    const usernameItems = username.split(/\s+/).filter(Boolean)
 
     const where = id
         ? { id }
         : getUserWhere({
-              phone: phone.length > 0 ? { contains: phone } : undefined,
               createdAt: {
                   gte: createdAfter,
                   lte: createdBefore,
@@ -39,14 +38,16 @@ export async function queryUser({
                   lte: updatedBefore,
               },
               AND: [
-                  ...username
-                      .split(" ")
-                      .filter(Boolean)
-                      .map(item => ({
-                          username: {
-                              contains: item,
-                          },
-                      })),
+                  ...usernameItems.map(item => ({
+                      username: {
+                          contains: item,
+                      },
+                  })),
+                  ...phoneItems.map(item => ({
+                      phone: {
+                          contains: item,
+                      },
+                  })),
               ],
           })
 

@@ -1,8 +1,8 @@
 "use server"
 
-import { listOidcClients } from "@/shared/listOidcClients"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { listOidcClients } from "@/shared/listOidcClients"
 
 export const listOidcClientsAction = createResponseFn({
     fn: listOidcClients,

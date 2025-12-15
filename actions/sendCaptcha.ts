@@ -2,9 +2,9 @@
 
 import { accountSchema } from "@/schemas/account"
 
-import { sendCaptcha } from "@/shared/sendCaptcha"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { sendCaptcha } from "@/shared/sendCaptcha"
 
 export const sendCaptchaAction = createResponseFn({
     fn: sendCaptcha,

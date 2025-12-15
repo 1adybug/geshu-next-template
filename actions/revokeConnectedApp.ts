@@ -2,9 +2,9 @@
 
 import { revokeConnectedAppSchema } from "@/schemas/revokeConnectedApp"
 
-import { revokeConnectedApp } from "@/shared/revokeConnectedApp"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { revokeConnectedApp } from "@/shared/revokeConnectedApp"
 
 export const revokeConnectedAppAction = createResponseFn({
     fn: revokeConnectedApp,

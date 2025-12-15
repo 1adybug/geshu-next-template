@@ -2,9 +2,9 @@
 
 import { deleteOidcClientSchema } from "@/schemas/deleteOidcClient"
 
-import { deleteOidcClient } from "@/shared/deleteOidcClient"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { deleteOidcClient } from "@/shared/deleteOidcClient"
 
 export const deleteOidcClientAction = createResponseFn({
     fn: deleteOidcClient,

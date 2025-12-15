@@ -4,7 +4,7 @@ import { watch } from "chokidar"
 
 import { createAction } from "./createAction"
 
-import { deleteFileOrFolder } from "../utils/deleteFileOrFolder"
+import { deleteFileOrFolder } from "../server/deleteFileOrFolder"
 
 await deleteFileOrFolder("actions")
 

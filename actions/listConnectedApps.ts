@@ -1,8 +1,8 @@
 "use server"
 
-import { listConnectedApps } from "@/shared/listConnectedApps"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { listConnectedApps } from "@/shared/listConnectedApps"
 
 export const listConnectedAppsAction = createResponseFn({
     fn: listConnectedApps,

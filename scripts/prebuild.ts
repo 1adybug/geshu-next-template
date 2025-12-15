@@ -1,7 +1,7 @@
 import { readdir, stat } from "fs/promises"
 import { join } from "path"
 
-import { deleteFileOrFolder } from "@/utils/deleteFileOrFolder"
+import { deleteFileOrFolder } from "@/server/deleteFileOrFolder"
 
 import { createAction } from "./createAction"
 

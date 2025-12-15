@@ -3,7 +3,7 @@ import { createRequestFn } from "deepsea-tools"
 
 import { deleteUserAction } from "@/actions/deleteUser"
 
-const deleteUserClient = createRequestFn(deleteUserAction)
+export const deleteUserClient = createRequestFn(deleteUserAction)
 
 export interface UseDeleteUserParams<TOnMutateResult = unknown> extends Omit<
     UseMutationOptions<Awaited<ReturnType<typeof deleteUserClient>>, Error, Parameters<typeof deleteUserClient>[0], TOnMutateResult>,

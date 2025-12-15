@@ -4,7 +4,7 @@ import { LoginPathname } from "@/constants"
 
 import { getUrl } from "@/server/getUrl"
 
-import { getPathnameAndSearchParams } from "./getPathnameAndSearchParams"
+import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 export async function redirectFromLogin() {
     const url = await getUrl()

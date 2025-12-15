@@ -2,9 +2,9 @@
 
 import { queryUserSchema } from "@/schemas/queryUser"
 
-import { queryUser } from "@/shared/queryUser"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { queryUser } from "@/shared/queryUser"
 
 export const queryUserAction = createResponseFn({
     fn: queryUser,

@@ -14,8 +14,8 @@ import { userSortBySchema } from "./userSortBy"
 export const queryUserSchema = z.object(
     {
         id: idSchema.optional(),
-        username: z.string({ message: "无效的用户名" }).optional(),
-        phone: z.string({ message: "无效的手机号" }).optional(),
+        username: z.string({ message: "无效的用户名" }).trim().optional(),
+        phone: z.string({ message: "无效的手机号" }).trim().optional(),
         createdBefore: createdBeforeSchema.optional(),
         createdAfter: createdAfterSchema.optional(),
         updatedBefore: updatedBeforeSchema.optional(),

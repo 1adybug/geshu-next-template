@@ -2,9 +2,9 @@
 
 import { loginSchema } from "@/schemas/login"
 
-import { login } from "@/shared/login"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { login } from "@/shared/login"
 
 export const loginAction = createResponseFn({
     fn: login,

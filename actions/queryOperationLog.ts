@@ -2,9 +2,9 @@
 
 import { queryOperationLogSchema } from "@/schemas/queryOperationLog"
 
-import { queryOperationLog } from "@/shared/queryOperationLog"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { queryOperationLog } from "@/shared/queryOperationLog"
 
 export const queryOperationLogAction = createResponseFn({
     fn: queryOperationLog,

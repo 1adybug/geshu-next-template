@@ -1,8 +1,8 @@
 "use server"
 
-import { getUserOwn } from "@/shared/getUserOwn"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { getUserOwn } from "@/shared/getUserOwn"
 
 export const getUserOwnAction = createResponseFn({
     fn: getUserOwn,

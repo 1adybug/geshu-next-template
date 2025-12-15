@@ -16,8 +16,8 @@
         "fg": "npm run format && git add . && git commit -m \"✨feature: format\"",
         "ucr": "npx zixulu acr",
         "prepare": "husky",
-        "db:dev": "cross-env NODE_ENV=development prisma db push",
-        "db:prod": "cross-env NODE_ENV=production prisma db push"
+        "db:dev": "cross-env NODE_ENV=development RUST_LOG=info prisma db push",
+        "db:prod": "cross-env NODE_ENV=production RUST_LOG=info prisma db push"
     },
     "dependencies": {
         "@alicloud/credentials": "^2.4.4",

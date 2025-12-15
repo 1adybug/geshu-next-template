@@ -2,9 +2,9 @@
 
 import { idSchema } from "@/schemas/id"
 
-import { getUser } from "@/shared/getUser"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { getUser } from "@/shared/getUser"
 
 export const getUserAction = createResponseFn({
     fn: getUser,

@@ -1,8 +1,8 @@
 "use server"
 
-import { logout } from "@/shared/logout"
+import { createResponseFn } from "@/server/createResponseFn"
 
-import { createResponseFn } from "@/utils/createResponseFn"
+import { logout } from "@/shared/logout"
 
 export const logoutAction = createResponseFn({
     fn: logout,

@@ -21,11 +21,14 @@ function getRequestOrigin(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+    const method = request.method?.toUpperCase()
+    const isSafeMethod = method === "GET" || method === "HEAD"
+
     // Dev-only canonical host redirect:
     // If you open the site via `0.0.0.0` / LAN IP but `NEXTAUTH_URL` is `localhost`,
     // next-auth will redirect to `localhost` and the state cookie becomes "missing"
     // (because it was set on a different host), causing `error=OAuthCallback`.
-    const canonicalOrigin = process.env.NODE_ENV !== "production" ? getCanonicalOrigin() : undefined
+    const canonicalOrigin = isSafeMethod && process.env.NODE_ENV !== "production" ? getCanonicalOrigin() : undefined
     const requestOrigin = canonicalOrigin ? getRequestOrigin(request) : undefined
 
     if (canonicalOrigin && requestOrigin && requestOrigin !== canonicalOrigin) {
@@ -33,16 +36,16 @@ export async function proxy(request: NextRequest) {
         if (redirectUrl.toString() !== request.url) return NextResponse.redirect(redirectUrl, 307)
     }
 
+    if (!isSafeMethod) return NextResponse.next()
+
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set("current-url", request.url)
 
-    const response = NextResponse.next({
+    return NextResponse.next({
         request: {
             headers: requestHeaders,
         },
     })
-
-    return response
 }
 
 export const config = {

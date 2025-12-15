@@ -1,15 +1,14 @@
 import { ComponentProps, FC, useEffect } from "react"
 
-import { useMutation } from "@tanstack/react-query"
 import { Form, Input, Modal, Select } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { getEnumOptions, isNonNullable } from "deepsea-tools"
 import { aclsm } from "soda-antd"
 
-import { addUserClient } from "@/hooks/useAddUser"
+import { useAddUser } from "@/hooks/useAddUser"
 import { useGetUser } from "@/hooks/useGetUser"
-import { updateUserClient } from "@/hooks/useUpdateUser"
+import { useUpdateUser } from "@/hooks/useUpdateUser"
 
 import { AddUserParams } from "@/schemas/addUser"
 import { Role } from "@/schemas/role"
@@ -25,33 +24,56 @@ export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "tit
 const UserEditor: FC<UserEditorProps> = ({ classNames, userId, open, onClose, okButtonProps, cancelButtonProps, ...rest }) => {
     const isUpdate = isNonNullable(userId)
     const [form] = useForm<AddUserParams>()
-    const action = isUpdate ? "修改用户" : "新增用户"
     const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
 
-    const { mutateAsync, isPending } = useMutation({
-        mutationFn: isUpdate ? updateUserClient : addUserClient,
+    const addUserMutation = useAddUser({
         onMutate() {
             const key = uuid()
 
             message.loading({
                 key,
-                content: `${action}中`,
+                content: "新增用户中",
                 duration: 0,
             })
 
             return key
         },
         onSuccess() {
-            message.success(`${action}成功`)
+            message.success("新增用户成功")
         },
         onError() {
-            message.error(`${action}失败`)
+            message.error("新增用户失败")
         },
         onSettled(data, error, variables, onMutateResult, context) {
             onClose?.()
             message.destroy(onMutateResult!)
             context.client.invalidateQueries({ queryKey: ["query-user"] })
-            context.client.invalidateQueries({ queryKey: ["get-user", userId] })
+        },
+    })
+
+    const updateUserMutation = useUpdateUser({
+        onMutate() {
+            const key = uuid()
+
+            message.loading({
+                key,
+                content: "修改用户中",
+                duration: 0,
+            })
+
+            return key
+        },
+        onSuccess() {
+            message.success("修改用户成功")
+        },
+        onError() {
+            message.error("修改用户失败")
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
+            onClose?.()
+            message.destroy(onMutateResult!)
+            context.client.invalidateQueries({ queryKey: ["query-user"] })
+            context.client.invalidateQueries({ queryKey: ["get-user", userId!] })
         },
     })
 
@@ -64,10 +86,17 @@ const UserEditor: FC<UserEditorProps> = ({ classNames, userId, open, onClose, ok
         if (isNonNullable(userId)) return () => form.resetFields()
     }, [userId, form])
 
+    const isPending = addUserMutation.isPending || updateUserMutation.isPending
+
     const isRequesting = isLoading || isPending
 
     function onFinish(values: AddUserParams) {
-        mutateAsync({ id: userId, ...values } as UpdateUserParams)
+        if (isUpdate) {
+            updateUserMutation.mutateAsync({ id: userId!, ...values } as UpdateUserParams)
+            return
+        }
+
+        addUserMutation.mutateAsync(values)
     }
 
     function onOk() {

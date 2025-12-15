@@ -7,7 +7,7 @@ import { QueryErrorLogParams } from "@/schemas/queryErrorLog"
 
 export const queryErrorLogClient = createRequestFn(queryErrorLogAction)
 
-export function useQueryErrorLog(params: QueryErrorLogParams) {
+export function useQueryErrorLog(params: QueryErrorLogParams = {}) {
     return useQuery({
         queryKey: ["query-error-log", params],
         queryFn: () => queryErrorLogClient(params),

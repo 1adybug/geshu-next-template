@@ -7,7 +7,7 @@ import { QueryOperationLogParams } from "@/schemas/queryOperationLog"
 
 export const queryOperationLogClient = createRequestFn(queryOperationLogAction)
 
-export function useQueryOperationLog(params: QueryOperationLogParams) {
+export function useQueryOperationLog(params: QueryOperationLogParams = {}) {
     return useQuery({
         queryKey: ["query-operation-log", params],
         queryFn: () => queryOperationLogClient(params),

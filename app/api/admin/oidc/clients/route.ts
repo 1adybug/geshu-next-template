@@ -43,7 +43,26 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ success: false, message: "请先登录" }, { status: 401 })
     if (user.role !== "ADMIN") return NextResponse.json({ success: false, message: "无权限" }, { status: 403 })
 
-    const body = await request.json().catch(() => undefined)
+    const rawBody = await request.text().catch(() => "")
+    let body: unknown = undefined
+
+    if (rawBody) {
+        try {
+            body = JSON.parse(rawBody) as unknown
+        } catch {
+            body = undefined
+        }
+    }
+
+    if (!body) {
+        console.error("OIDC client create: invalid JSON body", {
+            contentType: request.headers.get("content-type"),
+            contentLength: request.headers.get("content-length"),
+        })
+
+        return NextResponse.json({ success: false, message: "请求体为空或无法解析为 JSON" }, { status: 400 })
+    }
+
     const parsed = oidcClientSchema.parse(body)
 
     const client_secret = parsed.client_secret ?? randomBytes(32).toString("base64url")

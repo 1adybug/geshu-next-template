@@ -72,9 +72,23 @@ export async function request<T extends any = any, P extends ResponseType = "jso
 
     switch (type) {
         case "json":
-            const json = await response.json()
-            if (!json.success) throw new Error(json.message)
-            return json.data
+            const contentType = response.headers.get("content-type") || ""
+            const text = await response.text()
+            if (!text) throw new Error(`响应体为空(${response.status})`)
+
+            let json: { success?: boolean; data?: unknown; message?: string } | undefined
+
+            if (contentType.includes("application/json") || text.trim().startsWith("{") || text.trim().startsWith("[")) {
+                try {
+                    json = JSON.parse(text) as { success?: boolean; data?: unknown; message?: string }
+                } catch {
+                    json = undefined
+                }
+            }
+
+            if (!json) throw new Error(text)
+            if (!json.success) throw new Error(json.message || `请求失败(${response.status})`)
+            return json.data as any
         case "blob":
             return (await response.blob()) as any
         case "text":

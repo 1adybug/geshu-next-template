@@ -64,11 +64,18 @@ export async function GET() {
         if (firstPartySet.has(client_id)) continue
 
         const client_name = clientNameMap.get(client_id)
+        let payload: unknown = undefined
+
+        try {
+            payload = JSON.parse(grant.payload) as unknown
+        } catch {
+            payload = undefined
+        }
 
         data.push({
             client_id,
             ...(client_name ? { client_name } : {}),
-            scopes: parseGrantScopes(JSON.parse(grant.payload) as unknown),
+            scopes: parseGrantScopes(payload),
             createdAt: grant.createdAt.toISOString(),
             updatedAt: grant.updatedAt.toISOString(),
         })

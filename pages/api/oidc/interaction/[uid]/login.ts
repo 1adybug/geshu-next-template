@@ -8,11 +8,21 @@ import { getUserFromAccount } from "@/server/getUserFromAccount"
 
 import { getOidcProvider } from "@/server/oidc/provider"
 
-export default async function handler(request: NextApiRequest, response: NextApiResponse) {
+export interface LoginOidcInteractionData {
+    returnTo: string
+}
+
+export interface LoginOidcInteractionResponse {
+    success: boolean
+    data?: LoginOidcInteractionData | undefined
+    message?: string | undefined
+}
+
+export default async function handler(request: NextApiRequest, response: NextApiResponse<LoginOidcInteractionResponse>) {
     if (request.method !== "POST") return response.status(405).end()
 
     const uid = request.query.uid
-    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ message: "Invalid uid" })
+    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ success: false, message: "Invalid uid" })
 
     try {
         const wantsJson = request.headers.accept?.includes("application/json") || request.headers["content-type"]?.includes("application/json")
@@ -23,26 +33,26 @@ export default async function handler(request: NextApiRequest, response: NextApi
             try {
                 params = JSON.parse(params)
             } catch {
-                return response.status(400).json({ message: "Invalid request body" })
+                return response.status(400).json({ success: false, message: "Invalid request body" })
             }
         }
 
         const { account, captcha } = loginParser(params)
 
         const user = await getUserFromAccount(account)
-        if (!user) return response.status(404).json({ message: "用户不存在" })
+        if (!user) return response.status(404).json({ success: false, message: "用户不存在" })
 
         const captchaStore = await prisma.captcha.findUnique({ where: { userId: user.id } })
-        if (!captchaStore || captchaStore.expiredAt < new Date()) return response.status(400).json({ message: "验证码不存在或已过期" })
-        if (captchaStore.code !== captcha) return response.status(400).json({ message: "验证码错误" })
+        if (!captchaStore || captchaStore.expiredAt < new Date()) return response.status(400).json({ success: false, message: "验证码不存在或已过期" })
+        if (captchaStore.code !== captcha) return response.status(400).json({ success: false, message: "验证码错误" })
 
         await prisma.captcha.delete({ where: { userId: user.id } })
 
         const provider = getOidcProvider()
 
         const details = await provider.interactionDetails(request, response)
-        if (details.uid !== uid) return response.status(400).json({ message: "Interaction mismatch" })
-        if (details.prompt?.name !== "login") return response.status(400).json({ message: "Unexpected prompt" })
+        if (details.uid !== uid) return response.status(400).json({ success: false, message: "Interaction mismatch" })
+        if (details.prompt?.name !== "login") return response.status(400).json({ success: false, message: "Unexpected prompt" })
 
         const result = {
             login: {
@@ -52,7 +62,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
         if (wantsJson) {
             const returnTo = await provider.interactionResult(request, response, result, { mergeWithLastSubmission: false })
-            response.status(200).json({ returnTo })
+            response.status(200).json({ success: true, data: { returnTo } })
             return
         }
 
@@ -60,6 +70,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
         return
     } catch (e) {
         const message = (e as { error_description?: string; message?: string } | undefined)?.error_description || (e as Error)?.message || "登录失败"
-        return response.status(400).json({ message })
+        return response.status(400).json({ success: false, message })
     }
 }

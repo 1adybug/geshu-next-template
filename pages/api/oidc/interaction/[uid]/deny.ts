@@ -2,11 +2,21 @@ import type { NextApiRequest, NextApiResponse } from "next"
 
 import { getOidcProvider } from "@/server/oidc/provider"
 
-export default async function handler(request: NextApiRequest, response: NextApiResponse) {
+export interface DenyOidcInteractionData {
+    returnTo: string
+}
+
+export interface DenyOidcInteractionResponse {
+    success: boolean
+    data?: DenyOidcInteractionData | undefined
+    message?: string | undefined
+}
+
+export default async function handler(request: NextApiRequest, response: NextApiResponse<DenyOidcInteractionResponse>) {
     if (request.method !== "POST") return response.status(405).end()
 
     const uid = request.query.uid
-    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ message: "Invalid uid" })
+    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ success: false, message: "Invalid uid" })
 
     try {
         const wantsJson = request.headers.accept?.includes("application/json") || request.headers["content-type"]?.includes("application/json")
@@ -19,7 +29,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
         if (wantsJson) {
             const returnTo = await provider.interactionResult(request, response, result, { mergeWithLastSubmission: false })
-            response.status(200).json({ returnTo })
+            response.status(200).json({ success: true, data: { returnTo } })
             return
         }
 
@@ -27,6 +37,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
         return
     } catch (e) {
         const message = (e as { error_description?: string; message?: string } | undefined)?.error_description || (e as Error)?.message || "拒绝失败"
-        return response.status(400).json({ message })
+        return response.status(400).json({ success: false, message })
     }
 }

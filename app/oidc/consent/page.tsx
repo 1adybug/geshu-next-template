@@ -5,56 +5,34 @@ import { FC, Suspense, useEffect, useMemo, useState } from "react"
 import { Button, Card, Descriptions, Spin } from "antd"
 import { useSearchParams } from "next/navigation"
 
-type InteractionDetailsResponse = {
-    uid: string
-    prompt?: string
-    client?: { client_id: string; client_name?: string }
-    missingOIDCScope?: string[]
-    missingOIDCClaims?: string[]
-    missingResourceScopes?: Record<string, string[]>
-}
-
-async function postAndFollow(url: string) {
-    const response = await fetch(url, { method: "POST", credentials: "include", headers: { accept: "application/json" } })
-
-    if (!response.ok) {
-        const data = (await response.json().catch(() => undefined)) as { message?: string } | undefined
-        throw new Error(data?.message || "请求失败")
-    }
-
-    const data = (await response.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
-    if (!data?.returnTo) throw new Error(data?.message || "请求失败")
-    window.location.href = data.returnTo
-}
+import { useConfirmOidcInteraction } from "@/hooks/useConfirmOidcInteraction"
+import { useDenyOidcInteraction } from "@/hooks/useDenyOidcInteraction"
+import { useGetOidcInteractionDetails } from "@/hooks/useGetOidcInteractionDetails"
 
 const Content: FC = () => {
     const searchParams = useSearchParams()
     const uid = searchParams?.get("uid")?.trim()
 
-    const [details, setDetails] = useState<InteractionDetailsResponse | undefined>()
-    const [loading, setLoading] = useState(false)
     const [submitting, setSubmitting] = useState<"confirm" | "deny" | undefined>()
+
+    const { data: details, isLoading, error } = useGetOidcInteractionDetails({ uid, enabled: !!uid })
+    const confirmMutation = useConfirmOidcInteraction()
+    const denyMutation = useDenyOidcInteraction()
 
     const scopes = useMemo(() => details?.missingOIDCScope?.join(" ") || "-", [details?.missingOIDCScope])
     const claims = useMemo(() => (details?.missingOIDCClaims?.length ? details.missingOIDCClaims.join(", ") : "-"), [details?.missingOIDCClaims])
 
     useEffect(() => {
-        if (!uid) return
-        setLoading(true)
-
-        fetch(`/api/oidc/interaction/${encodeURIComponent(uid)}/details`, { method: "GET" })
-            .then(response => response.json())
-            .then(setDetails)
-            .catch(e => message.error(e?.message || "加载失败"))
-            .finally(() => setLoading(false))
-    }, [uid])
+        if (!error) return
+        message.error(error.message || "加载失败")
+    }, [error])
 
     if (!uid) return <div className="p-6">缺少 uid</div>
 
     return (
         <main className="p-6">
             <Card className="mx-auto max-w-xl" title="授权确认">
-                <Spin spinning={loading}>
+                <Spin spinning={isLoading}>
                     <Descriptions column={1} size="small">
                         <Descriptions.Item label="Client ID">{details?.client?.client_id || "-"}</Descriptions.Item>
                         <Descriptions.Item label="Client Name">{details?.client?.client_name || "-"}</Descriptions.Item>
@@ -64,12 +42,13 @@ const Content: FC = () => {
                     <div className="mt-4 flex gap-2">
                         <Button
                             type="primary"
-                            disabled={loading || submitting !== undefined}
+                            disabled={isLoading || submitting !== undefined}
                             loading={submitting === "confirm"}
                             onClick={async () => {
                                 try {
                                     setSubmitting("confirm")
-                                    await postAndFollow(`/api/oidc/interaction/${encodeURIComponent(uid)}/confirm`)
+                                    const { returnTo } = await confirmMutation.mutateAsync({ uid })
+                                    window.location.href = returnTo
                                 } catch (e) {
                                     message.error((e as Error)?.message || "授权失败")
                                 } finally {
@@ -81,12 +60,13 @@ const Content: FC = () => {
                         </Button>
                         <Button
                             danger
-                            disabled={loading || submitting !== undefined}
+                            disabled={isLoading || submitting !== undefined}
                             loading={submitting === "deny"}
                             onClick={async () => {
                                 try {
                                     setSubmitting("deny")
-                                    await postAndFollow(`/api/oidc/interaction/${encodeURIComponent(uid)}/deny`)
+                                    const { returnTo } = await denyMutation.mutateAsync({ uid })
+                                    window.location.href = returnTo
                                 } catch (e) {
                                     message.error((e as Error)?.message || "拒绝失败")
                                 } finally {

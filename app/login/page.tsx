@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation"
 
 import Brand from "@/components/Brand"
 
+import { useLoginOidcInteraction } from "@/hooks/useLoginOidcInteraction"
 import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 
 import { LoginParams } from "@/schemas/login"
@@ -24,6 +25,8 @@ const Page: FC = () => {
     const [isLoginPending, setIsLoginPending] = useState(false)
     const account = useWatch("account", form)
     const captcha = useWatch("captcha", form)
+
+    const { mutateAsync: loginOidcInteraction, isPending: isLoginOidcInteractionPending } = useLoginOidcInteraction()
 
     const { mutateAsync: sendCaptcha, isPending: isSendCaptchaPending } = useSendCaptcha({
         onSuccess(data) {
@@ -41,7 +44,7 @@ const Page: FC = () => {
         return () => clearTimeout(timeout)
     }, [left])
 
-    const isRequesting = isLoginPending || isSendCaptchaPending
+    const isRequesting = isLoginPending || isLoginOidcInteractionPending || isSendCaptchaPending
 
     return (
         <main className="grid h-full grid-cols-1 sm:grid-cols-2">
@@ -54,34 +57,11 @@ const Page: FC = () => {
                             className="flex w-64 flex-col gap-4"
                             onFinish={async values => {
                                 try {
-                                    setIsLoginPending(true)
-                                    const response = await fetch(`/api/oidc/interaction/${encodeURIComponent(uid)}/login`, {
-                                        method: "POST",
-                                        headers: { "content-type": "application/json", accept: "application/json" },
-                                        body: JSON.stringify(values),
-                                        credentials: "include",
-                                    })
-
-                                    if (!response.ok) {
-                                        const isJson = response.headers.get("content-type")?.includes("application/json")
-                                        const data = isJson ? ((await response.json().catch(() => undefined)) as { message?: string } | undefined) : undefined
-                                        const text = !isJson ? await response.text().catch(() => "") : ""
-                                        message.error(data?.message || text || "登录失败")
-                                        return
-                                    }
-
-                                    const data = (await response.json().catch(() => undefined)) as { returnTo?: string; message?: string } | undefined
-
-                                    if (!data?.returnTo) {
-                                        message.error(data?.message || "登录失败")
-                                        return
-                                    }
-
+                                    if (!uid) throw new Error("缺少 uid")
+                                    const data = await loginOidcInteraction({ uid, ...values })
                                     window.location.href = data.returnTo
                                 } catch (e) {
                                     message.error((e as Error)?.message || "登录失败")
-                                } finally {
-                                    setIsLoginPending(false)
                                 }
                             }}
                         >

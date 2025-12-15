@@ -2,6 +2,20 @@ import type { NextApiRequest, NextApiResponse } from "next"
 
 import { getOidcProvider } from "@/server/oidc/provider"
 
+export interface ConfirmOidcInteractionParams {
+    uid: string
+}
+
+export interface ConfirmOidcInteractionData {
+    returnTo: string
+}
+
+export interface ConfirmOidcInteractionResponse {
+    success: boolean
+    data?: ConfirmOidcInteractionData | undefined
+    message?: string | undefined
+}
+
 type GrantInstance = {
     addOIDCScope(scope: string): void
     addOIDCClaims(claims: string[]): void
@@ -21,11 +35,11 @@ function asStringArray(value: unknown): string[] | undefined {
     return strings
 }
 
-export default async function handler(request: NextApiRequest, response: NextApiResponse) {
+export default async function handler(request: NextApiRequest, response: NextApiResponse<ConfirmOidcInteractionResponse>) {
     if (request.method !== "POST") return response.status(405).end()
 
     const uid = request.query.uid
-    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ message: "Invalid uid" })
+    if (typeof uid !== "string" || !uid.trim()) return response.status(400).json({ success: false, message: "Invalid uid" })
 
     try {
         const wantsJson = request.headers.accept?.includes("application/json") || request.headers["content-type"]?.includes("application/json")
@@ -34,17 +48,17 @@ export default async function handler(request: NextApiRequest, response: NextApi
         const interactionDetails = await provider.interactionDetails(request, response)
 
         const accountId = interactionDetails.session?.accountId
-        if (!accountId) return response.status(401).json({ message: "Not authenticated" })
+        if (!accountId) return response.status(401).json({ success: false, message: "Not authenticated" })
 
         const clientIdRaw = interactionDetails.params.client_id
         const clientId = typeof clientIdRaw === "string" ? clientIdRaw : ""
-        if (!clientId) return response.status(400).json({ message: "Invalid client_id" })
+        if (!clientId) return response.status(400).json({ success: false, message: "Invalid client_id" })
 
         const Grant = (provider as unknown as { Grant: GrantConstructor }).Grant
 
         let grantId = interactionDetails.grantId
         const grant = grantId ? await Grant.find(grantId) : new Grant({ accountId, clientId })
-        if (!grant) return response.status(400).json({ message: "Grant not found" })
+        if (!grant) return response.status(400).json({ success: false, message: "Grant not found" })
 
         const details = interactionDetails.prompt?.details ?? {}
 
@@ -71,7 +85,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
         if (wantsJson) {
             const returnTo = await provider.interactionResult(request, response, result, { mergeWithLastSubmission: true })
-            response.status(200).json({ returnTo })
+            response.status(200).json({ success: true, data: { returnTo } })
             return
         }
 
@@ -79,6 +93,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
         return
     } catch (e) {
         const message = (e as { error_description?: string; message?: string } | undefined)?.error_description || (e as Error)?.message || "授权失败"
-        return response.status(400).json({ message })
+        return response.status(400).json({ success: false, message })
     }
 }

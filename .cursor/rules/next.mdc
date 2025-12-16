@@ -13,13 +13,11 @@ alwaysApply: true
 1. 在 `@/schemas` 目录下创建一个名为 `addUser.ts` 的文件，它的内容应该如下：
 
     ```typescript
-    import { getParser } from "."
     import { z } from "zod"
 
+    import { getParser } from "."
     import { phoneSchema } from "./phone"
-
     import { roleSchema } from "./role"
-
     import { usernameSchema } from "./username"
 
     export const addUserSchema = z.object(
@@ -40,8 +38,11 @@ alwaysApply: true
 
     ```typescript
     import { prisma } from "@/prisma"
+
     import { User } from "@/prisma/generated/client"
+    
     import { AddUserParams } from "@/schemas/addUser"
+
     import { ClientError } from "@/utils/clientError"
 
     export async function addUser({ username, phone }: AddUserParams) {
@@ -72,8 +73,10 @@ alwaysApply: true
     "use server"
 
     import { addUserSchema } from "@/schemas/addUser"
+
+    import { createResponseFn } from "@/server/createResponseFn"
+
     import { addUser } from "@/shared/addUser"
-    import { createResponseFn } from "@/utils/createResponseFn"
 
     export const addUserAction = createResponseFn({
         fn: addUser,
@@ -87,8 +90,11 @@ alwaysApply: true
     ```typescript
     import { useMutation, UseMutationOptions } from "@tanstack/react-query"
     import { createRequestFn } from "deepsea-tools"
+    
     import { addUserAction } from "@/actions/addUser"
+    
     import { User } from "@/prisma/generated/client"
+    
     import { AddUserParams } from "@/schemas/addUser"
 
     export const addUserClient = createRequestFn(addUserAction)
@@ -108,8 +114,9 @@ alwaysApply: true
 当你需要创建一个 `schema` 时，如果是一个对象或者数组，你应该将它们独立出来作为一个文件，而不是直接在 `schema` 中定义，例如：
 
 ```typescript
-import { getParser } from "."
 import { z } from "zod"
+
+import { getParser } from "."
 
 export const addUserSchema = z.object(
     {
@@ -132,8 +139,9 @@ export const addUserParser = getParser(addUserSchema)
 你应该将 `usernameSchema` 和 `phoneSchema` 独立出来成为两个独立的文件，便于服用，而不是直接在 `schema` 中定义，例如：
 
 ```typescript
-import { getParser } from "."
 import { z } from "zod"
+
+import { getParser } from "."
 
 export const usernameSchema = z
     .string({ message: "无效的用户名" })

@@ -44,9 +44,9 @@ alwaysApply: true
 14. 如果某个类型的说明中体现了它是一个枚举类型，请使用枚举类型代替原先的 `string` 或者 `number` 类型，枚举类型的 `key` 使用它的中文说明，`value` 使用它的取值，`key` 的长度尽量保持一致，比如 api 文档中 `userStatus` 的属性是 `类型：int，说明：用户状态，取值：1-正常，0-禁用`，则可以这样定义：
 
     ```typescript
-    export const UserStatus {
-        "正常" = 1,
-        "禁用" = 0,
+    export const UserStatus = {
+        正常: 1,
+        禁用: 0,
     } as const
 
     export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
@@ -65,6 +65,7 @@ alwaysApply: true
 
         ```typescript
         import { useQuery } from "@tanstack/react-query"
+
         import { queryUser, QueryUserParams } from "@/apis/queryUser"
 
         // 参数与 api 函数一致，如果有默认值，这里也要有默认值
@@ -82,6 +83,7 @@ alwaysApply: true
         ```typescript
         import { useQuery } from "@tanstack/react-query"
         import { isNonNullable } from "deepsea-tools"
+
         import { getUser } from "@/apis/getUser"
 
         export interface UseGetUserParams {
@@ -105,6 +107,7 @@ alwaysApply: true
 
         ```typescript
         import { useMutation, UseMutationOptions } from "@tanstack/react-query"
+        
         import { addUser } from "@/apis/addUser"
         import { User } from "@/apis/queryUser"
 

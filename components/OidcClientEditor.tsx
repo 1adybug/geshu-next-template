@@ -169,7 +169,15 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
     }
 
     return (
-        <Modal open={open} onCancel={onClose} title={isUpdate ? `编辑：${clientId}` : "新增接入方（OIDC Client）"} footer={null} destroyOnHidden {...rest}>
+        <Modal
+            open={open}
+            onCancel={onClose}
+            title={isUpdate ? `编辑：${clientId}` : "新增接入方（OIDC Client）"}
+            footer={null}
+            width={680}
+            destroyOnHidden
+            {...rest}
+        >
             <Form<FormValues> form={form} layout="vertical" onFinish={onFinish}>
                 <FormItem<FormValues> name="client_id" label="Client ID" rules={[{ required: true, message: "请输入 client_id" }]}>
                     <Input disabled={isUpdate || isRequesting} placeholder="例如：my-rp-app" autoComplete="off" />
@@ -187,21 +195,17 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         placeholder="回车添加；例如：http://localhost:8080/callback"
                     />
                 </FormItem>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <FormItem<FormValues> name="grant_types" label="Grant Types">
-                        <Select
-                            disabled={isRequesting}
-                            mode="tags"
-                            options={knownGrantTypes.map(v => ({ value: v, label: v }))}
-                            placeholder="默认：authorization_code + refresh_token"
-                        />
-                    </FormItem>
-                    <FormItem<FormValues> name="response_types" label="Response Types">
-                        <Select disabled={isRequesting} mode="tags" options={knownResponseTypes.map(v => ({ value: v, label: v }))} placeholder="默认：code" />
-                    </FormItem>
-                </div>
-
+                <FormItem<FormValues> name="grant_types" label="Grant Types">
+                    <Select
+                        disabled={isRequesting}
+                        mode="tags"
+                        options={knownGrantTypes.map(v => ({ value: v, label: v }))}
+                        placeholder="默认：authorization_code + refresh_token"
+                    />
+                </FormItem>
+                <FormItem<FormValues> name="response_types" label="Response Types">
+                    <Select disabled={isRequesting} mode="tags" options={knownResponseTypes.map(v => ({ value: v, label: v }))} placeholder="默认：code" />
+                </FormItem>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <FormItem<FormValues> name="token_endpoint_auth_method" label="Token Endpoint Auth Method（可选）">
                         <Select

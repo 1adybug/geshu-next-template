@@ -42,7 +42,11 @@ alwaysApply: true
 - 如果你需要根组件设置 `className`，请使用从 `deepsea-tools` 中导入的 `clsx` 函数来合并 `className`，例如上方的：
 
     ```tsx
-    <div className={clsx("container", className)} {...rest}>
+    return (
+        <div className={clsx("container", className)} {...rest}>
+            ...
+        </div>
+    )
     ```
 
 - 如果组件是一个受控组件，请使用 `value` 和 `onValueChange` 来实现受控组件，这两个属性都应该是可选，并且在组件内部，你应该使用从 `soda-hooks` 中导入的 `useInputState` 的钩子来实现内部状态与外部状态的同步，例如：

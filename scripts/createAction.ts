@@ -45,9 +45,9 @@ import { ${schema}Schema } from "@/schemas/${schema}"
 `
         : ""
 }
-import { ${name} } from "@/shared/${join(dir, name)}"
-
 import { createResponseFn } from "@/server/createResponseFn"
+
+import { ${name} } from "@/shared/${join(dir, name)}"
 
 export const ${name}Action = createResponseFn({
     fn: ${name},${

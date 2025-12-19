@@ -3,9 +3,12 @@ import { createRequestFn } from "deepsea-tools"
 
 import { queryErrorLogAction } from "@/actions/queryErrorLog"
 
-import { QueryErrorLogParams } from "@/schemas/queryErrorLog"
+import { QueryErrorLogParams, queryErrorLogSchema } from "@/schemas/queryErrorLog"
 
-export const queryErrorLogClient = createRequestFn(queryErrorLogAction)
+export const queryErrorLogClient = createRequestFn({
+    fn: queryErrorLogAction,
+    schema: queryErrorLogSchema,
+})
 
 export function useQueryErrorLog(params: QueryErrorLogParams = {}) {
     return useQuery({

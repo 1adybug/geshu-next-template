@@ -3,17 +3,39 @@ import { createRequestFn } from "deepsea-tools"
 
 import { createFirstUserAction } from "@/actions/createFirstUser"
 
-import { User } from "@/prisma/generated/client"
+import { createFirstUserSchema } from "@/schemas/createFirstUser"
 
-import { CreateFirstUserParams } from "@/schemas/createFirstUser"
+export const createFirstUserClient = createRequestFn({
+    fn: createFirstUserAction,
+    schema: createFirstUserSchema,
+})
 
-export const createFirstUserClient = createRequestFn(createFirstUserAction)
+export interface UseCreateFirstUserParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof createFirstUserClient>>, Error, Parameters<typeof createFirstUserClient>[0], TOnMutateResult>,
+    "mutationFn"
+> {}
 
-export interface UseCreateFirstUserParams<TContext = never> extends Omit<UseMutationOptions<User, Error, CreateFirstUserParams, TContext>, "mutationFn"> {}
-
-export function useCreateFirstUser<TContext = never>(params: UseCreateFirstUserParams<TContext> = {}) {
-    return useMutation<User, Error, CreateFirstUserParams, TContext>({
+export function useCreateFirstUser<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseCreateFirstUserParams<TOnMutateResult> = {}) {
+    return useMutation({
         mutationFn: createFirstUserClient,
-        ...params,
+        onMutate(variables, context) {
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+        },
+        onSuccess(data, variables, onMutateResult, context) {
+            return onSuccess?.(data, variables, onMutateResult, context)
+        },
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
+        },
+        ...rest,
     })
 }

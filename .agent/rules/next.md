@@ -4,7 +4,7 @@ glob:
 description:
 ---
 
-# Next.js Rule
+# Next Rules
 
 针对 `Next.js` 16 项目的规则
 
@@ -102,6 +102,12 @@ description:
     import { AddUserParams } from "@/schemas/addUser"
 
     export const addUserClient = createRequestFn(addUserAction)
+
+    // 如果这个函数的参数存在 schema，你应该使用以下方式创建 client 函数
+    export const addUserClient = createRequestFn({
+        fn: addUserAction,
+        schema: addUserSchema,
+    })
 
     export interface UseAddUserParams<TContext = never> extends Omit<UseMutationOptions<User, Error, AddUserParams, TContext>, "mutationFn"> {}
 

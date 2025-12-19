@@ -3,9 +3,12 @@ import { createRequestFn } from "deepsea-tools"
 
 import { queryUserAction } from "@/actions/queryUser"
 
-import { QueryUserParams } from "@/schemas/queryUser"
+import { QueryUserParams, queryUserSchema } from "@/schemas/queryUser"
 
-export const queryUserClient = createRequestFn(queryUserAction)
+export const queryUserClient = createRequestFn({
+    fn: queryUserAction,
+    schema: queryUserSchema,
+})
 
 export function useQueryUser(params: QueryUserParams = {}) {
     return useQuery({

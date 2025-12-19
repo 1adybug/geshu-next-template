@@ -3,15 +3,33 @@ import { createRequestFn } from "deepsea-tools"
 
 import { sendCaptchaAction } from "@/actions/sendCaptcha"
 
-import { AccountParams } from "@/schemas/account"
+import { accountSchema } from "@/schemas/account"
 
-export const sendCaptchaClient = createRequestFn(sendCaptchaAction)
+export const sendCaptchaClient = createRequestFn({
+    fn: sendCaptchaAction,
+    schema: accountSchema,
+})
 
-export interface UseSendCaptchaParams<TContext = never> extends Omit<UseMutationOptions<string, Error, AccountParams, TContext>, "mutationFn"> {}
+export interface UseSendCaptchaParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof sendCaptchaClient>>, Error, Parameters<typeof sendCaptchaClient>[0], TOnMutateResult>,
+    "mutationFn"
+> {}
 
-export function useSendCaptcha<TContext = never>(params: UseSendCaptchaParams<TContext> = {}) {
-    return useMutation<string, Error, AccountParams, TContext>({
+export function useSendCaptcha<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseSendCaptchaParams<TOnMutateResult> = {}) {
+    return useMutation({
         mutationFn: sendCaptchaClient,
-        ...params,
+        onMutate(variables, context) {
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+        },
+        onSuccess(data, variables, onMutateResult, context) {
+            return onSuccess?.(data, variables, onMutateResult, context)
+        },
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
+        },
+        ...rest,
     })
 }

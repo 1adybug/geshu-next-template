@@ -3,7 +3,12 @@ import { createRequestFn, isNonNullable } from "deepsea-tools"
 
 import { getUserAction } from "@/actions/getUser"
 
-export const getUserClient = createRequestFn(getUserAction)
+import { idSchema } from "@/schemas/id"
+
+export const getUserClient = createRequestFn({
+    fn: getUserAction,
+    schema: idSchema,
+})
 
 export interface UseGetUserParams {
     id?: string | undefined

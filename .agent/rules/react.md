@@ -1,10 +1,18 @@
 ---
-alwaysApply: true
+trigger: always_on
+glob:
+description:
 ---
 
-# Component 文档
+# React Rules
 
 ## 规则
+
+- 生成 `React` 组件时，尽量使用函数式组件，而不是类组件
+
+- 禁止使用 `<></>`，必须使用从 `React` 导入的 `Fragment` 组件
+
+- 请始终使用 `on` + 事件名作为事件处理函数的名称，比如 `onClick` 事件处理函数应该命名为 `onClick`，而不是 `handleClick`
 
 - 你应该将根组件的 `props` 当做基础的 `props` 类型，将当前组件所需的原始数据当做 `data` 属性
 
@@ -42,7 +50,11 @@ alwaysApply: true
 - 如果你需要根组件设置 `className`，请使用从 `deepsea-tools` 中导入的 `clsx` 函数来合并 `className`，例如上方的：
 
     ```tsx
-    <div className={clsx("container", className)} {...rest}>
+    return (
+        <div className={clsx("container", className)} {...rest}>
+            ...
+        </div>
+    )
     ```
 
 - 如果组件是一个受控组件，请使用 `value` 和 `onValueChange` 来实现受控组件，这两个属性都应该是可选，并且在组件内部，你应该使用从 `soda-hooks` 中导入的 `useInputState` 的钩子来实现内部状态与外部状态的同步，例如：
@@ -130,3 +142,24 @@ alwaysApply: true
     ```
 
 - 如果组件没有 `children`，请使用自闭合标签，例如 `<div />` 而不是 `<div></div>`
+
+- 如果 jsx 中某个元素的属性（非 `children` 属性）的类型为回调函数，并且这个回调函数无法使用一行代码完成，请使用 `function` 关键字声明一个函数，然后传递给该属性，例如：
+
+    ```tsx
+    const App: FC<AppProps> = ({ className, ...rest }) => {
+        function onClick(event: ReactMouseEvent<HTMLDivElement, MouseEvent>) {
+            console.log("onClick")
+            doSomething()
+        }
+
+        return (
+            <div onClick={onClick} {...rest}>
+                Hello World!
+            </div>
+        )
+    }
+    ```
+
+- 如果你使用的是 `shadcn/ui` 的组件，禁止自动生成组件代码，必须使用命令行工具 `npx shadcn@latest add <component-name>` 来添加组件
+
+- 禁止修改 `shadcn/ui` 添加的原始组件

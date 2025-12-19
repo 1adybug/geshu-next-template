@@ -4,9 +4,7 @@ glob:
 description:
 ---
 
-# API 文档
-
-## 规则
+# API Rules
 
 当我将 api 文档发送给你时，请按照以下规则生成代码：
 
@@ -46,9 +44,9 @@ description:
 14. 如果某个类型的说明中体现了它是一个枚举类型，请使用枚举类型代替原先的 `string` 或者 `number` 类型，枚举类型的 `key` 使用它的中文说明，`value` 使用它的取值，`key` 的长度尽量保持一致，比如 api 文档中 `userStatus` 的属性是 `类型：int，说明：用户状态，取值：1-正常，0-禁用`，则可以这样定义：
 
     ```typescript
-    export const UserStatus {
-        "正常" = 1,
-        "禁用" = 0,
+    export const UserStatus = {
+        正常: 1,
+        禁用: 0,
     } as const
 
     export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]

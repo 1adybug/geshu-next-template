@@ -3,7 +3,12 @@ import { createRequestFn } from "deepsea-tools"
 
 import { deleteOidcClientAction } from "@/actions/deleteOidcClient"
 
-export const deleteOidcClientClient = createRequestFn(deleteOidcClientAction)
+import { deleteOidcClientSchema } from "@/schemas/deleteOidcClient"
+
+export const deleteOidcClientClient = createRequestFn({
+    fn: deleteOidcClientAction,
+    schema: deleteOidcClientSchema,
+})
 
 export interface UseDeleteOidcClientParams<TOnMutateResult = unknown> extends Omit<
     UseMutationOptions<Awaited<ReturnType<typeof deleteOidcClientClient>>, Error, Parameters<typeof deleteOidcClientClient>[0], TOnMutateResult>,

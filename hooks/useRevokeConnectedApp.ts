@@ -3,7 +3,12 @@ import { createRequestFn } from "deepsea-tools"
 
 import { revokeConnectedAppAction } from "@/actions/revokeConnectedApp"
 
-export const revokeConnectedAppClient = createRequestFn(revokeConnectedAppAction)
+import { revokeConnectedAppSchema } from "@/schemas/revokeConnectedApp"
+
+export const revokeConnectedAppClient = createRequestFn({
+    fn: revokeConnectedAppAction,
+    schema: revokeConnectedAppSchema,
+})
 
 export interface UseRevokeConnectedAppParams<TOnMutateResult = unknown> extends Omit<
     UseMutationOptions<Awaited<ReturnType<typeof revokeConnectedAppClient>>, Error, Parameters<typeof revokeConnectedAppClient>[0], TOnMutateResult>,

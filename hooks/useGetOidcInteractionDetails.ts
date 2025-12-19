@@ -38,7 +38,7 @@ export function useGetOidcInteractionDetails(idOrParams?: UseGetOidcInteractionD
 
     return useQuery({
         queryKey: ["get-oidc-interaction-details", uid],
-        queryFn: () => getOidcInteractionDetailsClient(uid!),
+        queryFn: () => (isNonNullable(uid) ? getOidcInteractionDetailsClient(uid) : null),
         enabled: enabled && isNonNullable(uid),
     })
 }

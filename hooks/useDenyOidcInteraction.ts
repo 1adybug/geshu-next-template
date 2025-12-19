@@ -18,14 +18,32 @@ export async function denyOidcInteractionClient({ uid }: DenyOidcInteractionPara
     return response
 }
 
-export interface UseDenyOidcInteractionParams<TContext = never> extends Omit<
-    UseMutationOptions<DenyOidcInteractionResponse, Error, DenyOidcInteractionParams, TContext>,
+export interface UseDenyOidcInteractionParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof denyOidcInteractionClient>>, Error, Parameters<typeof denyOidcInteractionClient>[0], TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useDenyOidcInteraction<TContext = never>(params: UseDenyOidcInteractionParams<TContext> = {}) {
-    return useMutation<DenyOidcInteractionResponse, Error, DenyOidcInteractionParams, TContext>({
+export function useDenyOidcInteraction<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseDenyOidcInteractionParams<TOnMutateResult> = {}) {
+    return useMutation({
         mutationFn: denyOidcInteractionClient,
-        ...params,
+        onMutate(variables, context) {
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+        },
+        onSuccess(data, variables, onMutateResult, context) {
+            return onSuccess?.(data, variables, onMutateResult, context)
+        },
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
+        },
+        ...rest,
     })
 }

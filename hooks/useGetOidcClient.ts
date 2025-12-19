@@ -3,9 +3,12 @@ import { createRequestFn, isNonNullable } from "deepsea-tools"
 
 import { getOidcClientAction } from "@/actions/getOidcClient"
 
-import { GetOidcClientParams } from "@/schemas/getOidcClient"
+import { GetOidcClientParams, getOidcClientSchema } from "@/schemas/getOidcClient"
 
-export const getOidcClientClient = createRequestFn(getOidcClientAction)
+export const getOidcClientClient = createRequestFn({
+    fn: getOidcClientAction,
+    schema: getOidcClientSchema,
+})
 
 export interface UseGetOidcClientParams {
     client_id?: string

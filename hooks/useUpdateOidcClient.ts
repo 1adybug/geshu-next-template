@@ -3,7 +3,12 @@ import { createRequestFn } from "deepsea-tools"
 
 import { updateOidcClientAction } from "@/actions/updateOidcClient"
 
-export const updateOidcClientClient = createRequestFn(updateOidcClientAction)
+import { updateOidcClientSchema } from "@/schemas/updateOidcClient"
+
+export const updateOidcClientClient = createRequestFn({
+    fn: updateOidcClientAction,
+    schema: updateOidcClientSchema,
+})
 
 export interface UseUpdateOidcClientParams<TOnMutateResult = unknown> extends Omit<
     UseMutationOptions<Awaited<ReturnType<typeof updateOidcClientClient>>, Error, Parameters<typeof updateOidcClientClient>[0], TOnMutateResult>,

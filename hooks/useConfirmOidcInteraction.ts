@@ -18,14 +18,32 @@ export async function confirmOidcInteractionClient({ uid }: ConfirmOidcInteracti
     return response
 }
 
-export interface UseConfirmOidcInteractionParams<TContext = never> extends Omit<
-    UseMutationOptions<ConfirmOidcInteractionResponse, Error, ConfirmOidcInteractionParams, TContext>,
+export interface UseConfirmOidcInteractionParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof confirmOidcInteractionClient>>, Error, Parameters<typeof confirmOidcInteractionClient>[0], TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useConfirmOidcInteraction<TContext = never>(params: UseConfirmOidcInteractionParams<TContext> = {}) {
-    return useMutation<ConfirmOidcInteractionResponse, Error, ConfirmOidcInteractionParams, TContext>({
+export function useConfirmOidcInteraction<TOnMutateResult = unknown>({
+    onMutate,
+    onSuccess,
+    onError,
+    onSettled,
+    ...rest
+}: UseConfirmOidcInteractionParams<TOnMutateResult> = {}) {
+    return useMutation({
         mutationFn: confirmOidcInteractionClient,
-        ...params,
+        onMutate(variables, context) {
+            return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+        },
+        onSuccess(data, variables, onMutateResult, context) {
+            return onSuccess?.(data, variables, onMutateResult, context)
+        },
+        onError(error, variables, onMutateResult, context) {
+            return onError?.(error, variables, onMutateResult, context)
+        },
+        onSettled(data, error, variables, onMutateResult, context) {
+            return onSettled?.(data, error, variables, onMutateResult, context)
+        },
+        ...rest,
     })
 }

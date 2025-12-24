@@ -10,6 +10,8 @@ alwaysApply: true
 
 - 禁止使用 `<></>`，必须使用从 `React` 导入的 `Fragment` 组件
 
+- 组件的 `props` 书写的优先级为：身份属性 (`ref`、`key`、`id`) > 样式属性 (`className`、`classNames`、`style`、`size` 等等) > 其他属性 (`value`、`defaultValue` 等等) > 回调事件 (`onClick`、`onChange` 等等)
+
 - 请始终使用 `on` + 事件名作为事件处理函数的名称，比如 `onClick` 事件处理函数应该命名为 `onClick`，而不是 `handleClick`
 
 - 你应该将根组件的 `props` 当做基础的 `props` 类型，将当前组件所需的原始数据当做 `data` 属性
@@ -156,4 +158,20 @@ alwaysApply: true
 
 - 如果你使用的是 `shadcn/ui` 的组件，禁止自动生成组件代码，必须使用命令行工具 `npx shadcn@latest add <component-name>` 来添加组件
 
-- 禁止修改 `shadcn/ui` 添加的原始组件
+- 禁止修改 `shadcn/ui` 添加的原始组件，一般路径为 `@/components/ui/**/*.tsx`
+
+- 如果你使用的是 `ai-elements` 的组件，禁止修改原始组件，一般路径为 `@/components/ai-elements/**/*.tsx`
+
+## 组件与页面
+
+请遵循以下规则生成组件或页面，并在新增时考虑复用与抽取：
+
+1. 先分析页面结构，识别重复的 UI 片段与逻辑，并判断是否值得抽取。不要为了抽取而抽取，优先考虑维护成本。
+2. 抽取原则：
+   - 同一页面内重复出现且逻辑稳定的片段，抽为该页面目录下的 `_components`。
+   - 多个页面复用的片段，抽为这些页面最近公共路径下的 `_components`。
+   - 可复用的纯逻辑或工具函数，放在最近公共路径下的 `_utils`。
+3. 新增组件或页面前，检查已有目录（尤其是 `_components` 与 `_utils`）是否已有可复用实现，优先复用而非重复创建。
+4. 抽取时保持原有 UI 风格与交互一致，避免引入不必要的样式或行为变化。
+5. 组件拆分要能提升可读性与可测试性；若拆分后跨文件沟通成本增加，则保留在原文件。
+6. 对抽取出的组件与工具，提供清晰的 props 或函数签名与命名，便于后续维护与扩展。

@@ -3,20 +3,20 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "concurrently --kill-others --prefix \"\" --raw \"bun scripts/predev.ts\" \"next dev --turbopack --hostname 0.0.0.0\"",
-        "build": "next build",
+        "dev": "sdnext dev next dev --turbopack --hostname 0.0.0.0",
+        "build": "sdnext build next build",
         "build:standalone": "npx cross-env NEXT_OUTPUT=standalone next build",
         "build:windows": "bun scripts/createInstaller.ts --target=windows",
         "build:linux": "bun scripts/createInstaller.ts --target=linux",
-        "prebuild": "bun scripts/prebuild.ts",
-        "prebuild:standalone": "bun scripts/prebuild.ts",
         "start": "next start",
         "lint": "eslint .",
         "format": "prettier --write .",
         "fg": "npm run format && git add . && git commit -m \"✨feature: format\"",
         "prepare": "husky",
         "db:dev": "cross-env NODE_ENV=development RUST_LOG=info prisma db push",
-        "db:prod": "cross-env NODE_ENV=production RUST_LOG=info prisma db push"
+        "db:prod": "cross-env NODE_ENV=production RUST_LOG=info prisma db push",
+        "studio:dev": "cross-env NODE_ENV=development RUST_LOG=info prisma studio",
+        "studio:prod": "cross-env NODE_ENV=production RUST_LOG=info prisma studio"
     },
     "dependencies": {
         "@alicloud/credentials": "^2.4.4",
@@ -71,6 +71,7 @@
         "postcss": "^8.5.6",
         "prettier": "^3.7.4",
         "prisma": "^7.2.0",
+        "sdnext": "^0.0.4",
         "tailwindcss": "^3.4.19",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.50.1"

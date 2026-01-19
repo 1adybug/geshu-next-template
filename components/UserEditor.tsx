@@ -22,7 +22,14 @@ export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "tit
     onClose?: () => void
 }
 
-const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps, cancelButtonProps, ...rest }) => {
+const UserEditor: FC<UserEditorProps> = ({
+    userId,
+    open,
+    onClose,
+    okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
+    cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
+    ...rest
+}) => {
     const isUpdate = isNonNullable(userId)
     const [form] = useForm<AddUserParams>()
     const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
@@ -67,11 +74,11 @@ const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps,
             title={isUpdate ? "修改用户" : "新增用户"}
             onOk={onOk}
             onCancel={onClose}
-            okButtonProps={{ disabled: isRequesting, ...okButtonProps }}
-            cancelButtonProps={{ disabled: isRequesting, ...cancelButtonProps }}
+            okButtonProps={{ loading: isPending || okButtonLoading, ...okButtonProps }}
+            cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
             {...rest}
         >
-            <Form<AddUserParams> form={form} labelCol={{ flex: "56px" }} onFinish={onFinish}>
+            <Form<AddUserParams> form={form} disabled={isRequesting} labelCol={{ flex: "56px" }} onFinish={onFinish}>
                 <FormItem<AddUserParams> name="username" label="用户名" rules={[schemaToRule(usernameSchema)]}>
                     <Input autoComplete="off" allowClear />
                 </FormItem>

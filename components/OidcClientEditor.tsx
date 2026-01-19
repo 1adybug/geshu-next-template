@@ -27,7 +27,14 @@ const knownGrantTypes = ["authorization_code", "refresh_token", "client_credenti
 
 const knownResponseTypes = ["code", "id_token", "code id_token"]
 
-const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, ...rest }) => {
+const OidcClientEditor: FC<OidcClientEditorProps> = ({
+    clientId,
+    open,
+    onClose,
+    okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
+    cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
+    ...rest
+}) => {
     const isUpdate = isNonNullable(clientId)
     const [form] = useForm<FormValues>()
 
@@ -141,9 +148,12 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
             footer={null}
             width={680}
             destroyOnHidden
+            onOk={() => form.submit()}
+            okButtonProps={{ loading: isPending || okButtonLoading, ...okButtonProps }}
+            cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
             {...rest}
         >
-            <Form<FormValues> form={form} layout="vertical" onFinish={onFinish}>
+            <Form<FormValues> form={form} disabled={isRequesting} layout="vertical" onFinish={onFinish}>
                 <FormItem<FormValues>
                     name="client_id"
                     label="Client ID"
@@ -168,7 +178,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Input disabled={isRequesting} placeholder="例如：My RP App" autoComplete="off" />
+                    <Input placeholder="例如：My RP App" autoComplete="off" />
                 </FormItem>
 
                 <FormItem<FormValues>
@@ -183,12 +193,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Select
-                        disabled={isRequesting}
-                        mode="tags"
-                        tokenSeparators={[",", " ", "\n", "\t"]}
-                        placeholder="回车添加；例如：http://localhost:8080/callback"
-                    />
+                    <Select mode="tags" tokenSeparators={[",", " ", "\n", "\t"]} placeholder="回车添加；例如：http://localhost:8080/callback" />
                 </FormItem>
                 <FormItem<FormValues>
                     name="grant_types"
@@ -207,12 +212,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Select
-                        disabled={isRequesting}
-                        mode="tags"
-                        options={knownGrantTypes.map(v => ({ value: v, label: v }))}
-                        placeholder="默认：authorization_code + refresh_token"
-                    />
+                    <Select mode="tags" options={knownGrantTypes.map(v => ({ value: v, label: v }))} placeholder="默认：authorization_code + refresh_token" />
                 </FormItem>
                 <FormItem<FormValues>
                     name="response_types"
@@ -229,7 +229,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Select disabled={isRequesting} mode="tags" options={knownResponseTypes.map(v => ({ value: v, label: v }))} placeholder="默认：code" />
+                    <Select mode="tags" options={knownResponseTypes.map(v => ({ value: v, label: v }))} placeholder="默认：code" />
                 </FormItem>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <FormItem<FormValues>
@@ -250,7 +250,6 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         }
                     >
                         <Select
-                            disabled={isRequesting}
                             options={[
                                 { value: "client_secret_basic", label: "client_secret_basic" },
                                 { value: "client_secret_post", label: "client_secret_post" },
@@ -276,7 +275,6 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         }
                     >
                         <Select
-                            disabled={isRequesting}
                             options={[
                                 { value: "web", label: "web" },
                                 { value: "native", label: "native" },
@@ -301,7 +299,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Input disabled={isRequesting} placeholder="默认：openid profile phone offline_access" autoComplete="off" />
+                    <Input placeholder="默认：openid profile phone offline_access" autoComplete="off" />
                 </FormItem>
 
                 <FormItem<FormValues>
@@ -316,7 +314,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Input.Password disabled={isRequesting} placeholder={isUpdate ? "留空表示不变（如不想改）" : "留空将自动生成"} autoComplete="off" />
+                    <Input.Password placeholder={isUpdate ? "留空表示不变（如不想改）" : "留空将自动生成"} autoComplete="off" />
                 </FormItem>
 
                 <FormItem<FormValues>
@@ -330,17 +328,14 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                         </div>
                     }
                 >
-                    <Switch disabled={isRequesting} />
+                    <Switch />
                 </FormItem>
 
-                <div className="flex justify-end gap-2">
-                    <Button onClick={onClose} disabled={isRequesting}>
-                        取消
+                <FormItem<FormValues> noStyle>
+                    <Button className="!hidden" htmlType="submit">
+                        提交
                     </Button>
-                    <Button type="primary" htmlType="submit" loading={isRequesting}>
-                        保存
-                    </Button>
-                </div>
+                </FormItem>
             </Form>
         </Modal>
     )

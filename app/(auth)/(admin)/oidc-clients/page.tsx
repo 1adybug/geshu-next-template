@@ -92,14 +92,14 @@ const Page: FC = () => {
             align: "center",
             render(value: string) {
                 return (
-                    <div className="inline-flex gap-2">
+                    <div className="inline-flex gap-1">
                         <Button
                             size="small"
                             shape="circle"
                             color="default"
                             variant="text"
                             disabled={isRequesting}
-                            icon={<IconEdit className="w-5" />}
+                            icon={<IconEdit className="size-[1em]" />}
                             onClick={() => onUpdate(value)}
                         />
                         <Popconfirm
@@ -107,7 +107,14 @@ const Page: FC = () => {
                             description="删除后，该第三方将无法继续使用本 IdP 登录"
                             onConfirm={() => deleteOidcClientAsync({ client_id: value })}
                         >
-                            <Button size="small" shape="circle" color="danger" variant="text" disabled={isRequesting} icon={<IconTrash className="w-5" />} />
+                            <Button
+                                size="small"
+                                shape="circle"
+                                color="danger"
+                                variant="text"
+                                disabled={isRequesting}
+                                icon={<IconTrash className="size-[1em]" />}
+                            />
                         </Popconfirm>
                     </div>
                 )

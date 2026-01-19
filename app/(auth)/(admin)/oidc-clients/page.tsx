@@ -1,11 +1,11 @@
 "use client"
 
-import { FC, useState } from "react"
+import { FC, useRef, useState } from "react"
 
 import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { Button, Popconfirm, Table } from "antd"
 import { formatTime } from "deepsea-tools"
-import { Columns } from "soda-antd"
+import { Columns, useScroll } from "soda-antd"
 
 import OidcClientEditor from "@/components/OidcClientEditor"
 
@@ -17,6 +17,9 @@ import { OidcClientRecord } from "@/schemas/oidcClientRecord"
 const Page: FC = () => {
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
+    const container = useRef<HTMLDivElement>(null)
+    const { y } = useScroll(container)
+
     const { data, isLoading, refetch } = useListOidcClients()
 
     const { mutateAsync: deleteOidcClientAsync, isPending: isDeletePending } = useDeleteOidcClient()
@@ -24,6 +27,12 @@ const Page: FC = () => {
     const isRequesting = isLoading || isDeletePending
 
     const columns: Columns<OidcClientRecord> = [
+        {
+            title: "序号",
+            key: "index",
+            align: "center",
+            render: (value, record, index) => index + 1,
+        },
         {
             title: "Client ID",
             dataIndex: "client_id",
@@ -139,17 +148,17 @@ const Page: FC = () => {
     }
 
     return (
-        <div className="pt-4">
-            <div className="flex items-center gap-2 px-4">
+        <div className="flex h-full flex-col gap-4 pt-4">
+            <title>第三方接入管理</title>
+            <div className="flex flex-none items-center gap-2 px-4">
                 <div className="text-base font-medium">第三方接入管理（OIDC Clients）</div>
                 <Button className="ml-auto" color="primary" disabled={isRequesting} onClick={onAdd}>
                     新增
                 </Button>
             </div>
-
-            <div className="mt-4 px-4">
+            <div ref={container} className="px-4 fill-y">
                 <OidcClientEditor clientId={editId} open={showEditor} onClose={onClose} />
-                <Table<OidcClientRecord> columns={columns} dataSource={data} loading={isLoading} rowKey="client_id" pagination={false} />
+                <Table<OidcClientRecord> columns={columns} dataSource={data} loading={isLoading} rowKey="client_id" scroll={{ y }} pagination={false} />
             </div>
         </div>
     )

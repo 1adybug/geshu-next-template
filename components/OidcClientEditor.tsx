@@ -33,7 +33,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
 
     const { data, isLoading, error } = useGetOidcClient({ client_id: clientId, enabled: !!open && isUpdate })
 
-    const createOidcClientMutation = useCreateOidcClient({
+    const { mutateAsync: createOidcClient, isPending: isCreateOidcClientPending } = useCreateOidcClient({
         onSuccess(data) {
             if (data.client_secret) {
                 Modal.info({
@@ -51,7 +51,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
         },
     })
 
-    const updateOidcClientMutation = useUpdateOidcClient({
+    const { mutateAsync: updateOidcClient, isPending: isUpdateOidcClientPending } = useUpdateOidcClient({
         onSuccess() {
             onClose?.()
         },
@@ -97,7 +97,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
         })
     }, [open, isUpdate, data, form])
 
-    const isPending = createOidcClientMutation.isPending || updateOidcClientMutation.isPending
+    const isPending = isCreateOidcClientPending || isUpdateOidcClientPending
 
     const isRequesting = isLoading || isPending
 
@@ -116,7 +116,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
         }
 
         if (isUpdate) {
-            updateOidcClientMutation.mutateAsync({
+            updateOidcClient({
                 client_id: clientId!,
                 patch: {
                     client_secret: values.client_secret?.trim() ? values.client_secret : undefined,
@@ -130,11 +130,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
                     is_first_party: payload.is_first_party,
                 },
             } as UpdateOidcClientParams)
-
-            return
-        }
-
-        createOidcClientMutation.mutateAsync(payload as CreateOidcClientParams)
+        } else createOidcClient(payload as CreateOidcClientParams)
     }
 
     return (

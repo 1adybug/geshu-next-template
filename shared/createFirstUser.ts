@@ -1,15 +1,10 @@
 import { prisma } from "@/prisma"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 
-import { createFirstUserParser } from "@/schemas/createFirstUser"
+import { CreateFirstUserParams, createFirstUserParser } from "@/schemas/createFirstUser"
 import { Role } from "@/schemas/role"
 
 import { ClientError } from "@/utils/clientError"
-
-export interface CreateFirstUserParams {
-    username: string
-    phone: string
-}
 
 export async function createFirstUser(params: CreateFirstUserParams) {
     const count = await prisma.user.count()

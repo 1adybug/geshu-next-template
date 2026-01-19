@@ -149,7 +149,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({
             width={680}
             destroyOnHidden
             onOk={() => form.submit()}
-            okButtonProps={{ loading: isPending || okButtonLoading, ...okButtonProps }}
+            okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
             {...rest}
         >

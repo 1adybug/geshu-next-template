@@ -48,6 +48,7 @@
         "soda-hooks": "^6.16.9",
         "soda-next": "^0.7.14",
         "soda-nodejs": "^0.8.9",
+        "soda-tailwind": "^0.0.3",
         "source-han-sans-sc-vf": "^0.0.1",
         "uuid": "^13.0.0",
         "zod": "^4.3.5"

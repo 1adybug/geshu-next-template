@@ -18,21 +18,22 @@ import { usernameSchema } from "@/schemas/username"
 import RoleSelect from "./RoleSelect"
 
 export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "onOk" | "onClose"> {
-    userId?: string
+    id?: string
     onClose?: () => void
 }
 
 const UserEditor: FC<UserEditorProps> = ({
-    userId,
+    id,
     open,
+    maskClosable = true,
     onClose,
     okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
-    const isUpdate = isNonNullable(userId)
+    const isUpdate = isNonNullable(id)
     const [form] = useForm<AddUserParams>()
-    const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
+    const { data, isLoading } = useGetUser({ id, enabled: !!open })
 
     const { mutateAsync: addUser, isPending: isAddUserPending } = useAddUser({
         onSuccess() {
@@ -52,30 +53,27 @@ const UserEditor: FC<UserEditorProps> = ({
     }, [open, data, form])
 
     useEffect(() => {
-        if (isNonNullable(userId)) return () => form.resetFields()
-    }, [userId, form])
+        if (isNonNullable(id)) return () => form.resetFields()
+    }, [id, form])
 
     const isPending = isAddUserPending || isUpdateUserPending
 
     const isRequesting = isLoading || isPending
 
     function onFinish(values: AddUserParams) {
-        if (isUpdate) updateUser({ id: userId!, ...values } as UpdateUserParams)
+        if (isUpdate) updateUser({ id: id!, ...values } as UpdateUserParams)
         else addUser(values)
-    }
-
-    function onOk() {
-        form.submit()
     }
 
     return (
         <Modal
+            title={`${isUpdate ? "修改用户" : "新增用户"}`}
             open={open}
-            title={isUpdate ? "修改用户" : "新增用户"}
-            onOk={onOk}
-            onCancel={onClose}
+            maskClosable={maskClosable && !isPending}
+            onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
+            onCancel={() => onClose?.()}
             {...rest}
         >
             <Form<AddUserParams> form={form} disabled={isRequesting} labelCol={{ flex: "56px" }} onFinish={onFinish}>

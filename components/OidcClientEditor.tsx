@@ -30,6 +30,8 @@ const knownResponseTypes = ["code", "id_token", "code id_token"]
 const OidcClientEditor: FC<OidcClientEditorProps> = ({
     clientId,
     open,
+    maskClosable = true,
+    destroyOnHidden = true,
     onClose,
     okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
@@ -142,14 +144,14 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({
 
     return (
         <Modal
-            open={open}
-            onCancel={onClose}
             title={isUpdate ? `编辑：${clientId}` : "新增接入方（OIDC Client）"}
-            footer={null}
+            open={open}
+            maskClosable={maskClosable && !isPending}
             width={680}
             destroyOnHidden
             onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
+            onCancel={onClose}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
             {...rest}
         >

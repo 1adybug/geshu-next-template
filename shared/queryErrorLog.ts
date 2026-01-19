@@ -9,6 +9,8 @@ import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryErrorLogParams } from "@/schemas/queryErrorLog"
 
+import { isAdmin } from "@/server/isAdmin"
+
 export async function queryErrorLog({
     createdBefore,
     createdAfter,
@@ -102,3 +104,5 @@ export async function queryErrorLog({
 }
 
 export type ErrorLog = Awaited<ReturnType<typeof queryErrorLog>>["list"][number]
+
+queryErrorLog.filter = isAdmin

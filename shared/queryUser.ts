@@ -10,6 +10,8 @@ import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryUserParams } from "@/schemas/queryUser"
 
+import { isAdmin } from "@/server/isAdmin"
+
 export async function queryUser({
     id,
     username = "",
@@ -85,3 +87,5 @@ export async function queryUser({
 }
 
 export type User = Awaited<ReturnType<typeof queryUser>>["list"][number]
+
+queryUser.filter = isAdmin

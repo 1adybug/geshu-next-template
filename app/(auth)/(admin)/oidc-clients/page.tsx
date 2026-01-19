@@ -14,30 +14,12 @@ import { useListOidcClients } from "@/hooks/useListOidcClients"
 
 import { OidcClientRecord } from "@/schemas/oidcClientRecord"
 
-import { uuid } from "@/utils/uuid"
-
 const Page: FC = () => {
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
     const { data, isLoading, refetch } = useListOidcClients()
 
-    const { mutateAsync: deleteOidcClientAsync, isPending: isDeletePending } = useDeleteOidcClient({
-        onMutate() {
-            const key = uuid()
-            message.loading({ key, content: "正在删除", duration: 0 })
-            return key
-        },
-        onSuccess() {
-            message.success("删除成功")
-        },
-        onError(error) {
-            message.error(error.message || "删除失败")
-        },
-        onSettled(data, error, variables, onMutateResult, context) {
-            message.destroy(onMutateResult!)
-            context.client.invalidateQueries({ queryKey: ["list-oidc-clients"] })
-        },
-    })
+    const { mutateAsync: deleteOidcClientAsync, isPending: isDeletePending } = useDeleteOidcClient()
 
     const isRequesting = isLoading || isDeletePending
 

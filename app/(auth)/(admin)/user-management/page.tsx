@@ -1,12 +1,12 @@
 "use client"
 
-import { FC, useState } from "react"
+import { FC, useRef, useState } from "react"
 
 import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { Button, DatePicker, Form, Input, Popconfirm, Table, TableProps } from "antd"
 import FormItem from "antd/es/form/FormItem"
 import { formatTime, getEnumKey, naturalParser, showTotal } from "deepsea-tools"
-import { Columns, getTimeRange } from "soda-antd"
+import { Columns, getTimeRange, useScroll } from "soda-antd"
 import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
@@ -66,6 +66,8 @@ const Page: FC = () => {
 
     const [editId, setEditId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
+    const container = useRef<HTMLDivElement>(null)
+    const { y } = useScroll(container, { paginationMargin: 32 })
 
     const columns: Columns<User> = [
         {
@@ -193,8 +195,9 @@ const Page: FC = () => {
     }
 
     return (
-        <div className="pt-4">
-            <div className="px-4">
+        <div className="flex h-full flex-col gap-4 pt-4">
+            <title>用户管理</title>
+            <div className="flex-none px-4">
                 <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
                     <FormItem<FormParams> name="username" label="用户名">
                         <Input />
@@ -223,14 +226,15 @@ const Page: FC = () => {
                     </Button>
                 </Form>
             </div>
-            <div className="mt-4 px-4">
-                <UserEditor userId={editId} open={showEditor} onClose={onClose} />
+            <div ref={container} className="px-4 fill-y">
+                <UserEditor id={editId} open={showEditor} onClose={onClose} />
                 <Table<User>
                     columns={columns}
                     dataSource={data?.list}
                     loading={isLoading}
                     rowKey="id"
                     onChange={onChange}
+                    scroll={{ y }}
                     pagination={{
                         current: pageNum,
                         pageSize,

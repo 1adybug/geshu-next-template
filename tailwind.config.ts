@@ -1,3 +1,4 @@
+import { soda } from "soda-tailwind"
 import { Config } from "tailwindcss"
 
 const config: Config = {
@@ -14,6 +15,7 @@ const config: Config = {
     theme: {
         extend: {},
     },
+    plugins: [soda()],
 }
 
 export default config

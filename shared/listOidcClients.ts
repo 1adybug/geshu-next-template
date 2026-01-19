@@ -1,7 +1,6 @@
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
+import { isAdmin } from "@/server/isAdmin"
 import { toOidcClientRecord } from "@/server/oidcClientRecord"
 
 export async function listOidcClients() {
@@ -12,6 +11,4 @@ export async function listOidcClients() {
     return clients.map(client => toOidcClientRecord({ client, maskSecret: true }))
 }
 
-listOidcClients.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+listOidcClients.filter = isAdmin

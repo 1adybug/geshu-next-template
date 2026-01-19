@@ -1,9 +1,8 @@
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
 import { UpdateOidcClientParams } from "@/schemas/updateOidcClient"
 
+import { isAdmin } from "@/server/isAdmin"
 import { toOidcClientRecord } from "@/server/oidcClientRecord"
 
 import { ClientError } from "@/utils/clientError"
@@ -30,6 +29,4 @@ export async function updateOidcClient({ client_id, patch }: UpdateOidcClientPar
     return toOidcClientRecord({ client: updated })
 }
 
-updateOidcClient.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+updateOidcClient.filter = isAdmin

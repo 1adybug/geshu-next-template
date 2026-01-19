@@ -2,10 +2,9 @@ import { randomBytes } from "node:crypto"
 
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
 import { CreateOidcClientParams } from "@/schemas/createOidcClient"
 
+import { isAdmin } from "@/server/isAdmin"
 import { toOidcClientRecord } from "@/server/oidcClientRecord"
 
 import { ClientError } from "@/utils/clientError"
@@ -34,6 +33,4 @@ export async function createOidcClient(params: CreateOidcClientParams) {
     return toOidcClientRecord({ client: created })
 }
 
-createOidcClient.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+createOidcClient.filter = isAdmin

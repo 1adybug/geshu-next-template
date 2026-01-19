@@ -1,9 +1,8 @@
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
 import { GetOidcClientParams } from "@/schemas/getOidcClient"
 
+import { isAdmin } from "@/server/isAdmin"
 import { toOidcClientRecord } from "@/server/oidcClientRecord"
 
 import { ClientError } from "@/utils/clientError"
@@ -14,6 +13,4 @@ export async function getOidcClient({ client_id }: GetOidcClientParams) {
     return toOidcClientRecord({ client })
 }
 
-getOidcClient.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+getOidcClient.filter = isAdmin

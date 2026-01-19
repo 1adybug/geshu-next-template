@@ -1,9 +1,8 @@
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
 import { DeleteOidcClientParams } from "@/schemas/deleteOidcClient"
 
+import { isAdmin } from "@/server/isAdmin"
 import { toOidcClientRecord } from "@/server/oidcClientRecord"
 
 export async function deleteOidcClient({ client_id }: DeleteOidcClientParams) {
@@ -12,6 +11,4 @@ export async function deleteOidcClient({ client_id }: DeleteOidcClientParams) {
     return record
 }
 
-deleteOidcClient.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+deleteOidcClient.filter = isAdmin

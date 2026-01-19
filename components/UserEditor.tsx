@@ -13,8 +13,6 @@ import { AddUserParams } from "@/schemas/addUser"
 import { Role } from "@/schemas/role"
 import { UpdateUserParams } from "@/schemas/updateUser"
 
-import { uuid } from "@/utils/uuid"
-
 export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "onOk" | "onClose"> {
     userId?: string
     onClose?: () => void
@@ -26,53 +24,14 @@ const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps,
     const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
 
     const addUserMutation = useAddUser({
-        onMutate() {
-            const key = uuid()
-
-            message.loading({
-                key,
-                content: "新增用户中",
-                duration: 0,
-            })
-
-            return key
-        },
         onSuccess() {
-            message.success("新增用户成功")
-        },
-        onError() {
-            message.error("新增用户失败")
-        },
-        onSettled(data, error, variables, onMutateResult, context) {
             onClose?.()
-            message.destroy(onMutateResult!)
-            context.client.invalidateQueries({ queryKey: ["query-user"] })
         },
     })
 
     const updateUserMutation = useUpdateUser({
-        onMutate() {
-            const key = uuid()
-
-            message.loading({
-                key,
-                content: "修改用户中",
-                duration: 0,
-            })
-
-            return key
-        },
         onSuccess() {
-            message.success("修改用户成功")
-        },
-        onError() {
-            message.error("修改用户失败")
-        },
-        onSettled(data, error, variables, onMutateResult, context) {
             onClose?.()
-            message.destroy(onMutateResult!)
-            context.client.invalidateQueries({ queryKey: ["query-user"] })
-            context.client.invalidateQueries({ queryKey: ["get-user", userId!] })
         },
     })
 

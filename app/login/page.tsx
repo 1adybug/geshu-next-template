@@ -29,8 +29,7 @@ const Page: FC = () => {
     const { mutateAsync: loginOidcInteraction, isPending: isLoginOidcInteractionPending } = useLoginOidcInteraction()
 
     const { mutateAsync: sendCaptcha, isPending: isSendCaptchaPending } = useSendCaptcha({
-        onSuccess(data) {
-            message.success(`验证码已发送至 ${data}`)
+        onSuccess() {
             setleft(60)
         },
         onError(error) {

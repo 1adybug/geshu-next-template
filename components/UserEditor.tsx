@@ -23,13 +23,13 @@ const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps,
     const [form] = useForm<AddUserParams>()
     const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
 
-    const addUserMutation = useAddUser({
+    const { mutateAsync: addUser, isPending: isAddUserPending } = useAddUser({
         onSuccess() {
             onClose?.()
         },
     })
 
-    const updateUserMutation = useUpdateUser({
+    const { mutateAsync: updateUser, isPending: isUpdateUserPending } = useUpdateUser({
         onSuccess() {
             onClose?.()
         },
@@ -44,17 +44,13 @@ const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps,
         if (isNonNullable(userId)) return () => form.resetFields()
     }, [userId, form])
 
-    const isPending = addUserMutation.isPending || updateUserMutation.isPending
+    const isPending = isAddUserPending || isUpdateUserPending
 
     const isRequesting = isLoading || isPending
 
     function onFinish(values: AddUserParams) {
-        if (isUpdate) {
-            updateUserMutation.mutateAsync({ id: userId!, ...values } as UpdateUserParams)
-            return
-        }
-
-        addUserMutation.mutateAsync(values)
+        if (isUpdate) updateUser({ id: userId!, ...values } as UpdateUserParams)
+        else addUser(values)
     }
 
     function onOk() {

@@ -34,3 +34,11 @@ body {
 button:disabled {
     cursor: not-allowed;
 }
+
+.ant-pagination-item-ellipsis {
+    overflow: hidden;
+}
+
+.ant-modal-body {
+    margin-top: 20px;
+}

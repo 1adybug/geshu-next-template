@@ -1,17 +1,21 @@
 import { ComponentProps, FC, useEffect } from "react"
 
-import { Form, Input, Modal, Select } from "antd"
+import { Button, Form, Input, Modal } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
-import { getEnumOptions, isNonNullable } from "deepsea-tools"
+import { isNonNullable } from "deepsea-tools"
+import { schemaToRule } from "soda-antd"
 
 import { useAddUser } from "@/hooks/useAddUser"
 import { useGetUser } from "@/hooks/useGetUser"
 import { useUpdateUser } from "@/hooks/useUpdateUser"
 
 import { AddUserParams } from "@/schemas/addUser"
-import { Role } from "@/schemas/role"
+import { phoneSchema } from "@/schemas/phone"
 import { UpdateUserParams } from "@/schemas/updateUser"
+import { usernameSchema } from "@/schemas/username"
+
+import RoleSelect from "./RoleSelect"
 
 export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "onOk" | "onClose"> {
     userId?: string
@@ -68,14 +72,19 @@ const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps,
             {...rest}
         >
             <Form<AddUserParams> form={form} labelCol={{ flex: "56px" }} onFinish={onFinish}>
-                <FormItem<AddUserParams> name="username" label="用户名">
+                <FormItem<AddUserParams> name="username" label="用户名" rules={[schemaToRule(usernameSchema)]}>
                     <Input autoComplete="off" allowClear />
                 </FormItem>
-                <FormItem<AddUserParams> name="phone" label="手机号">
+                <FormItem<AddUserParams> name="phone" label="手机号" rules={[schemaToRule(phoneSchema)]}>
                     <Input autoComplete="off" allowClear />
                 </FormItem>
                 <FormItem<AddUserParams> name="role" label="角色">
-                    <Select options={getEnumOptions(Role)} />
+                    <RoleSelect />
+                </FormItem>
+                <FormItem<AddUserParams> noStyle>
+                    <Button className="!hidden" htmlType="submit">
+                        提交
+                    </Button>
                 </FormItem>
             </Form>
         </Modal>

@@ -4,7 +4,6 @@ import { Form, Input, Modal, Select } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { getEnumOptions, isNonNullable } from "deepsea-tools"
-import { aclsm } from "soda-antd"
 
 import { useAddUser } from "@/hooks/useAddUser"
 import { useGetUser } from "@/hooks/useGetUser"
@@ -21,7 +20,7 @@ export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "tit
     onClose?: () => void
 }
 
-const UserEditor: FC<UserEditorProps> = ({ classNames, userId, open, onClose, okButtonProps, cancelButtonProps, ...rest }) => {
+const UserEditor: FC<UserEditorProps> = ({ userId, open, onClose, okButtonProps, cancelButtonProps, ...rest }) => {
     const isUpdate = isNonNullable(userId)
     const [form] = useForm<AddUserParams>()
     const { data, isLoading } = useGetUser({ id: userId, enabled: !!open })
@@ -105,7 +104,6 @@ const UserEditor: FC<UserEditorProps> = ({ classNames, userId, open, onClose, ok
 
     return (
         <Modal
-            classNames={aclsm({ body: "!pt-2" }, classNames)}
             open={open}
             title={isUpdate ? "修改用户" : "新增用户"}
             onOk={onOk}

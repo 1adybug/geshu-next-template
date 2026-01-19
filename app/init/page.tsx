@@ -21,7 +21,6 @@ const Page: FC = () => {
 
     const { mutateAsync, isPending } = useCreateFirstUser({
         onSuccess() {
-            message.success("初始化成功")
             router.replace("/login")
         },
     })

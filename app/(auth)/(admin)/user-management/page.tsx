@@ -25,7 +25,6 @@ import { UserSortByParams, userSortBySchema } from "@/schemas/userSortBy"
 import { User } from "@/shared/queryUser"
 
 import { getSortOrder } from "@/utils/getSortOrder"
-import { uuid } from "@/utils/uuid"
 
 const Page: FC = () => {
     const [query, setQuery] = transformState(
@@ -172,28 +171,7 @@ const Page: FC = () => {
         ...rest,
     })
 
-    const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser({
-        onMutate() {
-            const key = uuid()
-
-            message.loading({
-                key,
-                content: "正在删除用户",
-                duration: 0,
-            })
-
-            return key
-        },
-        onSuccess() {
-            message.success("删除成功")
-        },
-        onSettled(data, error, variables, onMutateResult, context) {
-            message.destroy(onMutateResult!)
-            context.client.invalidateQueries({ queryKey: ["query-user"] })
-            context.client.invalidateQueries({ queryKey: ["get-all-users"] })
-            context.client.invalidateQueries({ queryKey: ["query-repository"] })
-        },
-    })
+    const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser()
 
     const isRequesting = isLoading || isDeleteUserPending
 

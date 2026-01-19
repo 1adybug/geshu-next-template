@@ -1,3 +1,5 @@
+import { useId } from "react"
+
 import { useMutation, UseMutationOptions } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
 
@@ -22,15 +24,32 @@ export function useCreateFirstUser<TOnMutateResult = unknown>({
     onSettled,
     ...rest
 }: UseCreateFirstUserParams<TOnMutateResult> = {}) {
+    const key = useId()
+
     return useMutation({
         mutationFn: createFirstUserClient,
         onMutate(variables, context) {
+            message.open({
+                key,
+                type: "loading",
+                content: "初始化中...",
+                duration: 0,
+            })
+
             return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
         onSuccess(data, variables, onMutateResult, context) {
+            message.open({
+                key,
+                type: "success",
+                content: "初始化成功",
+            })
+
             return onSuccess?.(data, variables, onMutateResult, context)
         },
         onError(error, variables, onMutateResult, context) {
+            message.destroy(key)
+
             return onError?.(error, variables, onMutateResult, context)
         },
         onSettled(data, error, variables, onMutateResult, context) {

@@ -1,8 +1,8 @@
 import { prisma } from "@/prisma"
 
-import { User } from "@/prisma/generated/client"
-
 import { AddUserParams } from "@/schemas/addUser"
+
+import { isAdmin } from "@/server/isAdmin"
 
 import { ClientError } from "@/utils/clientError"
 
@@ -15,6 +15,4 @@ export async function addUser({ username, phone, role }: AddUserParams) {
     return user
 }
 
-addUser.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+addUser.filter = isAdmin

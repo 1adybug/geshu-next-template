@@ -10,6 +10,7 @@ import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryOperationLogParams } from "@/schemas/queryOperationLog"
 
 import { getCurrentUser } from "@/server/getCurrentUser"
+import { isAdmin } from "@/server/isAdmin"
 
 export async function queryOperationLog({
     createdBefore,
@@ -108,3 +109,5 @@ export async function queryOperationLog({
 }
 
 export type OperationLog = Awaited<ReturnType<typeof queryOperationLog>>["list"][number]
+
+queryOperationLog.filter = isAdmin

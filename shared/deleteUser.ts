@@ -1,7 +1,7 @@
 import { prisma } from "@/prisma"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
 
-import { User } from "@/prisma/generated/client"
+import { isAdmin } from "@/server/isAdmin"
 
 import { ClientError } from "@/utils/clientError"
 
@@ -19,6 +19,4 @@ export async function deleteUser(id: string) {
     return user2
 }
 
-deleteUser.filter = function filter(user: User) {
-    return user.role === "ADMIN"
-}
+deleteUser.filter = isAdmin

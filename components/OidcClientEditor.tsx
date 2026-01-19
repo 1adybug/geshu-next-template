@@ -1,17 +1,17 @@
-import { ComponentProps, FC, useEffect, useState } from "react"
+import { ComponentProps, FC, useEffect } from "react"
 
 import { Button, Form, Input, message, Modal, Select, Switch } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { isNonNullable } from "deepsea-tools"
 
-import { createOidcClientClient } from "@/hooks/useCreateOidcClient"
+import { useCreateOidcClient } from "@/hooks/useCreateOidcClient"
 import { useGetOidcClient } from "@/hooks/useGetOidcClient"
-import { updateOidcClientClient } from "@/hooks/useUpdateOidcClient"
+import { useUpdateOidcClient } from "@/hooks/useUpdateOidcClient"
 
+import { CreateOidcClientParams } from "@/schemas/createOidcClient"
 import { OidcClientParams } from "@/schemas/oidcClient"
-
-import { uuid } from "@/utils/uuid"
+import { UpdateOidcClientParams } from "@/schemas/updateOidcClient"
 
 export interface FormValues extends Omit<OidcClientParams, "grant_types" | "response_types"> {
     grant_types?: string[]
@@ -23,10 +23,6 @@ export interface OidcClientEditorProps extends Omit<ComponentProps<typeof Modal>
     onClose?: () => void
 }
 
-export interface ErrorLike {
-    message?: unknown
-}
-
 const knownGrantTypes = ["authorization_code", "refresh_token", "client_credentials", "implicit"]
 
 const knownResponseTypes = ["code", "id_token", "code id_token"]
@@ -34,9 +30,32 @@ const knownResponseTypes = ["code", "id_token", "code id_token"]
 const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, ...rest }) => {
     const isUpdate = isNonNullable(clientId)
     const [form] = useForm<FormValues>()
-    const [isSubmitting, setSubmitting] = useState(false)
 
     const { data, isLoading, error } = useGetOidcClient({ client_id: clientId, enabled: !!open && isUpdate })
+
+    const createOidcClientMutation = useCreateOidcClient({
+        onSuccess(data) {
+            if (data.client_secret) {
+                Modal.info({
+                    title: "Client Secret（请妥善保存）",
+                    content: (
+                        <div className="break-all">
+                            <div className="text-xs text-neutral-500">后续列表页会对 secret 打码显示，如需再次查看请进入编辑页。</div>
+                            <div className="mt-2 font-mono">{data.client_secret}</div>
+                        </div>
+                    ),
+                })
+            }
+
+            onClose?.()
+        },
+    })
+
+    const updateOidcClientMutation = useUpdateOidcClient({
+        onSuccess() {
+            onClose?.()
+        },
+    })
 
     useEffect(() => {
         if (!open) return
@@ -78,94 +97,44 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({ clientId, open, onClose, 
         })
     }, [open, isUpdate, data, form])
 
-    const isRequesting = isLoading || isSubmitting
+    const isPending = createOidcClientMutation.isPending || updateOidcClientMutation.isPending
 
-    function getErrorMessage(error: unknown, fallback: string) {
-        if (error instanceof Error && error.message) return error.message
-        if (typeof error !== "object" || !error) return fallback
-        if (!("message" in error)) return fallback
-        const { message } = error as ErrorLike
-        if (typeof message !== "string" || !message.trim()) return fallback
-        return message
-    }
+    const isRequesting = isLoading || isPending
 
-    async function onFinish(values: FormValues) {
-        setSubmitting(true)
-
-        try {
-            const payload: OidcClientParams = {
-                client_id: values.client_id!,
-                client_secret: values.client_secret || undefined,
-                redirect_uris: values.redirect_uris || [],
-                grant_types: values.grant_types?.length ? values.grant_types : ["authorization_code", "refresh_token"],
-                response_types: values.response_types?.length ? values.response_types : ["code"],
-                scope: values.scope || undefined,
-                token_endpoint_auth_method: values.token_endpoint_auth_method || undefined,
-                application_type: values.application_type || undefined,
-                client_name: values.client_name || undefined,
-                is_first_party: values.is_first_party,
-            }
-
-            const key = uuid()
-
-            if (!isUpdate) {
-                message.loading({ key, content: "正在创建", duration: 0 })
-
-                try {
-                    const d = await createOidcClientClient(payload)
-                    message.success("创建成功")
-
-                    if (d.client_secret) {
-                        Modal.info({
-                            title: "Client Secret（请妥善保存）",
-                            content: (
-                                <div className="break-all">
-                                    <div className="text-xs text-neutral-500">后续列表页会对 secret 打码显示，如需再次查看请进入编辑页。</div>
-                                    <div className="mt-2 font-mono">{d.client_secret}</div>
-                                </div>
-                            ),
-                        })
-                    }
-                } catch (e: unknown) {
-                    message.error(getErrorMessage(e, "创建失败"))
-                    throw e
-                } finally {
-                    message.destroy(key)
-                }
-
-                onClose?.()
-                return
-            }
-
-            message.loading({ key, content: "正在保存", duration: 0 })
-
-            try {
-                await updateOidcClientClient({
-                    client_id: clientId!,
-                    patch: {
-                        client_secret: values.client_secret?.trim() ? values.client_secret : undefined,
-                        redirect_uris: payload.redirect_uris,
-                        grant_types: payload.grant_types,
-                        response_types: payload.response_types,
-                        scope: payload.scope,
-                        token_endpoint_auth_method: payload.token_endpoint_auth_method,
-                        application_type: payload.application_type,
-                        client_name: payload.client_name,
-                        is_first_party: payload.is_first_party,
-                    },
-                })
-                message.success("保存成功")
-            } catch (e: unknown) {
-                message.error(getErrorMessage(e, "保存失败"))
-                throw e
-            } finally {
-                message.destroy(key)
-            }
-
-            onClose?.()
-        } finally {
-            setSubmitting(false)
+    function onFinish(values: FormValues) {
+        const payload: OidcClientParams = {
+            client_id: values.client_id!,
+            client_secret: values.client_secret || undefined,
+            redirect_uris: values.redirect_uris || [],
+            grant_types: values.grant_types?.length ? values.grant_types : ["authorization_code", "refresh_token"],
+            response_types: values.response_types?.length ? values.response_types : ["code"],
+            scope: values.scope || undefined,
+            token_endpoint_auth_method: values.token_endpoint_auth_method || undefined,
+            application_type: values.application_type || undefined,
+            client_name: values.client_name || undefined,
+            is_first_party: values.is_first_party,
         }
+
+        if (isUpdate) {
+            updateOidcClientMutation.mutateAsync({
+                client_id: clientId!,
+                patch: {
+                    client_secret: values.client_secret?.trim() ? values.client_secret : undefined,
+                    redirect_uris: payload.redirect_uris,
+                    grant_types: payload.grant_types,
+                    response_types: payload.response_types,
+                    scope: payload.scope,
+                    token_endpoint_auth_method: payload.token_endpoint_auth_method,
+                    application_type: payload.application_type,
+                    client_name: payload.client_name,
+                    is_first_party: payload.is_first_party,
+                },
+            } as UpdateOidcClientParams)
+
+            return
+        }
+
+        createOidcClientMutation.mutateAsync(payload as CreateOidcClientParams)
     }
 
     return (

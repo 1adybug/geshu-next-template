@@ -8,7 +8,6 @@ import "source-han-sans-sc-vf"
 
 import "./globals.css"
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
     title: "格数科技",
     description: "powered by geshu",

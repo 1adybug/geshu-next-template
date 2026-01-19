@@ -74,7 +74,7 @@ const UserEditor: FC<UserEditorProps> = ({
             title={isUpdate ? "修改用户" : "新增用户"}
             onOk={onOk}
             onCancel={onClose}
-            okButtonProps={{ loading: isPending || okButtonLoading, ...okButtonProps }}
+            okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
             {...rest}
         >

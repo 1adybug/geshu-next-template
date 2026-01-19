@@ -1,4 +1,4 @@
-import { styleText } from "util"
+import { styleText } from "node:util"
 
 import { assignFnName, createFnWithMiddleware, Middleware, ResponseData } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"

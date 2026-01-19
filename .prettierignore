@@ -6,3 +6,7 @@ generated
 .next
 .vscode
 .generated
+
+.agent
+.cursor
+AGENTS.md

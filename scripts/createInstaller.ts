@@ -1,5 +1,5 @@
-import { readdir, rm, writeFile } from "fs/promises"
-import { resolve } from "path"
+import { readdir, rm, writeFile } from "node:fs/promises"
+import { resolve } from "node:path"
 
 import { spawnAsync, zip } from "soda-nodejs"
 

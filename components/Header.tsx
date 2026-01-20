@@ -12,6 +12,8 @@ import { useGetUserOwn } from "@/hooks/useGetUserOwn"
 
 import { User } from "@/prisma/generated/client"
 
+import { isAdmin } from "@/server/isAdmin"
+
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 import Brand from "./Brand"
@@ -28,19 +30,19 @@ const navs: NavItem[] = [
         name: "首页",
     },
     {
-        href: "/user-management",
+        href: "/user",
         name: "用户管理",
-        filter: user => user.role === "ADMIN",
+        filter: isAdmin,
     },
     {
         href: "/operation-log",
         name: "操作日志",
-        filter: user => user.role === "ADMIN",
+        filter: isAdmin,
     },
     {
         href: "/error-log",
         name: "错误日志",
-        filter: user => user.role === "ADMIN",
+        filter: isAdmin,
     },
 ]
 

@@ -1,13 +1,13 @@
-import { useQuery } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
+import { createUseQuery } from "soda-tanstack-query"
 
 import { getUserOwnAction } from "@/actions/getUserOwn"
 
-export const getUserOwnClient = createRequestFn(getUserOwnAction)
+export const getUserOwnClient = createRequestFn({
+    fn: getUserOwnAction,
+})
 
-export function useGetUserOwn() {
-    return useQuery({
-        queryKey: ["get-user-own"],
-        queryFn: getUserOwnClient,
-    })
-}
+export const useGetUserOwn = createUseQuery({
+    queryFn: getUserOwnClient,
+    queryKey: "get-user-own",
+})

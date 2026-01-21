@@ -47,6 +47,7 @@
         "soda-next": "^0.7.14",
         "soda-nodejs": "^0.8.9",
         "soda-tailwind": "^0.0.3",
+        "soda-tanstack-query": "^0.0.4",
         "source-han-sans-sc-vf": "^0.0.1",
         "uuid": "^13.0.0",
         "zod": "^4.3.5"
@@ -71,7 +72,7 @@
         "postcss": "^8.5.6",
         "prettier": "^3.8.0",
         "prisma": "^7.2.0",
-        "sdnext": "^0.0.4",
+        "sdnext": "^0.0.7",
         "tailwindcss": "^3.4.19",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.53.0"

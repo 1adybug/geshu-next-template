@@ -33,7 +33,7 @@ const UserEditor: FC<UserEditorProps> = ({
 }) => {
     const isUpdate = isNonNullable(id)
     const [form] = useForm<AddUserParams>()
-    const { data, isLoading } = useGetUser({ id, enabled: !!open })
+    const { data, isLoading } = useGetUser(id, { enabled: !!open })
 
     const { mutateAsync: addUser, isPending: isAddUserPending } = useAddUser({
         onSuccess() {

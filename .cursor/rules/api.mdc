@@ -62,43 +62,33 @@ alwaysApply: true
     - `query` 函数
 
         ```typescript
-        import { useQuery } from "@tanstack/react-query"
+        import { createUseQuery } from "soda-tanstack-query"
 
-        import { queryUser, QueryUserParams } from "@/apis/queryUser"
+        import { queryUser } from "@/apis/queryUser"
 
-        // 参数与 api 函数一致，如果有默认值，这里也要有默认值
-        export function useQueryUser(params: QueryUserParams = {}) {
-            return useQuery({
-                // 这里的 key 第一项为 api 函数的烤肉串命名，第二项为请求参数
-                queryKey: ["query-user", params],
-                queryFn: () => queryUser(params),
-            })
-        }
+        export const useQueryUser = createUseQuery({
+            queryFn: queryUser,
+            // 这里的 key 为 api 函数的烤肉串命名
+            queryKey: "query-user",
+        })
         ```
 
     - `get` 函数
 
         ```typescript
-        import { useQuery } from "@tanstack/react-query"
         import { isNonNullable } from "deepsea-tools"
+        import { createUseQuery } from "soda-tanstack-query"
 
         import { getUser } from "@/apis/getUser"
 
-        export interface UseGetUserParams {
-            id?: string | undefined
-            enabled?: boolean
+        export function getUserOptional(id?: string | undefined) {
+            return isNonNullable(id) ? getUser(id) : null
         }
 
-        // 这里的参数略微特殊，它既可以接收一个对象，也可以接收一个字符串，如果接收一个对象，则对象中可以包含 `id` 和 `enabled` 属性，如果接收一个字符串，则字符串为 `id`
-        export function useGetUser(idOrParams?: UseGetUserParams | string | undefined) {
-            const { id, enabled = true } = typeof idOrParams === "object" ? idOrParams : { id: idOrParams, enabled: true }
-
-            return useQuery({
-                queryKey: ["get-user", id],
-                queryFn: () => (isNonNullable(id) ? getUser(id) : null),
-                enabled,
-            })
-        }
+        export const useGetUser = createUseQuery({
+            queryFn: getUserOptional,
+            queryKey: "get-user",
+        })
         ```
 
     - `add`、`update`、`delete` 等等操作函数
@@ -107,15 +97,51 @@ alwaysApply: true
         import { useMutation, UseMutationOptions } from "@tanstack/react-query"
         
         import { addUser } from "@/apis/addUser"
-        import { User } from "@/apis/queryUser"
 
         // UseMutationOptions 的泛型参数为 api 函数的返回值类型、错误类型（默认 `Error`）、请求参数类型、上下文类型
-        export interface UseAddUserParams<TContext = never> extends Omit<UseMutationOptions<User, Error, AddUserParams, TContext>, "mutationFn"> {}
+        export interface UseAddUserParams<TOnMutateResult = unknown> extends Omit<
+            UseMutationOptions<Awaited<ReturnType<typeof addUser>>, Error, Parameters<typeof addUser>[0], TOnMutateResult>,
+            "mutationFn"
+        > {}
 
-        export function useAddUser<TContext = never>(params: UseAddUserParams<TContext> = {}) {
-            return useMutation<User, Error, AddUserParams, TContext>({
+        export function useAddUser<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseAddUserParams<TOnMutateResult> = {}) {
+            const key = useId()
+
+            return useMutation({
                 mutationFn: addUser,
-                ...params,
+                onMutate(variables, context) {
+                    message.open({
+                        key,
+                        type: "loading",
+                        content: "新增用户中...",
+                        duration: 0,
+                    })
+
+                    return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+                },
+                onSuccess(data, variables, onMutateResult, context) {
+                    // 成功后刷新 user 相关的 query
+                    context.client.invalidateQueries({ queryKey: ["query-user"] })
+                    context.client.invalidateQueries({ queryKey: ["get-user", data.id] })
+
+                    message.open({
+                        key,
+                        type: "success",
+                        content: "新增用户成功",
+                    })
+
+                    return onSuccess?.(data, variables, onMutateResult, context)
+                },
+                onError(error, variables, onMutateResult, context) {
+                    // 失败后关闭 loading
+                    message.destroy(key)
+
+                    return onError?.(error, variables, onMutateResult, context)
+                },
+                onSettled(data, error, variables, onMutateResult, context) {
+                    return onSettled?.(data, error, variables, onMutateResult, context)
+                },
+                ...rest,
             })
         }
         ```

@@ -259,11 +259,7 @@
             doSomething()
         }
 
-        return (
-            <div onClick={onClick} {...rest}>
-                Hello World!
-            </div>
-        )
+        return <div onClick={onClick} {...rest}>Hello World!</div>
     }
     ```
 
@@ -279,9 +275,9 @@
 
 1. 先分析页面结构，识别重复的 UI 片段与逻辑，并判断是否值得抽取。不要为了抽取而抽取，优先考虑维护成本。
 2. 抽取原则：
-    - 同一页面内重复出现且逻辑稳定的片段，抽为该页面目录下的 `_components`。
-    - 多个页面复用的片段，抽为这些页面最近公共路径下的 `_components`。
-    - 可复用的纯逻辑或工具函数，放在最近公共路径下的 `_utils`。
+   - 同一页面内重复出现且逻辑稳定的片段，抽为该页面目录下的 `_components`。
+   - 多个页面复用的片段，抽为这些页面最近公共路径下的 `_components`。
+   - 可复用的纯逻辑或工具函数，放在最近公共路径下的 `_utils`。
 3. 新增组件或页面前，检查已有目录（尤其是 `_components` 与 `_utils`）是否已有可复用实现，优先复用而非重复创建。
 4. 抽取时保持原有 UI 风格与交互一致，避免引入不必要的样式或行为变化。
 5. 组件拆分要能提升可读性与可测试性；若拆分后跨文件沟通成本增加，则保留在原文件。
@@ -347,57 +343,86 @@
     - `query` 函数
 
         ```typescript
-        import { useQuery } from "@tanstack/react-query"
-        import { queryUser, QueryUserParams } from "@/apis/queryUser"
+        import { createUseQuery } from "soda-tanstack-query"
 
-        // 参数与 api 函数一致，如果有默认值，这里也要有默认值
-        export function useQueryUser(params: QueryUserParams = {}) {
-            return useQuery({
-                // 这里的 key 第一项为 api 函数的烤肉串命名，第二项为请求参数
-                queryKey: ["query-user", params],
-                queryFn: () => queryUser(params),
-            })
-        }
+        import { queryUser } from "@/apis/queryUser"
+
+        export const useQueryUser = createUseQuery({
+            queryFn: queryUser,
+            // 这里的 key 为 api 函数的烤肉串命名
+            queryKey: "query-user",
+        })
         ```
 
     - `get` 函数
 
         ```typescript
-        import { useQuery } from "@tanstack/react-query"
         import { isNonNullable } from "deepsea-tools"
+        import { createUseQuery } from "soda-tanstack-query"
+
         import { getUser } from "@/apis/getUser"
 
-        export interface UseGetUserParams {
-            id?: string | undefined
-            enabled?: boolean
+        export function getUserOptional(id?: string | undefined) {
+            return isNonNullable(id) ? getUser(id) : null
         }
 
-        // 这里的参数略微特殊，它既可以接收一个对象，也可以接收一个字符串，如果接收一个对象，则对象中可以包含 `id` 和 `enabled` 属性，如果接收一个字符串，则字符串为 `id`
-        export function useGetUser(idOrParams?: UseGetUserParams | string | undefined) {
-            const { id, enabled = true } = typeof idOrParams === "object" ? idOrParams : { id: idOrParams, enabled: true }
-
-            return useQuery({
-                queryKey: ["get-user", id],
-                queryFn: () => (isNonNullable(id) ? getUser(id) : null),
-                enabled,
-            })
-        }
+        export const useGetUser = createUseQuery({
+            queryFn: getUserOptional,
+            queryKey: "get-user",
+        })
         ```
 
     - `add`、`update`、`delete` 等等操作函数
 
         ```typescript
         import { useMutation, UseMutationOptions } from "@tanstack/react-query"
+        
         import { addUser } from "@/apis/addUser"
-        import { User } from "@/apis/queryUser"
 
         // UseMutationOptions 的泛型参数为 api 函数的返回值类型、错误类型（默认 `Error`）、请求参数类型、上下文类型
-        export interface UseAddUserParams<TContext = never> extends Omit<UseMutationOptions<User, Error, AddUserParams, TContext>, "mutationFn"> {}
+        export interface UseAddUserParams<TOnMutateResult = unknown> extends Omit<
+            UseMutationOptions<Awaited<ReturnType<typeof addUser>>, Error, Parameters<typeof addUser>[0], TOnMutateResult>,
+            "mutationFn"
+        > {}
 
-        export function useAddUser<TContext = never>(params: UseAddUserParams<TContext> = {}) {
-            return useMutation<User, Error, AddUserParams, TContext>({
+        export function useAddUser<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseAddUserParams<TOnMutateResult> = {}) {
+            const key = useId()
+
+            return useMutation({
                 mutationFn: addUser,
-                ...params,
+                onMutate(variables, context) {
+                    message.open({
+                        key,
+                        type: "loading",
+                        content: "新增用户中...",
+                        duration: 0,
+                    })
+
+                    return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+                },
+                onSuccess(data, variables, onMutateResult, context) {
+                    // 成功后刷新 user 相关的 query
+                    context.client.invalidateQueries({ queryKey: ["query-user"] })
+                    context.client.invalidateQueries({ queryKey: ["get-user", data.id] })
+
+                    message.open({
+                        key,
+                        type: "success",
+                        content: "新增用户成功",
+                    })
+
+                    return onSuccess?.(data, variables, onMutateResult, context)
+                },
+                onError(error, variables, onMutateResult, context) {
+                    // 失败后关闭 loading
+                    message.destroy(key)
+
+                    return onError?.(error, variables, onMutateResult, context)
+                },
+                onSettled(data, error, variables, onMutateResult, context) {
+                    return onSettled?.(data, error, variables, onMutateResult, context)
+                },
+                ...rest,
             })
         }
         ```
@@ -413,13 +438,11 @@
 1. 在 `@/schemas` 目录下创建一个名为 `addUser.ts` 的文件，它的内容应该如下：
 
     ```typescript
-    import { getParser } from "."
     import { z } from "zod"
 
+    import { getParser } from "."
     import { phoneSchema } from "./phone"
-
     import { roleSchema } from "./role"
-
     import { usernameSchema } from "./username"
 
     export const addUserSchema = z.object(
@@ -442,7 +465,7 @@
     import { prisma } from "@/prisma"
 
     import { User } from "@/prisma/generated/client"
-
+    
     import { AddUserParams } from "@/schemas/addUser"
 
     import { ClientError } from "@/utils/clientError"
@@ -490,29 +513,62 @@
 4. 在 `@/hooks` 目录下创建一个名为 `useAddUser.ts` 的文件，创建它的规则与 `api.mdc` 中创建 `hook` 的规则一致，唯一不同的地方是，你需要先使用 `createRequestFn` 创建 `queryFn` 或者 `mutationFn` 函数，命名为 `addUserClient` 并且导出，例如：
 
     ```typescript
+    import { useId } from "react"
+
     import { useMutation, UseMutationOptions } from "@tanstack/react-query"
     import { createRequestFn } from "deepsea-tools"
 
     import { addUserAction } from "@/actions/addUser"
 
-    import { User } from "@/prisma/generated/client"
+    import { addUserSchema } from "@/schemas/addUser"
 
-    import { AddUserParams } from "@/schemas/addUser"
-
-    export const addUserClient = createRequestFn(addUserAction)
-
-    // 如果这个函数的参数存在 schema，你应该使用以下方式创建 client 函数
     export const addUserClient = createRequestFn({
         fn: addUserAction,
+        // 如果这个函数的参数存在 schema，你就传递 schema 参数
         schema: addUserSchema,
     })
 
-    export interface UseAddUserParams<TContext = never> extends Omit<UseMutationOptions<User, Error, AddUserParams, TContext>, "mutationFn"> {}
+    export interface UseAddUserParams<TOnMutateResult = unknown> extends Omit<
+        UseMutationOptions<Awaited<ReturnType<typeof addUserClient>>, Error, Parameters<typeof addUserClient>[0], TOnMutateResult>,
+        "mutationFn"
+    > {}
 
-    export function useAddUser<TContext = never>(params: UseAddUserParams<TContext> = {}) {
-        return useMutation<User, Error, AddUserParams, TContext>({
+    export function useAddUser<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseAddUserParams<TOnMutateResult> = {}) {
+        const key = useId()
+
+        return useMutation({
             mutationFn: addUserClient,
-            ...params,
+            onMutate(variables, context) {
+                message.open({
+                    key,
+                    type: "loading",
+                    content: "新增用户中...",
+                    duration: 0,
+                })
+
+                return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
+            },
+            onSuccess(data, variables, onMutateResult, context) {
+                context.client.invalidateQueries({ queryKey: ["query-user"] })
+                context.client.invalidateQueries({ queryKey: ["get-user", data.id] })
+
+                message.open({
+                    key,
+                    type: "success",
+                    content: "新增用户成功",
+                })
+
+                return onSuccess?.(data, variables, onMutateResult, context)
+            },
+            onError(error, variables, onMutateResult, context) {
+                message.destroy(key)
+
+                return onError?.(error, variables, onMutateResult, context)
+            },
+            onSettled(data, error, variables, onMutateResult, context) {
+                return onSettled?.(data, error, variables, onMutateResult, context)
+            },
+            ...rest,
         })
     }
     ```
@@ -522,8 +578,9 @@
 当你需要创建一个 `schema` 时，如果是一个对象或者数组，你应该将它们独立出来作为一个文件，而不是直接在 `schema` 中定义，例如：
 
 ```typescript
-import { getParser } from "."
 import { z } from "zod"
+
+import { getParser } from "."
 
 export const addUserSchema = z.object(
     {
@@ -546,8 +603,9 @@ export const addUserParser = getParser(addUserSchema)
 你应该将 `usernameSchema` 和 `phoneSchema` 独立出来成为两个独立的文件，便于服用，而不是直接在 `schema` 中定义，例如：
 
 ```typescript
-import { getParser } from "."
 import { z } from "zod"
+
+import { getParser } from "."
 
 export const usernameSchema = z
     .string({ message: "无效的用户名" })

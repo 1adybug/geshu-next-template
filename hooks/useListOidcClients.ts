@@ -1,20 +1,13 @@
-import { useQuery } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
+import { createUseQuery } from "soda-tanstack-query"
 
 import { listOidcClientsAction } from "@/actions/listOidcClients"
 
-export const listOidcClientsClient = createRequestFn(listOidcClientsAction)
+export const listOidcClientsClient = createRequestFn({
+    fn: listOidcClientsAction,
+})
 
-export interface UseListOidcClientsParams {
-    enabled?: boolean
-}
-
-export function useListOidcClients(params: UseListOidcClientsParams = {}) {
-    const { enabled = true } = params
-
-    return useQuery({
-        queryKey: ["list-oidc-clients"],
-        queryFn: () => listOidcClientsClient(),
-        enabled,
-    })
-}
+export const useListOidcClients = createUseQuery({
+    queryFn: listOidcClientsClient,
+    queryKey: "list-oidc-clients",
+})

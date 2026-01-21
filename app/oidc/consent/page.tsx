@@ -15,7 +15,7 @@ const Content: FC = () => {
 
     const [submitting, setSubmitting] = useState<"confirm" | "deny" | undefined>()
 
-    const { data: details, isLoading, error } = useGetOidcInteractionDetails({ uid, enabled: !!uid })
+    const { data: details, isLoading, error } = useGetOidcInteractionDetails(uid, { enabled: !!uid })
     const confirmMutation = useConfirmOidcInteraction()
     const denyMutation = useDenyOidcInteraction()
 

@@ -40,7 +40,7 @@ const OidcClientEditor: FC<OidcClientEditorProps> = ({
     const isUpdate = isNonNullable(clientId)
     const [form] = useForm<FormValues>()
 
-    const { data, isLoading, error } = useGetOidcClient({ client_id: clientId, enabled: !!open && isUpdate })
+    const { data, isLoading, error } = useGetOidcClient(clientId, { enabled: !!open && isUpdate })
 
     const { mutateAsync: createOidcClient, isPending: isCreateOidcClientPending } = useCreateOidcClient({
         onSuccess(data) {

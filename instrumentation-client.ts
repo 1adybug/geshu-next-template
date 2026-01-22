@@ -1,4 +1,4 @@
-import { createRequestFn, getErrorMessage } from "deepsea-tools"
+import { createRequestFn, flattenZodError, getErrorMessage, isZodError } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 createRequestFn.use(async (context, next) => {
@@ -7,7 +7,9 @@ createRequestFn.use(async (context, next) => {
     } catch (error) {
         if (!isRedirectError(error)) {
             console.error(error)
-            message.error(getErrorMessage(error))
+
+            if (isZodError(error)) flattenZodError(error).forEach(item => message.error(item))
+            else message.error(getErrorMessage(error))
         }
 
         throw error

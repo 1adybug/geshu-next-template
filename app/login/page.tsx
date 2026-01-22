@@ -5,12 +5,15 @@ import { FC, useEffect, useState } from "react"
 import { Button, Form, Input } from "antd"
 import { useForm, useWatch } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
+import { schemaToRule } from "soda-antd"
 
 import Brand from "@/components/Brand"
 
 import { useLogin } from "@/hooks/useLogin"
 import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 
+import { accountSchema } from "@/schemas/account"
+import { captchaSchema } from "@/schemas/captcha"
 import { LoginParams } from "@/schemas/login"
 
 const Page: FC = () => {
@@ -40,12 +43,12 @@ const Page: FC = () => {
             <div className="relative p-8">
                 <Brand />
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <Form<LoginParams> form={form} className="flex w-64 flex-col gap-4" onFinish={login}>
-                        <FormItem<LoginParams> name="account" noStyle>
+                    <Form<LoginParams> form={form} className="flex w-64 flex-col" onFinish={login}>
+                        <FormItem<LoginParams> name="account" rules={[schemaToRule(accountSchema)]}>
                             <Input placeholder="用户名或手机号" autoComplete="off" />
                         </FormItem>
-                        <div className="flex items-center gap-2">
-                            <FormItem<LoginParams> name="captcha" noStyle>
+                        <div className="flex gap-2">
+                            <FormItem<LoginParams> name="captcha" rules={[schemaToRule(captchaSchema)]}>
                                 <Input placeholder="验证码" autoComplete="off" />
                             </FormItem>
                             <Button

@@ -8,6 +8,11 @@ import { ConfigProvider } from "antd"
 import { MessageInstance } from "antd/es/message/interface"
 import useMessage from "antd/es/message/useMessage"
 import zhCN from "antd/locale/zh_CN"
+import dayjs from "dayjs"
+
+import "dayjs/locale/zh-cn"
+
+dayjs.locale("zh-cn")
 
 export interface RegistryProps {
     children?: ReactNode

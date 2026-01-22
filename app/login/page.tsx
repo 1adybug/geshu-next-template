@@ -7,12 +7,15 @@ import { useForm, useWatch } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+import { schemaToRule } from "soda-antd"
 
 import Brand from "@/components/Brand"
 
 import { useLoginOidcInteraction } from "@/hooks/useLoginOidcInteraction"
 import { useSendCaptcha } from "@/hooks/useSendCaptcha"
 
+import { accountSchema } from "@/schemas/account"
+import { captchaSchema } from "@/schemas/captcha"
 import { LoginParams } from "@/schemas/login"
 
 const Page: FC = () => {
@@ -53,7 +56,7 @@ const Page: FC = () => {
                     {uid ? (
                         <Form<LoginParams>
                             form={form}
-                            className="flex w-64 flex-col gap-4"
+                            className="flex w-64 flex-col"
                             onFinish={async values => {
                                 try {
                                     if (!uid) throw new Error("缺少 uid")
@@ -64,11 +67,11 @@ const Page: FC = () => {
                                 }
                             }}
                         >
-                            <FormItem<LoginParams> name="account" noStyle>
+                            <FormItem<LoginParams> name="account" rules={[schemaToRule(accountSchema)]}>
                                 <Input placeholder="用户名或手机号" autoComplete="off" />
                             </FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormItem<LoginParams> name="captcha" noStyle>
+                            <div className="flex gap-2">
+                                <FormItem<LoginParams> name="captcha" rules={[schemaToRule(captchaSchema)]}>
                                     <Input placeholder="验证码" autoComplete="off" />
                                 </FormItem>
                                 <Button
@@ -88,7 +91,7 @@ const Page: FC = () => {
                     ) : (
                         <Form<LoginParams>
                             form={form}
-                            className="flex w-64 flex-col gap-4"
+                            className="flex w-64 flex-col"
                             onFinish={async values => {
                                 try {
                                     setIsLoginPending(true)
@@ -112,11 +115,11 @@ const Page: FC = () => {
                                 }
                             }}
                         >
-                            <FormItem<LoginParams> name="account" noStyle>
+                            <FormItem<LoginParams> name="account" rules={[schemaToRule(accountSchema)]}>
                                 <Input placeholder="用户名或手机号" autoComplete="off" />
                             </FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormItem<LoginParams> name="captcha" noStyle>
+                            <div className="flex gap-2">
+                                <FormItem<LoginParams> name="captcha" rules={[schemaToRule(captchaSchema)]}>
                                     <Input placeholder="验证码" autoComplete="off" />
                                 </FormItem>
                                 <Button

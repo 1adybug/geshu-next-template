@@ -1,7 +1,9 @@
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
 import { PrismaLibSql } from "@prisma/adapter-libsql"
 
-import { DatabaseUrl, IsBun } from "@/constants"
+import { DatabaseUrl } from "@/prisma.config"
+
+import { IsBun } from "@/constants"
 
 import { PrismaClient } from "./generated/client"
 

@@ -1,6 +1,8 @@
 import { headers } from "next/headers"
 
+import { getIpFromHeaders } from "./getIpFromHeaders"
+
 export async function getIp() {
     const headersList = await headers()
-    return headersList.get("x-forwarded-for")!
+    return getIpFromHeaders(headersList)
 }

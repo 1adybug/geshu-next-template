@@ -22,7 +22,7 @@ export async function sendQjpSms({ phone, content }: SendQjpSmsParams) {
     url.searchParams.set("u_key", "")
     url.searchParams.set("a_key", "")
     url.searchParams.set("mobiles", phone)
-    url.searchParams.set("content", encodeURIComponent(content))
+    url.searchParams.set("content", content)
     url.searchParams.set("time", String(Math.floor(Date.now() / 1000)))
     const response = await fetch(url)
     if (!response.ok) throw new Error("send sms failed")

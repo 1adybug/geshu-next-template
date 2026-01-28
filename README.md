@@ -17,4 +17,7 @@ QJP_SMS_URL="QJP_SMS_URL"
 
 # 公共环境环境变量，客户端和服务端都能读取
 NEXT_PUBLIC_COOKIE_PREFIX="NEXT_PUBLIC_COOKIE_PREFIX"
+
+# 可选：内网短信通道开关
+IS_INTRANET="0"
 ```

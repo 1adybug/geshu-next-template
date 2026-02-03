@@ -44,8 +44,11 @@ COPY --from=builder --chown=nextjs:bun /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 RUN mkdir -p /app/data && chown -R nextjs:bun /app/data
-USER nextjs
-RUN bunx prisma db push
+
+RUN bun add prisma --registry=https://registry.npmmirror.com --global
+
+# 创建启动脚本，先以 root 执行 prisma db push，然后切换用户运行应用
+RUN printf '#!/bin/sh\nchown -R nextjs:bun /app/data\nprisma db push\nexec runuser -u nextjs -- bun run server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 3000
 
@@ -55,4 +58,5 @@ ENV PORT=3000
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["bun", "server.js"]
+# 以 root 启动，脚本内部会修复权限并降权
+CMD ["/app/entrypoint.sh"]

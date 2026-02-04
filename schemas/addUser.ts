@@ -1,15 +1,19 @@
 import { getParser } from "."
 import { z } from "zod/v4"
 
-import { phoneSchema } from "./phone"
-import { roleSchema } from "./role"
+import { userEmailSchema } from "./userEmail"
 import { usernameSchema } from "./username"
+import { userPasswordSchema } from "./userPassword"
+import { userPhoneNumberSchema } from "./userPhoneNumber"
+import { UserRoleSchema } from "./userRole"
 
 export const addUserSchema = z.object(
     {
-        username: usernameSchema,
-        phone: phoneSchema,
-        role: roleSchema,
+        name: usernameSchema,
+        email: userEmailSchema.optional(),
+        phoneNumber: userPhoneNumberSchema.optional(),
+        password: userPasswordSchema.optional(),
+        role: UserRoleSchema,
     },
     { message: "无效的用户参数" },
 )

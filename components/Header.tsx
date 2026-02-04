@@ -6,14 +6,13 @@ import { Button } from "antd"
 import { clsx, StrictOmit } from "deepsea-tools"
 import { usePathname } from "next/navigation"
 
-import { logoutAction } from "@/actions/logout"
-
 import { useGetUserOwn } from "@/hooks/useGetUserOwn"
 
 import { User } from "@/prisma/generated/client"
 
 import { isAdmin } from "@/server/isAdmin"
 
+import { authClient } from "@/utils/authClient"
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 import Brand from "./Brand"
@@ -42,6 +41,11 @@ const navs: NavItem[] = [
     {
         href: "/error-log",
         name: "错误日志",
+        filter: isAdmin,
+    },
+    {
+        href: "/system",
+        name: "系统设置",
         filter: isAdmin,
     },
 ]
@@ -73,8 +77,8 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
                 )}
             </div>
             <div className="flex items-center gap-2">
-                <div>{data?.username}</div>
-                <Button size="small" color="orange" variant="filled" onClick={logoutAction}>
+                <div>{data?.name}</div>
+                <Button size="small" color="orange" variant="filled" onClick={() => authClient.signOut({})}>
                     注销
                 </Button>
             </div>

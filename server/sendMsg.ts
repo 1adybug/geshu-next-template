@@ -1,4 +1,4 @@
-import { phoneSchema } from "@/schemas/phone"
+import { phoneNumberSchema } from "@/schemas/phoneNumber"
 
 import { ClientError } from "@/utils/clientError"
 
@@ -13,5 +13,5 @@ export async function sendMsg({ phone, content }: SendMsgParams) {
     if (phone.length === 0) throw new ClientError("手机号不能为空")
     content = content.trim()
     if (content.length === 0) throw new ClientError("内容不能为空")
-    if (phone.some(p => !phoneSchema.safeParse(p).success)) throw new ClientError("无效的手机号")
+    if (phone.some(p => !phoneNumberSchema.safeParse(p).success)) throw new ClientError("无效的手机号")
 }

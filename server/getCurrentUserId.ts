@@ -1,11 +1,20 @@
-import { cookies } from "next/headers"
-
-import { getCookieKey } from "@/utils/getCookieKey"
-
-import { verify } from "./verify"
+import { auth } from "@/server/auth"
+import { createAuthRequest } from "@/server/createAuthRequest"
 
 export async function getCurrentUserId() {
-    const cookieStore = await cookies()
-    const token = cookieStore.get(getCookieKey("token"))?.value
-    return verify(token)
+    try {
+        const { headers, request } = await createAuthRequest({
+            method: "GET",
+            path: "/get-session",
+        })
+
+        const session = await auth.api.getSession({
+            headers,
+            request,
+        })
+
+        return session?.user?.id
+    } catch (error) {
+        return undefined
+    }
 }

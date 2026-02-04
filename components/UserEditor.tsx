@@ -11,9 +11,11 @@ import { useGetUser } from "@/hooks/useGetUser"
 import { useUpdateUser } from "@/hooks/useUpdateUser"
 
 import { AddUserParams } from "@/schemas/addUser"
-import { phoneSchema } from "@/schemas/phone"
 import { UpdateUserParams } from "@/schemas/updateUser"
+import { userEmailSchema } from "@/schemas/userEmail"
 import { usernameSchema } from "@/schemas/username"
+import { userPasswordSchema } from "@/schemas/userPassword"
+import { userPhoneNumberSchema } from "@/schemas/userPhoneNumber"
 
 import RoleSelect from "./RoleSelect"
 
@@ -77,11 +79,17 @@ const UserEditor: FC<UserEditorProps> = ({
             {...rest}
         >
             <Form<AddUserParams> form={form} disabled={isRequesting} labelCol={{ flex: "56px" }} onFinish={onFinish}>
-                <FormItem<AddUserParams> name="username" label="用户名" rules={[schemaToRule(usernameSchema)]}>
+                <FormItem<AddUserParams> name="name" label="用户名" rules={[schemaToRule(usernameSchema)]}>
                     <Input autoComplete="off" allowClear />
                 </FormItem>
-                <FormItem<AddUserParams> name="phone" label="手机号" rules={[schemaToRule(phoneSchema)]}>
+                <FormItem<AddUserParams> name="email" label="邮箱" rules={[schemaToRule(userEmailSchema)]}>
                     <Input autoComplete="off" allowClear />
+                </FormItem>
+                <FormItem<AddUserParams> name="phoneNumber" label="手机号" rules={[schemaToRule(userPhoneNumberSchema)]}>
+                    <Input autoComplete="off" allowClear />
+                </FormItem>
+                <FormItem<AddUserParams> name="password" label="密码" rules={[schemaToRule(userPasswordSchema.optional())]}>
+                    <Input.Password autoComplete="off" />
                 </FormItem>
                 <FormItem<AddUserParams> name="role" label="角色">
                     <RoleSelect />

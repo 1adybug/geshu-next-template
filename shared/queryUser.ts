@@ -14,8 +14,9 @@ import { isAdmin } from "@/server/isAdmin"
 
 export async function queryUser({
     id,
-    username = "",
-    phone = "",
+    name = "",
+    email = "",
+    phoneNumber = "",
     createdAfter,
     createdBefore,
     updatedAfter,
@@ -25,8 +26,9 @@ export async function queryUser({
     sortBy = "createdAt",
     sortOrder = "asc",
 }: QueryUserParams) {
-    const phoneItems = phone.split(/\s+/).filter(Boolean)
-    const usernameItems = username.split(/\s+/).filter(Boolean)
+    const phoneNumberItems = phoneNumber.split(/\s+/).filter(Boolean)
+    const nameItems = name.split(/\s+/).filter(Boolean)
+    const emailItems = email.split(/\s+/).filter(Boolean)
 
     const where = id
         ? { id }
@@ -40,13 +42,18 @@ export async function queryUser({
                   lte: updatedBefore,
               },
               AND: [
-                  ...usernameItems.map(item => ({
-                      username: {
+                  ...nameItems.map(item => ({
+                      name: {
                           contains: item,
                       },
                   })),
-                  ...phoneItems.map(item => ({
-                      phone: {
+                  ...emailItems.map(item => ({
+                      email: {
+                          contains: item,
+                      },
+                  })),
+                  ...phoneNumberItems.map(item => ({
+                      phoneNumber: {
                           contains: item,
                       },
                   })),
@@ -60,7 +67,7 @@ export async function queryUser({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "username" || sortBy === "phone" || sortBy === "role" || sortBy === "updatedAt") {
+        if (sortBy === "name" || sortBy === "email" || sortBy === "phoneNumber" || sortBy === "role" || sortBy === "updatedAt") {
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })
@@ -85,7 +92,5 @@ export async function queryUser({
         pageSize,
     })
 }
-
-export type User = Awaited<ReturnType<typeof queryUser>>["list"][number]
 
 queryUser.filter = isAdmin

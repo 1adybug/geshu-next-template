@@ -15,21 +15,21 @@ import UserEditor from "@/components/UserEditor"
 import { useDeleteUser } from "@/hooks/useDeleteUser"
 import { useQueryUser } from "@/hooks/useQueryUser"
 
+import { User } from "@/prisma/generated/client"
+
 import { getParser } from "@/schemas"
 import { pageNumParser } from "@/schemas/pageNum"
 import { pageSizeParser } from "@/schemas/pageSize"
-import { Role } from "@/schemas/role"
 import { SortOrderParams, sortOrderSchema } from "@/schemas/sortOrder"
+import { UserRole } from "@/schemas/userRole"
 import { UserSortByParams, userSortBySchema } from "@/schemas/userSortBy"
-
-import { User } from "@/shared/queryUser"
 
 import { getSortOrder } from "@/utils/getSortOrder"
 
 const Page: FC = () => {
     const [query, setQuery] = transformState(
         useQueryState({
-            keys: ["id", "username", "phone"],
+            keys: ["id", "username", "email", "phone"],
             parse: {
                 createdBefore: naturalParser,
                 createdAfter: naturalParser,
@@ -78,17 +78,24 @@ const Page: FC = () => {
         },
         {
             title: "用户名",
-            dataIndex: "username",
+            dataIndex: "name",
             align: "center",
             sorter: true,
-            sortOrder: getSortOrder(query, "username"),
+            sortOrder: getSortOrder(query, "name"),
+        },
+        {
+            title: "邮箱",
+            dataIndex: "email",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "email"),
         },
         {
             title: "手机号",
-            dataIndex: "phone",
+            dataIndex: "phoneNumber",
             align: "center",
             sorter: true,
-            sortOrder: getSortOrder(query, "phone"),
+            sortOrder: getSortOrder(query, "phoneNumber"),
         },
         {
             title: "角色",
@@ -97,7 +104,7 @@ const Page: FC = () => {
             sorter: true,
             sortOrder: getSortOrder(query, "role"),
             render(value) {
-                return getEnumKey(Role, value)
+                return getEnumKey(UserRole, value)
             },
         },
         {
@@ -200,6 +207,9 @@ const Page: FC = () => {
             <div className="flex-none px-4">
                 <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
                     <FormItem<FormParams> name="username" label="用户名">
+                        <Input />
+                    </FormItem>
+                    <FormItem<FormParams> name="email" label="邮箱">
                         <Input />
                     </FormItem>
                     <FormItem<FormParams> name="phone" label="手机号">

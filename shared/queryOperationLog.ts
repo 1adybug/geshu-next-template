@@ -18,7 +18,7 @@ export async function queryOperationLog({
     action = "",
     ip = "",
     userAgent = "",
-    username = "",
+    name = "",
     pageNum = defaultPageNum,
     pageSize = defaultPageSize,
     sortBy = "createdAt",
@@ -40,10 +40,10 @@ export async function queryOperationLog({
                 .split(" ")
                 .filter(Boolean)
                 .map(item => ({ userAgent: { contains: item } })),
-            ...username
+            ...name
                 .split(" ")
                 .filter(Boolean)
-                .map(item => ({ username: { contains: item } })),
+                .map(item => ({ name: { contains: item } })),
         ],
         createdAt: {
             gte: createdAfter,
@@ -75,10 +75,10 @@ export async function queryOperationLog({
                 [sortBy]: sortOrder,
             })
         } else {
-            if (sortBy === "username") {
+            if (sortBy === "name") {
                 orderBy.unshift({
                     user: {
-                        username: sortOrder,
+                        name: sortOrder,
                     },
                 })
             }

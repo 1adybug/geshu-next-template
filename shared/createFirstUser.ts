@@ -1,16 +1,29 @@
 import { prisma } from "@/prisma"
-import { defaultUserSelect } from "@/prisma/getUserSelect"
 
-import { CreateFirstUserParams, createFirstUserParser } from "@/schemas/createFirstUser"
-import { Role } from "@/schemas/role"
+import { CreateFirstUserParams } from "@/schemas/createFirstUser"
+
+import { auth } from "@/server/auth"
 
 import { ClientError } from "@/utils/clientError"
 
-export async function createFirstUser(params: CreateFirstUserParams) {
+export async function createFirstUser({ email, name, phoneNumber, password }: CreateFirstUserParams) {
     const count = await prisma.user.count()
     if (count > 0) throw new ClientError("禁止操作")
-    params = createFirstUserParser(params)
-    const user = await prisma.user.create({ data: { ...params, role: Role.管理员 }, select: defaultUserSelect })
+
+    const { user } = await auth.api.createUser({
+        body: {
+            name,
+            email,
+            password,
+            role: "admin",
+            data: {
+                phoneNumber,
+            },
+        },
+    })
+
+    if (!user) throw new ClientError("初始化失败")
+
     return user
 }
 

@@ -7,8 +7,6 @@ import { useForm, useWatch } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { schemaToRule } from "soda-antd"
 
-import Brand from "@/components/Brand"
-
 import { useGetSystemConfig } from "@/hooks/useGetSystemConfig"
 import { useLoginEmailOtp } from "@/hooks/useLoginEmailOtp"
 import { useLoginEmailPassword } from "@/hooks/useLoginEmailPassword"
@@ -393,7 +391,7 @@ const Page: FC = () => {
                         <Input placeholder="手机号" autoComplete="off" />
                     </FormItem>
                     <div className="flex gap-2">
-                        <FormItem<RegisterPhoneOtpParams> name="code" rules={[schemaToRule(otpSchema)]}>
+                        <FormItem<RegisterPhoneOtpParams> name="otp" rules={[schemaToRule(otpSchema)]}>
                             <Input placeholder="验证码" autoComplete="off" />
                         </FormItem>
                         <Button
@@ -421,36 +419,29 @@ const Page: FC = () => {
     }
 
     return (
-        <main className="grid h-full grid-cols-1 sm:grid-cols-2">
-            <div className="relative p-8">
-                <Brand />
-                <div className="absolute left-1/2 top-1/2 w-full -translate-x-1/2 -translate-y-1/2 px-4">
-                    <div className="mx-auto w-64">
-                        {allowRegister ? (
-                            <Tabs
-                                activeKey={mode}
-                                items={[
-                                    {
-                                        key: AuthMode.登录,
-                                        label: "登录",
-                                        children: <Tabs items={loginTabs} />,
-                                    },
-                                    {
-                                        key: AuthMode.注册,
-                                        label: "注册",
-                                        children: <Tabs items={registerTabs} />,
-                                    },
-                                ]}
-                                onChange={onModeChange}
-                            />
-                        ) : (
-                            <Tabs items={loginTabs} />
-                        )}
-                    </div>
-                </div>
-            </div>
-            <div className="hidden bg-[url('/login.webp')] bg-cover bg-bottom sm:block" />
-        </main>
+        <div className="mx-auto w-64">
+            {allowRegister ? (
+                <Tabs
+                    activeKey={mode}
+                    centered
+                    items={[
+                        {
+                            key: AuthMode.登录,
+                            label: "登录",
+                            children: <Tabs items={loginTabs} />,
+                        },
+                        {
+                            key: AuthMode.注册,
+                            label: "注册",
+                            children: <Tabs items={registerTabs} />,
+                        },
+                    ]}
+                    onChange={onModeChange}
+                />
+            ) : (
+                <Tabs items={loginTabs} />
+            )}
+        </div>
     )
 }
 

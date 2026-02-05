@@ -42,7 +42,7 @@ export async function sendPhoneOtp(params: SendPhoneOtpParams) {
     })
 
     const masked = maskPhone(phoneNumber)
-    const devOtp = IsDevelopment ? getDevOtp(`phone:${phoneNumber}`) : undefined
+    const devOtp = IsDevelopment ? getDevOtp({ phoneNumber }) : undefined
 
     if (devOtp) return `${masked}（开发环境验证码：${devOtp}）`
 

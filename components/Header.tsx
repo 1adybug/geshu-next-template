@@ -6,8 +6,6 @@ import { Button } from "antd"
 import { clsx, StrictOmit } from "deepsea-tools"
 import { usePathname } from "next/navigation"
 
-import { useGetUserOwn } from "@/hooks/useGetUserOwn"
-
 import { User } from "@/prisma/generated/client"
 
 import { isAdmin } from "@/server/isAdmin"
@@ -16,6 +14,7 @@ import { authClient } from "@/utils/authClient"
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 
 import Brand from "./Brand"
+import { useUser } from "./UserProvider"
 
 interface NavItem {
     href: string
@@ -54,8 +53,7 @@ export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "child
 
 const Header: FC<HeaderProps> = ({ className, ...rest }) => {
     const pathname = usePathname()
-
-    const { data } = useGetUserOwn()
+    const user = useUser()
 
     return (
         <header className={clsx("flex h-16 items-center gap-2 px-4", className)} {...rest}>
@@ -63,7 +61,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
             <div className="flex flex-auto items-center gap-2">
                 {navs.map(
                     ({ href, name, filter }) =>
-                        (!filter || (!!data && filter(data))) && (
+                        (!filter || filter(user)) && (
                             <Button
                                 key={href}
                                 type="link"
@@ -77,7 +75,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
                 )}
             </div>
             <div className="flex items-center gap-2">
-                <div>{data?.name}</div>
+                <div>{user?.name}</div>
                 <Button size="small" color="orange" variant="filled" onClick={() => authClient.signOut({})}>
                     注销
                 </Button>

@@ -3,6 +3,8 @@ import Dysmsapi, { SendSmsRequest } from "@alicloud/dysmsapi20170525"
 import { Config } from "@alicloud/openapi-client"
 import { RuntimeOptions } from "@alicloud/tea-util"
 
+import { phoneNumberRegex } from "@/schemas/phoneNumber"
+
 export interface SendAliyunSmsParams {
     phone: string | string[]
     signName: string
@@ -10,14 +12,12 @@ export interface SendAliyunSmsParams {
     params: Record<string, string>
 }
 
-const phoneReg = /^1[3-9]\d{9}$/
-
 export async function sendAliyunSms({ phone, signName, templateCode, params }: SendAliyunSmsParams) {
     phone = Array.isArray(phone) ? phone : [phone]
     phone = Array.from(new Set(phone))
     if (phone.length === 0) throw new Error("phone is required")
     if (phone.length > 1000) throw new Error("phone count must be less than 1000")
-    const invalidPhones = phone.filter(p => !phoneReg.test(p))
+    const invalidPhones = phone.filter(p => !phoneNumberRegex.test(p))
     if (invalidPhones.length > 0) throw new Error(`invalid phone${invalidPhones.length > 1 ? "s" : ""}: ${invalidPhones.join(",")}`)
     phone = phone.join(",")
     const credential = new Credential()

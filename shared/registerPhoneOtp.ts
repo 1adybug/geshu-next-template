@@ -8,7 +8,7 @@ import { getSystemConfig } from "@/shared/getSystemConfig"
 
 import { ClientError } from "@/utils/clientError"
 
-export async function registerPhoneOtp(params: RegisterPhoneOtpParams) {
+export async function registerPhoneOtp({ phoneNumber, otp }: RegisterPhoneOtpParams) {
     const { enablePhoneOtp, allowRegister } = await getSystemConfig()
 
     if (!enablePhoneOtp) throw new ClientError("未启用手机号验证码登录")
@@ -20,7 +20,7 @@ export async function registerPhoneOtp(params: RegisterPhoneOtpParams) {
     })
 
     await auth.api.verifyPhoneNumber({
-        body: params,
+        body: { phoneNumber, code: otp },
         headers,
         request,
     })

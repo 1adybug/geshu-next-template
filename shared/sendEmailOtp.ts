@@ -49,7 +49,7 @@ export async function sendEmailOtp(params: SendEmailOtpParams) {
     })
 
     const masked = maskEmail(email)
-    const devOtp = IsDevelopment ? getDevOtp(`email:${email}:sign-in`) : undefined
+    const devOtp = IsDevelopment ? getDevOtp({ email, type: "sign-in" }) : undefined
 
     if (devOtp) return `${masked}（开发环境验证码：${devOtp}）`
 

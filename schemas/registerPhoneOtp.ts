@@ -7,7 +7,7 @@ import { phoneNumberSchema } from "./phoneNumber"
 export const registerPhoneOtpSchema = z.object(
     {
         phoneNumber: phoneNumberSchema,
-        code: otpSchema,
+        otp: otpSchema,
     },
     { message: "无效的注册参数" },
 )

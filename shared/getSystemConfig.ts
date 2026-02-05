@@ -2,7 +2,16 @@ import { SystemConfigId } from "@/constants/systemConfig"
 
 import { prisma } from "@/prisma"
 
-import { defaultSystemConfig, SystemConfigParams } from "@/schemas/systemConfig"
+import { SystemConfigParams } from "@/schemas/systemConfig"
+
+const defaultSystemConfig: SystemConfigParams = {
+    allowRegister: false,
+    enableEmailPassword: true,
+    enableEmailOtp: true,
+    enablePhonePassword: true,
+    enablePhoneOtp: true,
+    defaultEmailDomain: "geshu.ai",
+}
 
 const cache = {
     value: defaultSystemConfig,

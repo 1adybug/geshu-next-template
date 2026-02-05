@@ -6,7 +6,7 @@ import { admin } from "better-auth/plugins"
 import { emailOTP } from "better-auth/plugins/email-otp"
 import { phoneNumber } from "better-auth/plugins/phone-number"
 
-import { IsDevelopment, IsIntranet, IsProduction } from "@/constants"
+import { IsDevelopment } from "@/constants"
 
 import { prisma } from "@/prisma"
 
@@ -14,10 +14,10 @@ import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 import { setDevOtp } from "@/server/devOtpStore"
 import { getTempEmail } from "@/server/getTempEmail"
-import { sendAliyunSms } from "@/server/sendAliyunSms"
-import { sendQjpSms } from "@/server/sendQjpSms"
 
 import { getSystemConfig } from "@/shared/getSystemConfig"
+
+import { sendOtp } from "./sendOtp"
 
 export const auth = betterAuth({
     baseURL: "http://localhost:3000",
@@ -37,27 +37,13 @@ export const auth = betterAuth({
                 return phoneNumberRegex.test(phoneNumber)
             },
             sendOTP({ phoneNumber, code }) {
-                setDevOtp(`phone:${phoneNumber}`, code)
-
-                if (IsProduction) {
-                    if (IsIntranet) {
-                        sendQjpSms({
-                            phone: phoneNumber,
-                            content: `格数科技项目管理，你的登录验证码为 ${code}`,
-                        })
-
-                        return
-                    }
-
-                    sendAliyunSms({
-                        phone: phoneNumber,
-                        signName: "格数科技",
-                        templateCode: "SMS_478995533",
-                        params: { code },
-                    })
-
+                if (IsDevelopment) {
+                    console.log(`手机号验证码: ${phoneNumber} -> ${code}`)
+                    setDevOtp({ phoneNumber }, code)
                     return
                 }
+
+                sendOtp({ phoneNumber, code })
             },
             signUpOnVerification: {
                 getTempEmail,
@@ -70,8 +56,11 @@ export const auth = betterAuth({
             otpLength: 4,
             storeOTP: "plain",
             async sendVerificationOTP({ email, otp, type }) {
-                setDevOtp(`email:${email}:${type}`, otp)
-                if (IsDevelopment) console.log(`邮箱验证码(${type}): ${email} -> ${otp}`)
+                if (IsDevelopment) {
+                    console.log(`邮箱验证码(${type}): ${email} -> ${otp}`)
+                    setDevOtp({ email, type }, otp)
+                    return
+                }
             },
         }),
         nextCookies(),

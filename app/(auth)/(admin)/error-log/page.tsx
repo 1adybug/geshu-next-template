@@ -25,10 +25,18 @@ import { ErrorLog } from "@/shared/queryErrorLog"
 
 import { getSortOrder } from "@/utils/getSortOrder"
 
+function parseJson(value: string) {
+    try {
+        return JSON.parse(value)
+    } catch {
+        return value
+    }
+}
+
 const Page: FC = () => {
     const [query, setQuery] = transformState(
         useQueryState({
-            keys: ["type", "message", "action", "ip", "userAgent", "username"],
+            keys: ["type", "message", "action", "ip", "userAgent", "name"],
             parse: {
                 createdBefore: naturalParser,
                 createdAfter: naturalParser,
@@ -162,7 +170,7 @@ const Page: FC = () => {
                             onClick={() =>
                                 setInfo({
                                     title: "错误参数",
-                                    children: <JsonView className="!font-['Source_Han_Sans_VF']" value={JSON.parse(value)} />,
+                                    children: <JsonView className="!font-['Source_Han_Sans_VF']" value={parseJson(value)} />,
                                 })
                             }
                         >
@@ -238,7 +246,7 @@ const Page: FC = () => {
                     <FormItem<FormParams> name="action" label="函数名">
                         <Input allowClear />
                     </FormItem>
-                    <FormItem<FormParams> name="username" label="用户名">
+                    <FormItem<FormParams> name="name" label="用户名">
                         <Input allowClear />
                     </FormItem>
                     <FormItem<FormParams> name="ip" label="IP">

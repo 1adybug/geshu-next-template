@@ -32,8 +32,6 @@ export function useSendPhoneNumberOtp<TOnMutateResult = unknown>({
             return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
         onSuccess(data, variables, onMutateResult, context) {
-            console.log(data)
-
             message.open({
                 key,
                 type: "success",

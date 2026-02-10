@@ -9,6 +9,7 @@
         "build:windows": "bun scripts/createInstaller.ts --target=windows",
         "build:linux": "bun scripts/createInstaller.ts --target=linux",
         "start": "next start",
+        "auth:secret": "node -e \"console.log(require('node:crypto').randomBytes(32).toString('hex'))\"",
         "lint": "eslint .",
         "format": "prettier --write .",
         "fg": "npm run format && git add . && git commit -m \"✨feature: format\"",

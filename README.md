@@ -10,30 +10,45 @@
 
 - 以 `NEXT_PUBLIC_` 开头的变量会暴露给浏览器，本项目当前无需配置这类变量
 - `NODE_ENV` 由运行命令和框架控制，一般不需要手动设置
+- `BETTER_AUTH_SECRET` 在生产环境是强制项，未配置会导致服务启动失败；开发环境会使用仅本地可用的兜底值
 - 下面表格中的“必填”是按当前代码路径和默认实现整理
 
 ### 变量清单
 
-| 变量名                     | 必填       | 说明                                       | 示例 / 默认值                 |
-| -------------------------- | ---------- | ------------------------------------------ | ----------------------------- |
-| `COOKIE_PREFIX`            | 是         | 登录相关 Cookie 前缀                       | `geshu`                       |
-| `DEFAULT_EMAIL_DOMAIN`     | 是         | 临时邮箱域名（用于手机号生成邮箱）         | `example.com`                 |
-| `IS_INTRANET`              | 否         | 是否走内网短信通道                         | `0`（默认关闭）               |
-| `ALIYUN_ACCESS_KEY_ID`     | 按需       | 阿里云短信密钥 ID（公网短信时需要）        | `your_key_id`                 |
-| `ALIYUN_ACCESS_KEY_SECRET` | 按需       | 阿里云短信密钥 Secret（公网短信时需要）    | `your_key_secret`             |
-| `QJP_SMS_URL`              | 按需       | 内网短信服务地址（内网短信时需要）         | `http://sms.example.com/send` |
-| `RATE_LIMIT_ENABLED`       | 否         | 全局限流开关                               | `1`（默认开启）               |
-| `NEXT_OUTPUT`              | 否         | Next 构建输出模式                          | `standalone` / `export`       |
-| `DATABASE_URL`             | 按部署方式 | 数据库连接字符串（如改用外部数据库时使用） | `postgresql://...`            |
-| `JWT_SECRET`               | 按认证配置 | 认证相关密钥（按认证方案要求配置）         | `your_jwt_secret`             |
-| `NEXT_TELEMETRY_DISABLED`  | 否         | 是否关闭 Next 遥测上报                     | `1`                           |
-| `REDIS_URL`                | 按需       | Redis 地址（仅使用 Redis 限流存储时需要）  | `redis://127.0.0.1:6379`      |
+| 变量名                        | 必填       | 说明                                       | 示例 / 默认值                 |
+| ----------------------------- | ---------- | ------------------------------------------ | ----------------------------- |
+| `COOKIE_PREFIX`               | 是         | 登录相关 Cookie 前缀                       | `geshu`                       |
+| `DEFAULT_EMAIL_DOMAIN`        | 是         | 临时邮箱域名（用于手机号生成邮箱）         | `example.com`                 |
+| `BETTER_AUTH_SECRET`          | 是         | Better Auth 签名密钥                       | `your_better_auth_secret`     |
+| `BETTER_AUTH_URL`             | 按需       | 服务端 Better Auth 基础地址（优先）        | `https://example.com`         |
+| `AUTH_BASE_URL`               | 按需       | 服务端 Better Auth 基础地址（兜底）        | `https://example.com`         |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | 按需       | 客户端 Better Auth 基础地址                | `https://example.com`         |
+| `IS_INTRANET`                 | 否         | 是否走内网短信通道                         | `0`（默认关闭）               |
+| `ALIYUN_ACCESS_KEY_ID`        | 按需       | 阿里云短信密钥 ID（公网短信时需要）        | `your_key_id`                 |
+| `ALIYUN_ACCESS_KEY_SECRET`    | 按需       | 阿里云短信密钥 Secret（公网短信时需要）    | `your_key_secret`             |
+| `QJP_SMS_URL`                 | 按需       | 内网短信服务地址（内网短信时需要）         | `http://sms.example.com/send` |
+| `RATE_LIMIT_ENABLED`          | 否         | 全局限流开关                               | `1`（默认开启）               |
+| `NEXT_OUTPUT`                 | 否         | Next 构建输出模式                          | `standalone` / `export`       |
+| `DATABASE_URL`                | 按部署方式 | 数据库连接字符串（如改用外部数据库时使用） | `postgresql://...`            |
+| `JWT_SECRET`                  | 按认证配置 | 兼容旧认证方案时使用（当前默认不依赖）     | `your_jwt_secret`             |
+| `NEXT_TELEMETRY_DISABLED`     | 否         | 是否关闭 Next 遥测上报                     | `1`                           |
+| `REDIS_URL`                   | 按需       | Redis 地址（仅使用 Redis 限流存储时需要）  | `redis://127.0.0.1:6379`      |
 
 ### 推荐的本地 `.env` 示例
 
 ```env
 COOKIE_PREFIX="geshu"
 DEFAULT_EMAIL_DOMAIN="example.com"
+BETTER_AUTH_SECRET="your_better_auth_secret"
+
+# Better Auth URL（按需）
+# 服务端优先读取 BETTER_AUTH_URL，其次 AUTH_BASE_URL
+BETTER_AUTH_URL=""
+AUTH_BASE_URL=""
+
+# 客户端可选（未配置时使用当前域名）
+NEXT_PUBLIC_BETTER_AUTH_URL=""
+
 IS_INTRANET="0"
 
 # 短信配置（按需启用）
@@ -51,6 +66,20 @@ NEXT_TELEMETRY_DISABLED="1"
 # 可选：仅在你启用 Redis 限流存储时使用
 REDIS_URL="redis://127.0.0.1:6379"
 ```
+
+### Better Auth URL 解析规则
+
+服务端 `auth` 的 `baseURL` 解析顺序：
+
+1. `BETTER_AUTH_URL`
+2. `AUTH_BASE_URL`
+3. 开发环境兜底 `http://localhost:3000`
+
+客户端 `authClient` 的 `baseURL` 解析顺序：
+
+1. 浏览器当前域名 `window.location.origin`
+2. `NEXT_PUBLIC_BETTER_AUTH_URL`
+3. 开发环境兜底 `http://localhost:3000`
 
 ## Server Action 限流
 

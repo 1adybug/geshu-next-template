@@ -29,7 +29,7 @@ import { getSortOrder } from "@/utils/getSortOrder"
 const Page: FC = () => {
     const [query, setQuery] = transformState(
         useQueryState({
-            keys: ["id", "username", "email", "phone"],
+            keys: ["id", "name", "email", "phoneNumber"],
             parse: {
                 createdBefore: naturalParser,
                 createdAfter: naturalParser,
@@ -68,13 +68,14 @@ const Page: FC = () => {
     const [showEditor, setShowEditor] = useState(false)
     const container = useRef<HTMLDivElement>(null)
     const { y } = useScroll(container, { paginationMargin: 32 })
+    const { createdAt, updatedAt, pageNum, pageSize, ...rest } = query
 
     const columns: Columns<User> = [
         {
             title: "序号",
             key: "index",
             align: "center",
-            render: (value, record, index) => index + 1,
+            render: (value, record, index) => (pageNum - 1) * pageSize + index + 1,
         },
         {
             title: "用户名",
@@ -168,8 +169,6 @@ const Page: FC = () => {
         setShowEditor(false)
     }
 
-    const { createdAt, updatedAt, pageNum, pageSize, ...rest } = query
-
     const { data, isLoading } = useQueryUser({
         createdAfter: createdAt?.[0].toDate(),
         createdBefore: createdAt?.[1].toDate(),
@@ -199,10 +198,10 @@ const Page: FC = () => {
             <title>用户管理</title>
             <div className="flex-none px-4">
                 <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
-                    <FormItem<FormParams> name="username" label="用户名">
+                    <FormItem<FormParams> name="name" label="用户名">
                         <Input />
                     </FormItem>
-                    <FormItem<FormParams> name="phone" label="手机号">
+                    <FormItem<FormParams> name="phoneNumber" label="手机号">
                         <Input />
                     </FormItem>
                     <FormItem<FormParams> name="createdAt" label="创建时间">

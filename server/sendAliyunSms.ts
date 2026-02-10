@@ -3,6 +3,8 @@ import Dysmsapi, { SendSmsRequest } from "@alicloud/dysmsapi20170525"
 import { Config } from "@alicloud/openapi-client"
 import { RuntimeOptions } from "@alicloud/tea-util"
 
+import { AliyunAccessKeyId, AliyunAccessKeySecret } from "@/constants"
+
 import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 export interface SendAliyunSmsParams {
@@ -22,8 +24,8 @@ export async function sendAliyunSms({ phone, signName, templateCode, params }: S
     phone = phone.join(",")
     const credential = new Credential()
     const config = new Config({ credential })
-    config.accessKeyId = process.env.ALIYUN_ACCESS_KEY_ID
-    config.accessKeySecret = process.env.ALIYUN_ACCESS_KEY_SECRET
+    config.accessKeyId = AliyunAccessKeyId
+    config.accessKeySecret = AliyunAccessKeySecret
     config.endpoint = `dysmsapi.aliyuncs.com`
     const client = new Dysmsapi(config)
 

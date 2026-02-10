@@ -1,20 +1,11 @@
 import { getParser } from "."
 import { z } from "zod/v4"
 
-import { emailSchema } from "./email"
-import { passwordSchema } from "./password"
-import { phoneNumberSchema } from "./phoneNumber"
-import { usernameSchema } from "./username"
+import { addUserSchema } from "./addUser"
 
-export const createFirstUserSchema = z.object(
-    {
-        name: usernameSchema,
-        email: emailSchema,
-        phoneNumber: phoneNumberSchema,
-        password: passwordSchema,
-    },
-    { message: "无效的用户参数" },
-)
+export const createFirstUserSchema = addUserSchema.omit({
+    role: true,
+})
 
 export type CreateFirstUserParams = z.infer<typeof createFirstUserSchema>
 

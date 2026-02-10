@@ -4,7 +4,7 @@ import { ComponentProps, FC } from "react"
 
 import { Button } from "antd"
 import { clsx, StrictOmit } from "deepsea-tools"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 import { User } from "@/prisma/generated/client"
 
@@ -42,18 +42,19 @@ const navs: NavItem[] = [
         name: "错误日志",
         filter: isAdmin,
     },
-    {
-        href: "/system",
-        name: "系统设置",
-        filter: isAdmin,
-    },
 ]
 
 export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "children"> {}
 
 const Header: FC<HeaderProps> = ({ className, ...rest }) => {
+    const router = useRouter()
     const pathname = usePathname()
     const user = useUser()
+
+    async function signOut() {
+        await authClient.signOut({})
+        router.refresh()
+    }
 
     return (
         <header className={clsx("flex h-16 items-center gap-2 px-4", className)} {...rest}>
@@ -65,7 +66,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
                             <Button
                                 key={href}
                                 type="link"
-                                color={pathname === getPathnameAndSearchParams(href).pathname ? "primary" : undefined}
+                                color={pathname === getPathnameAndSearchParams(href).pathname ? "primary" : "default"}
                                 variant="link"
                                 href={href}
                             >
@@ -76,7 +77,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
             </div>
             <div className="flex items-center gap-2">
                 <div>{user?.name}</div>
-                <Button size="small" color="orange" variant="filled" onClick={() => authClient.signOut({})}>
+                <Button size="small" color="orange" variant="filled" onClick={signOut}>
                     注销
                 </Button>
             </div>

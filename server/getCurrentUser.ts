@@ -12,23 +12,14 @@ export async function getCurrentUser(): Promise<User | undefined> {
     })
     const user = session?.user
     if (!user) return undefined
-    const {
-        phoneNumber = null,
-        image = null,
-        role = UserRole.用户,
-        banned = false,
-        banReason = null,
-        banExpires = null,
-        phoneNumberVerified = false,
-        ...rest
-    } = user
+    const { phoneNumber, image = null, role = UserRole.用户, banned = false, banReason = null, banExpires = null, phoneNumberVerified = false, ...rest } = user
     return {
         banned,
         banExpires,
         banReason,
         role: role as UserRole,
         image,
-        phoneNumber,
+        phoneNumber: phoneNumber!,
         phoneNumberVerified,
         ...rest,
     }

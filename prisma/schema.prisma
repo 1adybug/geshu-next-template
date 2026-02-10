@@ -54,7 +54,7 @@ model User {
     id                  String         @id @default(uuid())
     createdAt           DateTime       @default(now())
     updatedAt           DateTime       @updatedAt
-    name                String
+    name                String         @unique
     email               String
     emailVerified       Boolean        @default(false)
     image               String?
@@ -66,7 +66,7 @@ model User {
     banReason           String?
     banExpires          DateTime?
     role                Role           @default(user)
-    phoneNumber         String?
+    phoneNumber         String
     phoneNumberVerified Boolean?
 
     @@unique([email])
@@ -121,16 +121,4 @@ model Verification {
 
     @@index([identifier])
     @@map("verification")
-}
-
-model SystemConfig {
-    id                  String   @id
-    createdAt           DateTime @default(now())
-    updatedAt           DateTime @updatedAt
-    allowRegister       Boolean  @default(false)
-    enableEmailPassword Boolean  @default(true)
-    enableEmailOtp      Boolean  @default(true)
-    enablePhonePassword Boolean  @default(true)
-    enablePhoneOtp      Boolean  @default(true)
-    defaultEmailDomain  String   @default("geshu.ai")
 }

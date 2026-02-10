@@ -3,36 +3,30 @@ import { useId } from "react"
 import { useMutation, UseMutationOptions } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
 
-import { registerEmailOtpAction } from "@/actions/registerEmailOtp"
+import { loginAction } from "@/actions/login"
 
-import { registerEmailOtpSchema } from "@/schemas/registerEmailOtp"
+import { loginSchema } from "@/schemas/login"
 
-export const registerEmailOtpClient = createRequestFn({
-    fn: registerEmailOtpAction,
-    schema: registerEmailOtpSchema,
+export const loginClient = createRequestFn({
+    fn: loginAction,
+    schema: loginSchema,
 })
 
-export interface UseRegisterEmailOtpParams<TOnMutateResult = unknown> extends Omit<
-    UseMutationOptions<Awaited<ReturnType<typeof registerEmailOtpClient>>, Error, Parameters<typeof registerEmailOtpClient>[0], TOnMutateResult>,
+export interface UseLoginParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof loginClient>>, Error, Parameters<typeof loginClient>[0], TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useRegisterEmailOtp<TOnMutateResult = unknown>({
-    onMutate,
-    onSuccess,
-    onError,
-    onSettled,
-    ...rest
-}: UseRegisterEmailOtpParams<TOnMutateResult> = {}) {
+export function useLogin<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseLoginParams<TOnMutateResult> = {}) {
     const key = useId()
 
     return useMutation({
-        mutationFn: registerEmailOtpClient,
+        mutationFn: loginClient,
         onMutate(variables, context) {
             message.open({
                 key,
                 type: "loading",
-                content: "注册中...",
+                content: "登录中...",
                 duration: 0,
             })
 
@@ -42,13 +36,14 @@ export function useRegisterEmailOtp<TOnMutateResult = unknown>({
             message.open({
                 key,
                 type: "success",
-                content: "注册成功",
+                content: "登录成功",
             })
 
             return onSuccess?.(data, variables, onMutateResult, context)
         },
         onError(error, variables, onMutateResult, context) {
             message.destroy(key)
+
             return onError?.(error, variables, onMutateResult, context)
         },
         onSettled(data, error, variables, onMutateResult, context) {

@@ -1,6 +1,5 @@
-import { getSystemConfigSnapshot } from "@/shared/getSystemConfig"
+import { defaultEmailDomain } from "@/constants"
 
-export function getTempEmail(phoneNumber?: string) {
-    const { defaultEmailDomain } = getSystemConfigSnapshot()
+export function getTempEmail(phoneNumber: string) {
     return `${crypto.randomUUID()}@${defaultEmailDomain}`
 }

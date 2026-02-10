@@ -3,52 +3,48 @@ import { useId } from "react"
 import { useMutation, UseMutationOptions } from "@tanstack/react-query"
 import { createRequestFn } from "deepsea-tools"
 
-import { registerEmailPasswordAction } from "@/actions/registerEmailPassword"
+import { sendPhoneNumberOtpAction } from "@/actions/sendPhoneNumberOtp"
 
-import { registerEmailPasswordSchema } from "@/schemas/registerEmailPassword"
+import { accountSchema } from "@/schemas/account"
 
-export const registerEmailPasswordClient = createRequestFn({
-    fn: registerEmailPasswordAction,
-    schema: registerEmailPasswordSchema,
+export const sendPhoneNumberOtpClient = createRequestFn({
+    fn: sendPhoneNumberOtpAction,
+    schema: accountSchema,
 })
 
-export interface UseRegisterEmailPasswordParams<TOnMutateResult = unknown> extends Omit<
-    UseMutationOptions<Awaited<ReturnType<typeof registerEmailPasswordClient>>, Error, Parameters<typeof registerEmailPasswordClient>[0], TOnMutateResult>,
+export interface UseSendPhoneNumberOtpParams<TOnMutateResult = unknown> extends Omit<
+    UseMutationOptions<Awaited<ReturnType<typeof sendPhoneNumberOtpClient>>, Error, Parameters<typeof sendPhoneNumberOtpClient>[0], TOnMutateResult>,
     "mutationFn"
 > {}
 
-export function useRegisterEmailPassword<TOnMutateResult = unknown>({
+export function useSendPhoneNumberOtp<TOnMutateResult = unknown>({
     onMutate,
     onSuccess,
     onError,
     onSettled,
     ...rest
-}: UseRegisterEmailPasswordParams<TOnMutateResult> = {}) {
+}: UseSendPhoneNumberOtpParams<TOnMutateResult> = {}) {
     const key = useId()
 
     return useMutation({
-        mutationFn: registerEmailPasswordClient,
+        mutationFn: sendPhoneNumberOtpClient,
         onMutate(variables, context) {
-            message.open({
-                key,
-                type: "loading",
-                content: "注册中...",
-                duration: 0,
-            })
-
             return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
         },
         onSuccess(data, variables, onMutateResult, context) {
+            console.log(data)
+
             message.open({
                 key,
                 type: "success",
-                content: "注册成功",
+                content: `验证码已发送至 ${data.phoneNumber}`,
             })
 
             return onSuccess?.(data, variables, onMutateResult, context)
         },
         onError(error, variables, onMutateResult, context) {
             message.destroy(key)
+
             return onError?.(error, variables, onMutateResult, context)
         },
         onSettled(data, error, variables, onMutateResult, context) {

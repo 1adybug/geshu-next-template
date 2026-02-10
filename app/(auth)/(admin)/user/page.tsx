@@ -84,13 +84,6 @@ const Page: FC = () => {
             sortOrder: getSortOrder(query, "name"),
         },
         {
-            title: "邮箱",
-            dataIndex: "email",
-            align: "center",
-            sorter: true,
-            sortOrder: getSortOrder(query, "email"),
-        },
-        {
             title: "手机号",
             dataIndex: "phoneNumber",
             align: "center",
@@ -207,9 +200,6 @@ const Page: FC = () => {
             <div className="flex-none px-4">
                 <Form<FormParams> className="gap-y-4" layout="inline" onFinish={setQuery}>
                     <FormItem<FormParams> name="username" label="用户名">
-                        <Input />
-                    </FormItem>
-                    <FormItem<FormParams> name="email" label="邮箱">
                         <Input />
                     </FormItem>
                     <FormItem<FormParams> name="phone" label="手机号">

@@ -1,3 +1,7 @@
+import { getBooleanFromEnv } from "@/utils/getBooleanFromEnv"
+
+export const LoginPathname = "/login"
+
 export const IsProduction = process.env.NODE_ENV === "production"
 
 export const IsDevelopment = process.env.NODE_ENV === "development"
@@ -6,18 +10,16 @@ export const IsBrowser = typeof window !== "undefined" && typeof window.document
 
 export const IsServer = !IsBrowser
 
-export const PasswordSalt = process.env.PASSWORD_SALT!
-
-export const PublicApiUrl = process.env.PUBLIC_API_URL!
-
-export const LoginPathname = "/login"
-
 export const CookiePrefix = process.env.COOKIE_PREFIX
 
-export const JwtSecrect = process.env.JWT_SECRET!
+export const IsIntranet = getBooleanFromEnv(process.env.IS_INTRANET)
 
-export const IsIntranet = !!process.env.IS_INTRANET
+export const AliyunAccessKeyId = process.env.ALIYUN_ACCESS_KEY_ID
+
+export const AliyunAccessKeySecret = process.env.ALIYUN_ACCESS_KEY_SECRET
+
+export const QjpSmsUrl = process.env.QJP_SMS_URL
 
 export const IsBun = typeof Bun !== "undefined"
 
-export const DatabaseUrl = IsDevelopment ? "file:./prisma/development.db" : "file:./prisma/production.db"
+export const defaultEmailDomain = process.env.DEFAULT_EMAIL_DOMAIN

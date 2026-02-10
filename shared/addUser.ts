@@ -3,6 +3,7 @@ import { prisma } from "@/prisma"
 import { AddUserParams } from "@/schemas/addUser"
 
 import { auth } from "@/server/auth"
+import { createFilter } from "@/server/createFilter"
 import { getRandomPassword } from "@/server/getRandomPassword"
 import { getTempEmail } from "@/server/getTempEmail"
 import { isAdmin } from "@/server/isAdmin"
@@ -41,4 +42,4 @@ export async function addUser({ name, phoneNumber, role }: AddUserParams) {
     }
 }
 
-addUser.filter = isAdmin
+addUser.filter = createFilter(isAdmin)

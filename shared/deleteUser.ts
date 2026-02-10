@@ -5,6 +5,8 @@ import { prisma } from "@/prisma"
 import { UserIdParams } from "@/schemas/userId"
 
 import { auth } from "@/server/auth"
+import { createFilter } from "@/server/createFilter"
+import { createRateLimit } from "@/server/createRateLimit"
 import { isAdmin } from "@/server/isAdmin"
 
 import { ClientError } from "@/utils/clientError"
@@ -32,4 +34,10 @@ export async function deleteUser(id: UserIdParams) {
     }
 }
 
-deleteUser.filter = isAdmin
+deleteUser.filter = createFilter(isAdmin)
+
+deleteUser.rateLimit = createRateLimit({
+    limit: 20,
+    windowMs: 60_000,
+    message: "删除用户操作过于频繁，请稍后再试",
+})

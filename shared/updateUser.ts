@@ -6,6 +6,8 @@ import { UpdateUserParams } from "@/schemas/updateUser"
 import { UserRole } from "@/schemas/userRole"
 
 import { auth } from "@/server/auth"
+import { createFilter } from "@/server/createFilter"
+import { createRateLimit } from "@/server/createRateLimit"
 import { isAdmin } from "@/server/isAdmin"
 
 import { ClientError } from "@/utils/clientError"
@@ -45,4 +47,10 @@ export async function updateUser({ id, name, phoneNumber, role }: UpdateUserPara
     }
 }
 
-updateUser.filter = isAdmin
+updateUser.filter = createFilter(isAdmin)
+
+updateUser.rateLimit = createRateLimit({
+    limit: 30,
+    windowMs: 60_000,
+    message: "更新用户操作过于频繁，请稍后再试",
+})

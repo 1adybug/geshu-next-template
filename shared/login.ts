@@ -4,8 +4,17 @@ import { LoginParams } from "@/schemas/login"
 import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 import { auth } from "@/server/auth"
+import { createFilter } from "@/server/createFilter"
+import { createRateLimit, RateLimitContext } from "@/server/createRateLimit"
 
 import { ClientError } from "@/utils/clientError"
+
+function getLoginRateLimitKey(context: RateLimitContext) {
+    const params = context.args[0] as LoginParams | undefined
+    const account = params?.account || "unknown-account"
+    const ip = context.ip || "unknown-ip"
+    return `login:${ip}:${account}`
+}
 
 export async function login({ account, otp }: LoginParams) {
     const user = await prisma.user.findUnique({
@@ -31,4 +40,11 @@ export async function login({ account, otp }: LoginParams) {
     return user
 }
 
-login.filter = false
+login.filter = createFilter(false)
+
+login.rateLimit = createRateLimit({
+    limit: 5,
+    windowMs: 60_000,
+    message: "登录尝试过于频繁，请稍后再试",
+    getKey: getLoginRateLimitKey,
+})

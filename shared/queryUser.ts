@@ -10,6 +10,7 @@ import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryUserParams } from "@/schemas/queryUser"
 
+import { createFilter } from "@/server/createFilter"
 import { isAdmin } from "@/server/isAdmin"
 
 export async function queryUser({
@@ -93,4 +94,4 @@ export async function queryUser({
     })
 }
 
-queryUser.filter = isAdmin
+queryUser.filter = createFilter(isAdmin)

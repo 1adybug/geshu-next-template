@@ -9,6 +9,7 @@ import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
 import { QueryOperationLogParams } from "@/schemas/queryOperationLog"
 
+import { createFilter } from "@/server/createFilter"
 import { getCurrentUser } from "@/server/getCurrentUser"
 import { isAdmin } from "@/server/isAdmin"
 
@@ -110,4 +111,4 @@ export async function queryOperationLog({
 
 export type OperationLog = Awaited<ReturnType<typeof queryOperationLog>>["list"][number]
 
-queryOperationLog.filter = isAdmin
+queryOperationLog.filter = createFilter(isAdmin)

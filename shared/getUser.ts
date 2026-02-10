@@ -2,6 +2,7 @@ import { prisma } from "@/prisma"
 
 import { UserIdParams } from "@/schemas/userId"
 
+import { createFilter } from "@/server/createFilter"
 import { isAdmin } from "@/server/isAdmin"
 
 import { ClientError } from "@/utils/clientError"
@@ -12,4 +13,4 @@ export async function getUser(id: UserIdParams) {
     return user
 }
 
-getUser.filter = isAdmin
+getUser.filter = createFilter(isAdmin)

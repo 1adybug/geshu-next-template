@@ -4,11 +4,19 @@ import { AccountParams } from "@/schemas/account"
 import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 import { auth } from "@/server/auth"
+import { createFilter } from "@/server/createFilter"
+import { createRateLimit, RateLimitContext } from "@/server/createRateLimit"
 
 import { ClientError } from "@/utils/clientError"
 
 export interface SendPhoneNumberOtpResponse {
     phoneNumber: string
+}
+
+function getSendPhoneNumberOtpRateLimitKey(context: RateLimitContext) {
+    const account = String(context.args[0] || "unknown-account")
+    const ip = context.ip || "unknown-ip"
+    return `send-phone-number-otp:${ip}:${account}`
 }
 
 export async function sendPhoneNumberOtp(params: AccountParams): Promise<SendPhoneNumberOtpResponse> {
@@ -36,4 +44,11 @@ export async function sendPhoneNumberOtp(params: AccountParams): Promise<SendPho
     }
 }
 
-sendPhoneNumberOtp.filter = false
+sendPhoneNumberOtp.filter = createFilter(false)
+
+sendPhoneNumberOtp.rateLimit = createRateLimit({
+    limit: 1,
+    windowMs: 60_000,
+    message: "验证码发送过于频繁，请稍后再试",
+    getKey: getSendPhoneNumberOtpRateLimitKey,
+})

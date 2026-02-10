@@ -25,9 +25,15 @@ export async function createFirstUser({ name, phoneNumber }: CreateFirstUserPara
                 },
             },
         })
-        return user
+
+        const user2 = await prisma.user.findUniqueOrThrow({ where: { id: user.id } })
+
+        return user2
     } catch (error) {
-        throw new ClientError("初始化失败")
+        throw new ClientError({
+            message: "初始化失败",
+            origin: error,
+        })
     }
 }
 

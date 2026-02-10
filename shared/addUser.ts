@@ -17,21 +17,28 @@ export async function addUser({ name, phoneNumber, role }: AddUserParams) {
     const emailCount = await prisma.user.count({ where: { email: email } })
     if (emailCount > 0) throw new ClientError("邮箱已被注册")
 
-    const { user } = await auth.api.createUser({
-        body: {
-            name,
-            email,
-            password: getRandomPassword(),
-            role,
-            data: {
-                phoneNumber,
+    try {
+        const { user } = await auth.api.createUser({
+            body: {
+                name,
+                email,
+                password: getRandomPassword(),
+                role,
+                data: {
+                    phoneNumber,
+                },
             },
-        },
-    })
+        })
 
-    if (!user) throw new ClientError("新增用户失败")
+        const user2 = await prisma.user.findUniqueOrThrow({ where: { id: user.id } })
 
-    return user
+        return user2
+    } catch (error) {
+        throw new ClientError({
+            message: "新增用户失败",
+            origin: error,
+        })
+    }
 }
 
 addUser.filter = isAdmin

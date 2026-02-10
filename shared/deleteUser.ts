@@ -15,14 +15,21 @@ export async function deleteUser(id: UserIdParams) {
     const count = await prisma.user.count({ where: { role: "admin" } })
     if (count === 1 && user.role === "admin") throw new ClientError("不能删除最后一个管理员")
 
-    const user2 = await auth.api.removeUser({
-        body: {
-            userId: id,
-        },
-        headers: await headers(),
-    })
+    try {
+        await auth.api.removeUser({
+            body: {
+                userId: id,
+            },
+            headers: await headers(),
+        })
 
-    return user2
+        return user
+    } catch (error) {
+        throw new ClientError({
+            message: "删除用户失败",
+            origin: error,
+        })
+    }
 }
 
 deleteUser.filter = isAdmin

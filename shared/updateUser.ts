@@ -22,19 +22,27 @@ export async function updateUser({ id, name, phoneNumber, role }: UpdateUserPara
         if (adminCount === 1) throw new ClientError("不能将最后一个管理员降级为普通用户")
     }
 
-    const user2 = await auth.api.adminUpdateUser({
-        body: {
-            userId: id,
-            data: {
-                name,
-                phoneNumber,
-                role,
+    try {
+        await auth.api.adminUpdateUser({
+            body: {
+                userId: id,
+                data: {
+                    name,
+                    phoneNumber,
+                    role,
+                },
             },
-        },
-        headers: await headers(),
-    })
+            headers: await headers(),
+        })
 
-    return user2
+        const user3 = await prisma.user.findUniqueOrThrow({ where: { id } })
+        return user3
+    } catch (error) {
+        throw new ClientError({
+            message: "更新用户失败",
+            origin: error,
+        })
+    }
 }
 
 updateUser.filter = isAdmin

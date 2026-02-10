@@ -22,7 +22,10 @@ export async function login({ account, otp }: LoginParams) {
             },
         })
     } catch (error) {
-        throw new ClientError("账号或验证码错误")
+        throw new ClientError({
+            message: "账号或验证码错误",
+            origin: error,
+        })
     }
 
     return user

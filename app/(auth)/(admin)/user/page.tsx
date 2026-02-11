@@ -2,6 +2,7 @@
 
 import { FC, useRef, useState } from "react"
 
+import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { Button, DatePicker, Form, Input, Popconfirm, Table, TableProps } from "antd"
 import FormItem from "antd/es/form/FormItem"
 import { formatTime, getEnumKey, naturalParser, showTotal } from "deepsea-tools"
@@ -128,13 +129,24 @@ const Page: FC = () => {
             render(value) {
                 return (
                     <div className="inline-flex gap-1">
-                        <Button size="small" color="primary" variant="text" disabled={isRequesting} onClick={() => onUpdate(value)}>
-                            编辑
-                        </Button>
+                        <Button
+                            size="small"
+                            shape="circle"
+                            color="default"
+                            variant="text"
+                            disabled={isRequesting}
+                            icon={<IconEdit className="size-[1em]" />}
+                            onClick={() => onUpdate(value)}
+                        />
                         <Popconfirm title="确认删除用户" description="请在删除用户前，确保已备份相关数据" onConfirm={() => deleteUserAsync(value)}>
-                            <Button size="small" color="danger" variant="text" disabled={isRequesting}>
-                                删除
-                            </Button>
+                            <Button
+                                size="small"
+                                shape="circle"
+                                color="danger"
+                                variant="text"
+                                disabled={isRequesting}
+                                icon={<IconTrash className="size-[1em]" />}
+                            />
                         </Popconfirm>
                     </div>
                 )
@@ -225,6 +237,7 @@ const Page: FC = () => {
                     pagination={{
                         current: pageNum,
                         pageSize,
+                        total: data?.total,
                         showTotal,
                         onChange(page, pageSize) {
                             setQuery(prev => ({ ...prev, pageNum: page, pageSize }))

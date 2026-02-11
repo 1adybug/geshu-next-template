@@ -21,6 +21,10 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT=standalone
+# 临时的环境变量，仅用于 build 阶段跳过
+ENV BETTER_AUTH_SECRET=7a4d08aa943c38b646d15d6398f013bcab9147f009474be97500262142cf18ad
+ENV BETTER_AUTH_URL=http://example.com
+ENV DEFAULT_EMAIL_DOMAIN=example.com
 
 RUN bunx prisma generate
 RUN bun run build

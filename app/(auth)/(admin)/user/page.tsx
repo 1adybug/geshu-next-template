@@ -2,18 +2,19 @@
 
 import { FC, useRef, useState } from "react"
 
-import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { Button, DatePicker, Form, Input, Popconfirm, Table, TableProps } from "antd"
 import FormItem from "antd/es/form/FormItem"
-import { formatTime, getEnumKey, naturalParser, showTotal } from "deepsea-tools"
+import { formatTime, getEnumKey, isNonNullable, naturalParser, showTotal } from "deepsea-tools"
 import { Columns, getTimeRange, useScroll } from "soda-antd"
 import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
+import BanUserEditor from "@/components/BanUserEditor"
 import UserEditor from "@/components/UserEditor"
 
 import { useDeleteUser } from "@/hooks/useDeleteUser"
 import { useQueryUser } from "@/hooks/useQueryUser"
+import { useUnbanUser } from "@/hooks/useUnbanUser"
 
 import { User } from "@/prisma/generated/client"
 
@@ -65,6 +66,7 @@ const Page: FC = () => {
     type FormParams = typeof query
 
     const [editId, setEditId] = useState<string | undefined>(undefined)
+    const [banId, setBanId] = useState<string | undefined>(undefined)
     const [showEditor, setShowEditor] = useState(false)
     const container = useRef<HTMLDivElement>(null)
     const { y } = useScroll(container, { paginationMargin: 32 })
@@ -102,6 +104,29 @@ const Page: FC = () => {
             },
         },
         {
+            title: "状态",
+            dataIndex: "banned",
+            align: "center",
+            sorter: true,
+            sortOrder: getSortOrder(query, "banned"),
+            render(value) {
+                return value ? "已封禁" : "正常"
+            },
+        },
+        {
+            title: "封禁原因",
+            dataIndex: "banReason",
+            align: "center",
+        },
+        {
+            title: "封禁时间",
+            dataIndex: "banExpires",
+            align: "center",
+            render(value, record) {
+                return value ? formatTime(value) : record.banned ? "永久" : "未封禁"
+            },
+        },
+        {
             title: "创建时间",
             dataIndex: "createdAt",
             align: "center",
@@ -126,27 +151,27 @@ const Page: FC = () => {
             key: "operation",
             dataIndex: "id",
             align: "center",
-            render(value) {
+            render(value, record) {
                 return (
                     <div className="inline-flex gap-1">
-                        <Button
-                            size="small"
-                            shape="circle"
-                            color="default"
-                            variant="text"
-                            disabled={isRequesting}
-                            icon={<IconEdit className="size-[1em]" />}
-                            onClick={() => onUpdate(value)}
-                        />
+                        <Button size="small" color="primary" variant="text" disabled={isRequesting} onClick={() => onUpdate(value)}>
+                            编辑
+                        </Button>
+                        {record.banned ? (
+                            <Popconfirm title="确认解封用户" onConfirm={() => unbanUserAsync(value)}>
+                                <Button size="small" color="orange" variant="text" disabled={isRequesting}>
+                                    解封
+                                </Button>
+                            </Popconfirm>
+                        ) : (
+                            <Button size="small" color="geekblue" variant="text" disabled={isRequesting} onClick={() => onBan(value)}>
+                                封禁
+                            </Button>
+                        )}
                         <Popconfirm title="确认删除用户" description="请在删除用户前，确保已备份相关数据" onConfirm={() => deleteUserAsync(value)}>
-                            <Button
-                                size="small"
-                                shape="circle"
-                                color="danger"
-                                variant="text"
-                                disabled={isRequesting}
-                                icon={<IconTrash className="size-[1em]" />}
-                            />
+                            <Button size="small" color="danger" variant="text" disabled={isRequesting}>
+                                删除
+                            </Button>
                         </Popconfirm>
                     </div>
                 )
@@ -164,6 +189,10 @@ const Page: FC = () => {
         setShowEditor(true)
     }
 
+    function onBan(id: string) {
+        setBanId(id)
+    }
+
     function onClose() {
         setEditId(undefined)
         setShowEditor(false)
@@ -179,9 +208,10 @@ const Page: FC = () => {
         ...rest,
     })
 
+    const { mutateAsync: unbanUserAsync, isPending: isUnbanUserPending } = useUnbanUser()
     const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser()
 
-    const isRequesting = isLoading || isDeleteUserPending
+    const isRequesting = isLoading || isUnbanUserPending || isDeleteUserPending
 
     const onChange: TableProps<User>["onChange"] = function onChange(pagination, filters, sorter, extra) {
         if (Array.isArray(sorter)) return
@@ -227,6 +257,7 @@ const Page: FC = () => {
             </div>
             <div ref={container} className="px-4 fill-y">
                 <UserEditor id={editId} open={showEditor} onClose={onClose} />
+                <BanUserEditor id={banId} open={isNonNullable(banId)} onClose={() => setBanId(undefined)} />
                 <Table<User>
                     columns={columns}
                     dataSource={data?.list}

@@ -1,4 +1,4 @@
-import { emailOTPClient, phoneNumberClient } from "better-auth/client/plugins"
+import { adminClient, phoneNumberClient } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/react"
 
 import { IsBrowser, IsDevelopment, NextPublicBetterAuthUrl } from "@/constants"
@@ -17,5 +17,5 @@ const authClientBaseUrl = getAuthClientBaseUrl()
 
 export const authClient = createAuthClient({
     ...(authClientBaseUrl ? { baseURL: authClientBaseUrl } : {}),
-    plugins: [phoneNumberClient(), emailOTPClient()],
+    plugins: [phoneNumberClient()],
 })

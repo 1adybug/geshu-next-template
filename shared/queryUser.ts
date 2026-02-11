@@ -68,7 +68,7 @@ export async function queryUser({
     ]
 
     if (sortBy !== "createdAt") {
-        if (sortBy === "name" || sortBy === "email" || sortBy === "phoneNumber" || sortBy === "role" || sortBy === "updatedAt") {
+        if (sortBy === "name" || sortBy === "email" || sortBy === "phoneNumber" || sortBy === "role" || sortBy === "updatedAt" || sortBy === "banned") {
             orderBy.unshift({
                 [sortBy]: sortOrder,
             })

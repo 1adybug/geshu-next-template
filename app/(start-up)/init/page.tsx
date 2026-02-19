@@ -25,7 +25,7 @@ const Page: FC = () => {
     })
 
     return (
-        <Form<CreateFirstUserParams> form={form} className="mx-auto flex w-64 flex-col" onFinish={mutateAsync}>
+        <Form<CreateFirstUserParams> form={form} className="!mx-auto flex w-64 flex-col" onFinish={mutateAsync}>
             <FormItem<CreateFirstUserParams> name="name" rules={[schemaToRule(usernameSchema)]}>
                 <Input placeholder="用户名" autoComplete="off" />
             </FormItem>

@@ -164,7 +164,7 @@ const Page: FC = () => {
                                 </Button>
                             </Popconfirm>
                         ) : (
-                            <Button size="small" color="geekblue" variant="text" disabled={isRequesting} onClick={() => onBan(value)}>
+                            <Button size="small" color="orange" variant="text" disabled={isRequesting} onClick={() => onBan(value)}>
                                 封禁
                             </Button>
                         )}

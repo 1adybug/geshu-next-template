@@ -25,12 +25,13 @@ export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "tit
 const UserEditor: FC<UserEditorProps> = ({
     id,
     open,
-    maskClosable = true,
+    mask = { enabled: true, closable: true, blur: true },
     onClose,
     okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
+    const { enabled, closable, blur } = typeof mask === "boolean" ? { enabled: mask, closable: true, blur: true } : mask
     const isUpdate = isNonNullable(id)
     const [form] = useForm<AddUserParams>()
     const { data, isLoading } = useGetUser(id, { enabled: !!open })
@@ -69,7 +70,7 @@ const UserEditor: FC<UserEditorProps> = ({
         <Modal
             title={`${isUpdate ? "修改用户" : "新增用户"}`}
             open={open}
-            maskClosable={maskClosable && !isPending}
+            mask={{ enabled, closable: closable && !isPending, blur }}
             onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}

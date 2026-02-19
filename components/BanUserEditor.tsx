@@ -21,12 +21,13 @@ interface BanUserFormData {
 const BanUserEditor: FC<BanUserEditorProps> = ({
     id,
     open,
-    maskClosable = true,
+    mask = { enabled: true, closable: true, blur: true },
     onClose,
     okButtonProps: { loading: okButtonLoading, ...okButtonProps } = {},
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
+    const { enabled, closable, blur } = typeof mask === "boolean" ? { enabled: mask, closable: true, blur: true } : mask
     const [form] = useForm<BanUserFormData>()
 
     const { data, isLoading } = useGetUser(id, { enabled: !!open })
@@ -52,7 +53,7 @@ const BanUserEditor: FC<BanUserEditorProps> = ({
         <Modal
             title={`封禁用户 ${data?.name}`}
             open={open}
-            maskClosable={maskClosable && !isPending}
+            mask={{ enabled, closable: closable && !isPending, blur }}
             onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}

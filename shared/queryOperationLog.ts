@@ -1,4 +1,4 @@
-import { getPagination } from "deepsea-tools"
+import { assignFnName, getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
 import { getOperationLogWhere } from "@/prisma/getOperationLogWhere"
@@ -7,7 +7,7 @@ import { OperationLogOrderByWithRelationInput } from "@/prisma/generated/interna
 
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
-import { QueryOperationLogParams } from "@/schemas/queryOperationLog"
+import { QueryOperationLogParams, queryOperationLogSchema } from "@/schemas/queryOperationLog"
 
 import { createFilter } from "@/server/createFilter"
 import { getCurrentUser } from "@/server/getCurrentUser"
@@ -110,5 +110,9 @@ export async function queryOperationLog({
 }
 
 export type OperationLog = Awaited<ReturnType<typeof queryOperationLog>>["list"][number]
+
+assignFnName(queryOperationLog, "queryOperationLog")
+
+queryOperationLog.schema = queryOperationLogSchema
 
 queryOperationLog.filter = createFilter(isAdmin)

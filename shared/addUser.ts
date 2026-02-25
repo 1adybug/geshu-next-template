@@ -1,6 +1,8 @@
+import { assignFnName } from "deepsea-tools"
+
 import { prisma } from "@/prisma"
 
-import { AddUserParams } from "@/schemas/addUser"
+import { AddUserParams, addUserSchema } from "@/schemas/addUser"
 
 import { auth } from "@/server/auth"
 import { createFilter } from "@/server/createFilter"
@@ -41,5 +43,9 @@ export async function addUser({ name, phoneNumber, role }: AddUserParams) {
         })
     }
 }
+
+assignFnName(addUser, "addUser")
+
+addUser.schema = addUserSchema
 
 addUser.filter = createFilter(isAdmin)

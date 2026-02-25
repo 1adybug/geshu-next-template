@@ -1,8 +1,9 @@
+import { assignFnName } from "deepsea-tools"
 import { headers } from "next/headers"
 
 import { prisma } from "@/prisma"
 
-import { BanUserParams } from "@/schemas/banUser"
+import { BanUserParams, banUserSchema } from "@/schemas/banUser"
 
 import { auth } from "@/server/auth"
 
@@ -24,3 +25,7 @@ export async function banUser(params: BanUserParams) {
         })
     }
 }
+
+assignFnName(banUser, "banUser")
+
+banUser.schema = banUserSchema

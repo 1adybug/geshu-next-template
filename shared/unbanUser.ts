@@ -1,8 +1,9 @@
+import { assignFnName } from "deepsea-tools"
 import { headers } from "next/headers"
 
 import { prisma } from "@/prisma"
 
-import { UserIdParams } from "@/schemas/userId"
+import { UserIdParams, userIdSchema } from "@/schemas/userId"
 
 import { auth } from "@/server/auth"
 
@@ -24,3 +25,7 @@ export async function unbanUser(userId: UserIdParams) {
         })
     }
 }
+
+assignFnName(unbanUser, "unbanUser")
+
+unbanUser.schema = userIdSchema

@@ -1,6 +1,8 @@
+import { assignFnName } from "deepsea-tools"
+
 import { prisma } from "@/prisma"
 
-import { CreateFirstUserParams } from "@/schemas/createFirstUser"
+import { CreateFirstUserParams, createFirstUserSchema } from "@/schemas/createFirstUser"
 import { UserRole } from "@/schemas/userRole"
 
 import { auth } from "@/server/auth"
@@ -43,6 +45,10 @@ export async function createFirstUser({ name, phoneNumber }: CreateFirstUserPara
         })
     }
 }
+
+assignFnName(createFirstUser, "createFirstUser")
+
+createFirstUser.schema = createFirstUserSchema
 
 createFirstUser.filter = createFilter(false)
 

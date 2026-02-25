@@ -1,6 +1,8 @@
+import { assignFnName } from "deepsea-tools"
+
 import { prisma } from "@/prisma"
 
-import { UserIdParams } from "@/schemas/userId"
+import { UserIdParams, userIdSchema } from "@/schemas/userId"
 
 import { createFilter } from "@/server/createFilter"
 import { isAdmin } from "@/server/isAdmin"
@@ -12,5 +14,9 @@ export async function getUser(id: UserIdParams) {
     if (!user) throw new ClientError("用户不存在")
     return user
 }
+
+assignFnName(getUser, "getUser")
+
+getUser.schema = userIdSchema
 
 getUser.filter = createFilter(isAdmin)

@@ -1,6 +1,8 @@
+import { assignFnName } from "deepsea-tools"
+
 import { prisma } from "@/prisma"
 
-import { LoginParams } from "@/schemas/login"
+import { LoginParams, loginSchema } from "@/schemas/login"
 import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 import { auth } from "@/server/auth"
@@ -39,6 +41,10 @@ export async function login({ account, otp }: LoginParams) {
 
     return user
 }
+
+assignFnName(login, "login")
+
+login.schema = loginSchema
 
 login.filter = createFilter(false)
 

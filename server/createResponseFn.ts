@@ -22,6 +22,7 @@ import { ClientError } from "@/utils/clientError"
 
 export interface OriginalResponseFn<T extends [arg?: unknown], P> {
     (...args: T): Promise<P>
+    schema?: T extends [] ? undefined : $ZodType<T[0]>
     filter?: FilterConfig
     rateLimit?: boolean | RateLimitConfig
 }
@@ -33,12 +34,6 @@ export interface ResponseFn<T extends [arg?: unknown], P> {
 }
 
 const globalResponseFnMiddlewares: Middleware[] = []
-
-export interface CreateResponseFnParams<T extends [arg?: unknown], P> {
-    fn: OriginalResponseFn<T, P>
-    schema?: T extends [] ? undefined : $ZodType<T[0]>
-    name?: string
-}
 
 const responseContextUser = Symbol("responseContextUser")
 
@@ -52,9 +47,10 @@ async function getCachedCurrentUser(context: unknown) {
     return contextWithUser[responseContextUser]
 }
 
-export function createResponseFn<T extends [arg?: unknown], P>({ fn, schema, name }: CreateResponseFnParams<T, P>): ResponseFn<T, P> {
+export function createResponseFn<T extends [arg?: unknown], P>(fn: OriginalResponseFn<T, P>): ResponseFn<T, P> {
     async function response(...args: T) {
         args = args.slice(0, 1) as T
+        const schema = fn.schema
         if (args.length > 0 && schema) args = [getParser(schema)(args[0])] as unknown as T
         const data = await fn!(...args)
         return {
@@ -64,13 +60,13 @@ export function createResponseFn<T extends [arg?: unknown], P>({ fn, schema, nam
         }
     }
 
-    assignFnName(response, name ?? fn)
+    assignFnName(response, fn.name || fn)
 
     const newResponse = createFnWithMiddleware(response, {
         global: globalResponseFnMiddlewares,
     })
 
-    assignFnName(newResponse, name ?? fn)
+    assignFnName(newResponse, fn.name || fn)
 
     Object.defineProperty(response, "filter", { value: fn.filter })
     Object.defineProperty(response, "rateLimit", { value: fn.rateLimit })

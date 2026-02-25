@@ -1,4 +1,4 @@
-import { getPagination } from "deepsea-tools"
+import { assignFnName, getPagination } from "deepsea-tools"
 
 import { prisma } from "@/prisma"
 import { defaultUserSelect } from "@/prisma/getUserSelect"
@@ -8,7 +8,7 @@ import { UserOrderByWithRelationInput } from "@/prisma/generated/internal/prisma
 
 import { defaultPageNum } from "@/schemas/pageNum"
 import { defaultPageSize } from "@/schemas/pageSize"
-import { QueryUserParams } from "@/schemas/queryUser"
+import { QueryUserParams, queryUserSchema } from "@/schemas/queryUser"
 
 import { createFilter } from "@/server/createFilter"
 import { isAdmin } from "@/server/isAdmin"
@@ -93,5 +93,9 @@ export async function queryUser({
         pageSize,
     })
 }
+
+assignFnName(queryUser, "queryUser")
+
+queryUser.schema = queryUserSchema
 
 queryUser.filter = createFilter(isAdmin)

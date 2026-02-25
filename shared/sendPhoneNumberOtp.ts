@@ -1,6 +1,8 @@
+import { assignFnName } from "deepsea-tools"
+
 import { prisma } from "@/prisma"
 
-import { AccountParams } from "@/schemas/account"
+import { AccountParams, accountSchema } from "@/schemas/account"
 import { phoneNumberRegex } from "@/schemas/phoneNumber"
 
 import { auth } from "@/server/auth"
@@ -43,6 +45,10 @@ export async function sendPhoneNumberOtp(params: AccountParams): Promise<SendPho
         phoneNumber: user.phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2"),
     }
 }
+
+assignFnName(sendPhoneNumberOtp, "sendPhoneNumberOtp")
+
+sendPhoneNumberOtp.schema = accountSchema
 
 sendPhoneNumberOtp.filter = createFilter(false)
 

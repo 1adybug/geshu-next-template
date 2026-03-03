@@ -34,78 +34,100 @@ export interface ResponseFn<TParams extends [arg?: unknown], TData> {
     rateLimit?: boolean | RateLimitConfig
 }
 
-const globalResponseFnMiddlewares: Middleware[] = []
-
 const responseContextUser = Symbol("responseContextUser")
 
-export interface ResponseContextWithUser {
+export interface ResponseFnContext {
+    [key: string]: unknown
     [responseContextUser]?: Promise<User | undefined>
+    error?: unknown
 }
 
-async function getCachedCurrentUser(context: unknown) {
-    const contextWithUser = context as ResponseContextWithUser
-    if (!contextWithUser[responseContextUser]) contextWithUser[responseContextUser] = getCurrentUser()
-    return contextWithUser[responseContextUser]
+export type ResponseMiddleware<TParams extends [arg?: unknown] = [arg?: unknown], TData = unknown> = Middleware<ResponseFn<TParams, TData>, ResponseFnContext>
+
+export interface ResponseFnMetadata<TParams extends [arg?: unknown]> {
+    schema?: TParams extends [] ? undefined : $ZodType<TParams[0]>
+    filter?: FilterConfig
+    rateLimit?: boolean | RateLimitConfig
 }
 
-export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: OriginalResponseFn<TParams, TData>): ResponseFn<TParams, TData> {
-    async function response(...args: TParams) {
-        args = args.slice(0, 1) as TParams
-        const schema = fn.schema
-        if (args.length > 0 && schema) args = [getParser(schema)(args[0])] as unknown as TParams
-        const data = await fn!(...args)
-        return {
-            success: true,
-            data,
-            message: undefined,
+const globalResponseFnMiddlewares: ResponseMiddleware[] = []
+
+function defineResponseFnMetadata<TParams extends [arg?: unknown]>(target: object, metadata: ResponseFnMetadata<TParams>) {
+    Object.defineProperty(target, "schema", { value: metadata.schema })
+    Object.defineProperty(target, "filter", { value: metadata.filter })
+    Object.defineProperty(target, "rateLimit", { value: metadata.rateLimit })
+}
+
+async function getCachedCurrentUser(context: ResponseFnContext) {
+    if (!context[responseContextUser]) context[responseContextUser] = getCurrentUser()
+    return context[responseContextUser]
+}
+
+function getResponseError(context: ResponseFnContext, result: ResponseData<unknown>) {
+    if (context.error) return context.error
+    if (result.message instanceof Error) return result.message
+    if (result.message !== undefined) return new Error(String(result.message))
+
+    return new Error("未知错误")
+}
+
+const responseErrorMiddleware: ResponseMiddleware = async function responseErrorMiddleware(context, next) {
+    try {
+        await next()
+
+        if (context.result?.success !== false) return
+
+        void addErrorLog({
+            action: context.fn.name,
+            args: context.args,
+            error: getResponseError(context, context.result),
+        })
+    } catch (error) {
+        if (isRedirectError(error)) throw error
+
+        console.error(styleText("red", error instanceof Error ? error.message : String(error)))
+        console.error(error)
+
+        void addErrorLog({
+            action: context.fn.name,
+            args: context.args,
+            error,
+        })
+
+        if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)
+
+        context.error = error
+
+        context.result = {
+            success: false,
+            data: undefined,
+            message: error instanceof Error ? error.message : String(error),
         }
     }
-
-    assignFnName(response, fn.name || fn)
-
-    Object.defineProperty(response, "schema", { value: fn.schema })
-    Object.defineProperty(response, "filter", { value: fn.filter })
-    Object.defineProperty(response, "rateLimit", { value: fn.rateLimit })
-
-    const newResponse = createFnWithMiddleware(response, {
-        global: globalResponseFnMiddlewares,
-    })
-
-    assignFnName(newResponse, fn.name || fn)
-
-    Object.defineProperty(newResponse, "schema", { value: fn.schema })
-    Object.defineProperty(newResponse, "filter", { value: fn.filter })
-    Object.defineProperty(newResponse, "rateLimit", { value: fn.rateLimit })
-
-    return newResponse
 }
 
-createResponseFn.use = function use(middleware: Middleware<OriginalResponseFn<any, any>>) {
-    globalResponseFnMiddlewares.push(middleware)
-    return createResponseFn
-}
-
-createResponseFn.use(async context =>
-    addOperationLog({
+const operationLogMiddleware: ResponseMiddleware = async function operationLogMiddleware(context, next) {
+    await addOperationLog({
         action: context.fn.name,
         args: context.args,
-    }))
+    })
 
-createResponseFn.use(async (context, next) => {
+    await next()
+}
+
+const filterMiddleware: ResponseMiddleware = async function filterMiddleware(context, next) {
     const user = await getCachedCurrentUser(context)
     const filter = context.fn.filter ?? true
 
     if (typeof filter === "function") {
         if (!user) throw new ClientError({ message: "请先登录", code: 401 })
         if (!filter(user)) throw new ClientError({ message: "无权限", code: 403 })
-    } else {
-        if (filter === true && !user) throw new ClientError({ message: "请先登录", code: 401 })
-    }
+    } else if (filter === true && !user) throw new ClientError({ message: "请先登录", code: 401 })
 
     await next()
-})
+}
 
-createResponseFn.use(async (context, next) => {
+const rateLimitMiddleware: ResponseMiddleware = async function rateLimitMiddleware(context, next) {
     if (!isGlobalRateLimitEnabled()) {
         await next()
         return
@@ -129,35 +151,40 @@ createResponseFn.use(async (context, next) => {
     }
 
     await next()
-})
+}
 
-createResponseFn.use(async (context, next) => {
-    try {
-        await next()
-        if (context.result?.success !== false) return
-
-        addErrorLog({
-            action: context.fn.name,
-            args: context.args,
-            error: context.result?.error,
-        })
-    } catch (e) {
-        const error = e as Error
-        if (isRedirectError(error)) throw error
-        console.log(styleText("red", error.message))
-        console.log(error)
-
-        addErrorLog({
-            action: context.fn.name,
-            args: context.args,
-            error,
-        })
-
-        if (error instanceof ClientError && error.code === 401) redirect(LoginPathname)
-        context.result = {
-            success: false,
-            data: undefined,
-            message: error.message,
+export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: OriginalResponseFn<TParams, TData>): ResponseFn<TParams, TData> {
+    const response = async function response(...inputArgs: TParams) {
+        let args = inputArgs.slice(0, 1) as TParams
+        const schema = fn.schema
+        if (args.length > 0 && schema) args = [getParser(schema)(args[0])] as unknown as TParams
+        const data = await fn(...args)
+        return {
+            success: true,
+            data,
+            message: undefined,
         }
     }
-})
+
+    assignFnName(response, fn.name || fn)
+    defineResponseFnMetadata(response, fn)
+
+    const newResponse = createFnWithMiddleware.withContext<ResponseFnContext>()(response, {
+        global: globalResponseFnMiddlewares as unknown as ResponseMiddleware<TParams, TData>[],
+    })
+
+    assignFnName(newResponse, fn.name || fn)
+    defineResponseFnMetadata(newResponse, fn)
+
+    return newResponse
+}
+
+createResponseFn.use = function use(middleware: ResponseMiddleware) {
+    globalResponseFnMiddlewares.push(middleware)
+    return createResponseFn
+}
+
+createResponseFn.use(responseErrorMiddleware)
+createResponseFn.use(operationLogMiddleware)
+createResponseFn.use(filterMiddleware)
+createResponseFn.use(rateLimitMiddleware)

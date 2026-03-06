@@ -32,23 +32,43 @@ export interface ExtendedResponseData<TData = unknown> extends ResponseData<TDat
     code?: number
 }
 
-export interface ResponseFnMetadata<TParams extends [arg?: unknown]> {
+export interface RouteConfig<TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json"> {
+    pathname: TPathname
+    bodyType?: TRouteBodyType
+}
+
+export interface ResponseFnMetadata<TParams extends [arg?: unknown], TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json"> {
     name: string
     schema?: TParams extends [] ? undefined : $ZodType<TParams[0]>
     filter?: FilterConfig
     rateLimit?: boolean | RateLimitConfig
-    bodyType?: RouteBodyType
+    route?: RouteConfig<TPathname, TRouteBodyType>
 }
 
-export interface OriginalResponseFn<TParams extends [arg?: unknown], TData> extends ResponseFnMetadata<TParams> {
+export interface OriginalResponseFn<
+    TParams extends [arg?: unknown],
+    TData,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+> extends ResponseFnMetadata<TParams, TPathname, TRouteBodyType> {
     (...args: TParams): Promise<TData>
 }
 
-export interface ResponseFn<TParams extends [arg?: unknown], TData> extends ResponseFnMetadata<TParams> {
+export interface ResponseFn<
+    TParams extends [arg?: unknown],
+    TData,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+> extends ResponseFnMetadata<TParams, TPathname, TRouteBodyType> {
     (...args: TParams): Promise<ExtendedResponseData<TData>>
 }
 
-export interface RouteFn<TParams extends [arg?: unknown], TData> extends ResponseFnMetadata<TParams> {
+export interface RouteFn<
+    TParams extends [arg?: unknown],
+    TData,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+> extends ResponseFnMetadata<TParams, TPathname, TRouteBodyType> {
     (...args: TParams): Promise<ExtendedResponseData<TData>>
 }
 
@@ -68,7 +88,12 @@ export interface ResponseFnContext {
     error?: unknown
 }
 
-export type ResponseMiddleware<TParams extends [arg?: unknown] = [arg?: unknown], TData = unknown> = Middleware<ResponseFn<TParams, TData>, ResponseFnContext>
+export type ResponseMiddleware<
+    TParams extends [arg?: unknown] = [arg?: unknown],
+    TData = unknown,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+> = Middleware<ResponseFn<TParams, TData, TPathname, TRouteBodyType>, ResponseFnContext>
 
 export interface RouteFnContext extends ResponseFnContext {
     request?: Request
@@ -76,16 +101,21 @@ export interface RouteFnContext extends ResponseFnContext {
 
 const globalResponseFnMiddlewares: ResponseMiddleware[] = []
 
-export function defineResponseFnMetadata<TParams extends [arg?: unknown], TData>(
+export function defineResponseFnMetadata<
+    TParams extends [arg?: unknown],
+    TData,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+>(
     target: (...args: TParams) => Promise<TData>,
-    metadata: ResponseFnMetadata<TParams>,
-): OriginalResponseFn<TParams, TData> {
+    metadata: ResponseFnMetadata<TParams, TPathname, TRouteBodyType>,
+): OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType> {
     Object.defineProperty(target, "name", { value: metadata.name })
     Object.defineProperty(target, "schema", { value: metadata.schema })
     Object.defineProperty(target, "filter", { value: metadata.filter })
     Object.defineProperty(target, "rateLimit", { value: metadata.rateLimit })
-    Object.defineProperty(target, "bodyType", { value: metadata.bodyType })
-    return target as OriginalResponseFn<TParams, TData>
+    Object.defineProperty(target, "route", { value: metadata.route })
+    return target as OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>
 }
 
 async function getCachedCurrentUser(context: ResponseFnContext) {
@@ -160,11 +190,16 @@ async function handleResponseError(context: ErrorResponseContext, error: unknown
     return createErrorResponse(context, error)
 }
 
-function getRouteBodyType<TParams extends [arg?: unknown], TData>(fn: OriginalResponseFn<TParams, TData>) {
-    return fn.bodyType ?? RouteBodyTypeValue.JSON
+function getRouteBodyType<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+) {
+    return fn.route?.bodyType ?? RouteBodyTypeValue.JSON
 }
 
-async function getRouteInputArg<TParams extends [arg?: unknown], TData>(request: Request, fn: OriginalResponseFn<TParams, TData>) {
+async function getRouteInputArg<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    request: Request,
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+) {
     const bodyType = getRouteBodyType(fn)
 
     if (bodyType === RouteBodyTypeValue.FormData) {
@@ -193,7 +228,10 @@ async function getRouteInputArg<TParams extends [arg?: unknown], TData>(request:
     }
 }
 
-async function getRouteArgs<TParams extends [arg?: unknown], TData>(request: Request, fn: OriginalResponseFn<TParams, TData>) {
+async function getRouteArgs<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    request: Request,
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+) {
     if (getRouteBodyType(fn) === RouteBodyTypeValue.FormData) {
         if (fn.length === 0 && !fn.schema) return [] as unknown as TParams
         return [await getRouteInputArg(request, fn)] as unknown as TParams
@@ -275,7 +313,9 @@ const rateLimitMiddleware: ResponseMiddleware = async function rateLimitMiddlewa
     await next()
 }
 
-export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: OriginalResponseFn<TParams, TData>): ResponseFn<TParams, TData> {
+export function createResponseFn<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+): ResponseFn<TParams, TData, TPathname, TRouteBodyType> {
     const response = async function response(...inputArgs: TParams) {
         const data = await fn(...inputArgs)
         return createSuccessResponse(data)
@@ -284,7 +324,7 @@ export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: Ori
     defineResponseFnMetadata(response, fn)
 
     const newResponse = createFnWithMiddleware.withContext<ResponseFnContext>()(response, {
-        global: globalResponseFnMiddlewares as unknown as ResponseMiddleware<TParams, TData>[],
+        global: globalResponseFnMiddlewares as unknown as ResponseMiddleware<TParams, TData, TPathname, TRouteBodyType>[],
     })
 
     defineResponseFnMetadata(newResponse, fn)
@@ -292,7 +332,9 @@ export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: Ori
     return newResponse
 }
 
-export function createRoute<TParams extends [arg?: unknown], TData>(fn: OriginalResponseFn<TParams, TData>): CreateRouteResult {
+export function createRouteFn<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+): RouteHandler {
     const route = async function route(...inputArgs: TParams) {
         const data = await fn(...inputArgs)
         return createSuccessResponse(data)
@@ -300,13 +342,15 @@ export function createRoute<TParams extends [arg?: unknown], TData>(fn: Original
 
     defineResponseFnMetadata(route, fn)
 
-    const newRoute = createFnWithMiddleware.withContext<RouteFnContext>()(route as RouteFn<TParams, TData>, {
-        global: globalResponseFnMiddlewares as unknown as RouteMiddleware<TParams, TData>[],
+    const newRoute = createFnWithMiddleware.withContext<RouteFnContext>()(route as RouteFn<TParams, TData, TPathname, TRouteBodyType>, {
+        global: globalResponseFnMiddlewares as unknown as RouteMiddleware<TParams, TData, TPathname, TRouteBodyType>[],
     })
 
     defineResponseFnMetadata(newRoute, fn)
 
     async function POST(request: Request) {
+        if (!fn.route) return NextResponse.json({ success: false, data: undefined, message: "Not Found", code: 404 }, { status: 404 })
+
         try {
             const args = await getRouteArgs(request, fn)
             const result = await newRoute(...args)
@@ -325,6 +369,13 @@ export function createRoute<TParams extends [arg?: unknown], TData>(fn: Original
         }
     }
 
+    return POST
+}
+
+export function createRoute<TParams extends [arg?: unknown], TData, TPathname extends string = never, TRouteBodyType extends RouteBodyType = "json">(
+    fn: OriginalResponseFn<TParams, TData, TPathname, TRouteBodyType>,
+): CreateRouteResult {
+    const POST = createRouteFn(fn)
     return { POST }
 }
 
@@ -333,7 +384,12 @@ createResponseFn.use = function use(middleware: ResponseMiddleware) {
     return createResponseFn
 }
 
-export type RouteMiddleware<TParams extends [arg?: unknown] = [arg?: unknown], TData = unknown> = Middleware<RouteFn<TParams, TData>, RouteFnContext>
+export type RouteMiddleware<
+    TParams extends [arg?: unknown],
+    TData,
+    TPathname extends string = never,
+    TRouteBodyType extends RouteBodyType = "json",
+> = Middleware<RouteFn<TParams, TData, TPathname, TRouteBodyType>, RouteFnContext>
 
 createResponseFn.use(responseErrorMiddleware)
 createResponseFn.use(rateLimitMiddleware)

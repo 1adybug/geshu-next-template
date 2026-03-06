@@ -17,9 +17,9 @@ type GetParams<TParam> = IsNever<TParam> extends true ? [] : [TParam]
 
 export function createSharedFn<TParam>(
     params: CreateSharedFnParams<TParam>,
-): <TData>(fn: (...args: GetParams<TParam>) => Promise<TData>) => OriginalResponseFn<GetParams<TParam>, TData> {
-    function getSharedFn<TData>(fn: (...args: GetParams<TParam>) => Promise<TData>) {
-        return defineResponseFnMetadata(fn, params as ResponseFnMetadata<GetParams<TParam>>)
+): <TParams extends GetParams<TParam>, TData>(fn: (...args: TParams) => Promise<TData>) => OriginalResponseFn<TParams, TData> {
+    function getSharedFn<TParams extends GetParams<TParam>, TData>(fn: (...args: TParams) => Promise<TData>) {
+        return defineResponseFnMetadata(fn, params as ResponseFnMetadata<TParams>)
     }
 
     return getSharedFn

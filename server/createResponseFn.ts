@@ -1,6 +1,6 @@
 import { styleText } from "node:util"
 
-import { assignFnName, createFnWithMiddleware, Middleware, ResponseData } from "deepsea-tools"
+import { createFnWithMiddleware, Middleware, ResponseData } from "deepsea-tools"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { redirect } from "next/navigation"
 import { NextResponse } from "next/server"
@@ -33,6 +33,7 @@ export interface ExtendedResponseData<TData = unknown> extends ResponseData<TDat
 }
 
 export interface ResponseFnMetadata<TParams extends [arg?: unknown]> {
+    name: string
     schema?: TParams extends [] ? undefined : $ZodType<TParams[0]>
     filter?: FilterConfig
     rateLimit?: boolean | RateLimitConfig
@@ -75,11 +76,16 @@ export interface RouteFnContext extends ResponseFnContext {
 
 const globalResponseFnMiddlewares: ResponseMiddleware[] = []
 
-function defineResponseFnMetadata<TParams extends [arg?: unknown]>(target: object, metadata: ResponseFnMetadata<TParams>) {
+export function defineResponseFnMetadata<TParams extends [arg?: unknown], TData>(
+    target: (...args: TParams) => Promise<TData>,
+    metadata: ResponseFnMetadata<TParams>,
+): OriginalResponseFn<TParams, TData> {
+    Object.defineProperty(target, "name", { value: metadata.name })
     Object.defineProperty(target, "schema", { value: metadata.schema })
     Object.defineProperty(target, "filter", { value: metadata.filter })
     Object.defineProperty(target, "rateLimit", { value: metadata.rateLimit })
     Object.defineProperty(target, "bodyType", { value: metadata.bodyType })
+    return target as OriginalResponseFn<TParams, TData>
 }
 
 async function getCachedCurrentUser(context: ResponseFnContext) {
@@ -275,14 +281,12 @@ export function createResponseFn<TParams extends [arg?: unknown], TData>(fn: Ori
         return createSuccessResponse(data)
     }
 
-    assignFnName(response, fn.name || fn)
     defineResponseFnMetadata(response, fn)
 
     const newResponse = createFnWithMiddleware.withContext<ResponseFnContext>()(response, {
         global: globalResponseFnMiddlewares as unknown as ResponseMiddleware<TParams, TData>[],
     })
 
-    assignFnName(newResponse, fn.name || fn)
     defineResponseFnMetadata(newResponse, fn)
 
     return newResponse
@@ -294,14 +298,12 @@ export function createRoute<TParams extends [arg?: unknown], TData>(fn: Original
         return createSuccessResponse(data)
     }
 
-    assignFnName(route, fn.name || fn)
     defineResponseFnMetadata(route, fn)
 
     const newRoute = createFnWithMiddleware.withContext<RouteFnContext>()(route as RouteFn<TParams, TData>, {
         global: globalResponseFnMiddlewares as unknown as RouteMiddleware<TParams, TData>[],
     })
 
-    assignFnName(newRoute, fn.name || fn)
     defineResponseFnMetadata(newRoute, fn)
 
     async function POST(request: Request) {

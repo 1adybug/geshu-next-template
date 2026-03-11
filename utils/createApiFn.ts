@@ -36,6 +36,12 @@ export type ApiFn<TFn extends OriginalResponseFn<any, any, any, any>> =
         ? (params: Parameters<TFn>[0]) => Promise<Awaited<ReturnType<TFn>>>
         : (params?: Parameters<TFn>[0]) => Promise<Awaited<ReturnType<TFn>>>
 
+let baseUrl: string | undefined
+
+export function setHostname(newBaseUrl: string) {
+    baseUrl = newBaseUrl
+}
+
 export function createApiFn<TFn extends OriginalResponseFn<any, any, any, any>>({ schema, pathname, bodyType }: CreateApiFnConfig<TFn>): ApiFn<TFn> {
     return async function request(params: any) {
         if (pathname === undefined) throw new Error("not found")
@@ -48,7 +54,11 @@ export function createApiFn<TFn extends OriginalResponseFn<any, any, any, any>>(
 
         if (typeof body === "string") headers.set("Content-Type", "application/json")
 
-        const response = await fetch(`/api/action/${pathname}`, {
+        const pathname2 = `/api/action/${pathname}`.replace(/(\/)(\/+)/g, "$1")
+
+        const url = new URL(pathname2, baseUrl ?? location.origin)
+
+        const response = await fetch(url, {
             method: "POST",
             body,
             headers,

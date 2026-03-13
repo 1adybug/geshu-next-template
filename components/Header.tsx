@@ -1,9 +1,9 @@
 "use client"
 
-import { ComponentProps, FC } from "react"
+import { ComponentProps, FC, useId, useState } from "react"
 
 import { Button } from "antd"
-import { clsx, StrictOmit } from "deepsea-tools"
+import { clsx, getErrorMessage, StrictOmit } from "deepsea-tools"
 import { usePathname, useRouter } from "next/navigation"
 
 import { User } from "@/prisma/generated/client"
@@ -16,7 +16,7 @@ import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
 import Brand from "./Brand"
 import { useUser } from "./UserProvider"
 
-interface NavItem {
+export interface NavItem {
     href: string
     name: string
     filter?: (user: User) => boolean
@@ -47,13 +47,45 @@ const navs: NavItem[] = [
 export interface HeaderProps extends StrictOmit<ComponentProps<"header">, "children"> {}
 
 const Header: FC<HeaderProps> = ({ className, ...rest }) => {
+    const key = useId()
     const router = useRouter()
     const pathname = usePathname()
     const user = useUser()
+    const [isSignOutPending, setIsSignOutPending] = useState(false)
 
-    async function signOut() {
-        await authClient.signOut({})
-        router.refresh()
+    async function onSignOut() {
+        if (isSignOutPending) return
+
+        setIsSignOutPending(true)
+
+        message.open({
+            key,
+            type: "loading",
+            content: "注销中...",
+            duration: 0,
+        })
+
+        try {
+            const response = await authClient.signOut({})
+
+            if (response.error) throw new Error(response.error.message || "注销失败")
+
+            message.open({
+                key,
+                type: "success",
+                content: "已注销",
+            })
+
+            router.refresh()
+        } catch (error) {
+            message.open({
+                key,
+                type: "error",
+                content: getErrorMessage(error),
+            })
+        } finally {
+            setIsSignOutPending(false)
+        }
     }
 
     return (
@@ -77,7 +109,7 @@ const Header: FC<HeaderProps> = ({ className, ...rest }) => {
             </div>
             <div className="flex items-center gap-2">
                 <div>{user?.name}</div>
-                <Button size="small" color="orange" variant="filled" onClick={signOut}>
+                <Button size="small" color="orange" variant="filled" loading={isSignOutPending} onClick={onSignOut}>
                     注销
                 </Button>
             </div>

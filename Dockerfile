@@ -52,7 +52,7 @@ RUN mkdir -p /app/data && chown -R nextjs:bun /app/data
 RUN bun add prisma --registry=https://registry.npmmirror.com --global
 
 # 创建启动脚本，先以 root 执行 prisma db push，然后切换用户运行应用
-RUN printf '#!/bin/sh\nchown -R nextjs:bun /app/data\nprisma db push\nexec runuser -u nextjs -- bun run server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+RUN printf '#!/bin/sh\nset -e\nmkdir -p /app/data\nchown -R nextjs:bun /app/data\nchmod -R u+rwX,g+rwX /app/data\nprisma db push\nchown -R nextjs:bun /app/data\nchmod -R u+rwX,g+rwX /app/data\nexec runuser -u nextjs -- bun run server.js\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 3000
 

@@ -418,16 +418,10 @@
         import { useMutation, UseMutationOptions } from "@tanstack/react-query"
         import { addUser } from "@/apis/addUser"
 
-        // UseMutationOptions 的泛型参数为 api 函数的返回值类型、错误类型（默认 `Error`）、请求参数类型、上下文类型
-        export interface UseAddUserParams<TOnMutateResult = unknown> extends Omit<
-            UseMutationOptions<Awaited<ReturnType<typeof addUser>>, Error, Parameters<typeof addUser>[0], TOnMutateResult>,
-            "mutationFn"
-        > {}
-
-        export function useAddUser<TOnMutateResult = unknown>({ onMutate, onSuccess, onError, onSettled, ...rest }: UseAddUserParams<TOnMutateResult> = {}) {
+        export const useAddUser = createUseMutation(() => {
             const key = useId()
 
-            return useMutation({
+            return {
                 mutationFn: addUser,
                 onMutate(variables, context) {
                     message.open({
@@ -436,8 +430,6 @@
                         content: "新增用户中...",
                         duration: 0,
                     })
-
-                    return onMutate?.(variables, context) as TOnMutateResult | Promise<TOnMutateResult>
                 },
                 onSuccess(data, variables, onMutateResult, context) {
                     // 成功后刷新 user 相关的 query
@@ -450,21 +442,13 @@
                         type: "success",
                         content: "新增用户成功",
                     })
-
-                    return onSuccess?.(data, variables, onMutateResult, context)
                 },
                 onError(error, variables, onMutateResult, context) {
                     // 失败后关闭 loading
                     message.destroy(key)
-
-                    return onError?.(error, variables, onMutateResult, context)
                 },
-                onSettled(data, error, variables, onMutateResult, context) {
-                    return onSettled?.(data, error, variables, onMutateResult, context)
-                },
-                ...rest,
-            })
-        }
+            }
+        })
         ```
 
 ## Next Rules

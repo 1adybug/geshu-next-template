@@ -272,7 +272,7 @@ export const loginAction = createResponseFn(login)
 当你需要按账号、手机号等字段精细限流时，可以提供 `getKey`：
 
 ```ts
-import { createRateLimit, RateLimitContext } from "@/server/createRateLimit"
+import { type RateLimitContext, createRateLimit } from "@/server/createRateLimit"
 
 function getLoginRateLimitKey(context: RateLimitContext) {
     const params = context.args[0] as LoginParams | undefined

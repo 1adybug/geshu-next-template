@@ -6,6 +6,7 @@
 - 禁止修改 `node_modules` 文件夹中的任何文件
 - 当我让你修复一个问题，而你尝试一次或多次修复失败后，我会在每次失败修复后的问题现象再次反馈给你，在进行下一次修复之前，你必须思考之前所有的修复是否还有必要，是否需要先撤回之前的修复，然后再进行修复
 - 禁止未经允许启动项目的开发服务
+- 对于 `Electron` 开发的应用，不要尝试在浏览器中加载和验证
 - 尽量使用 `interface` 而不是 `type`，函数类型除外
 - 所有的类型定义都使用 `export` 导出
 - 如果某一个属性的类型是 `[key]: someType | null`，请将它改写为 `[key]?: someType`，尽量不要使用 `null` 类型
@@ -48,7 +49,7 @@
 
     ```typescript
     // 而不是使用 默认导出.方法 的形式
-    import fs from "fs/promises"
+    import fs from "node:fs/promises"
 
     fs.readFile
     ```
@@ -59,8 +60,8 @@
 - `Web API` 中的 `ReadableStream` 可以使用以下方法转换为 `Node.js` 中的 `Readable`:
 
     ```typescript
-    import { Readable } from "stream"
-    import { ReadableStream } from "stream/web"
+    import { Readable } from "node:stream"
+    import { ReadableStream } from "node:stream/web"
 
     // 这里的 webStream 是 Web API 中的 ReadableStream
     const webStream = someWebApi()
@@ -86,23 +87,20 @@
     export type Gender = (typeof Gender)[keyof typeof Gender]
     ```
 
-- 在创建 `git` 提交记录，必须使用 `[emoji] [type]: 具体内容`的格式进行提交，具体内容使用中文，以下是预设的 `emoji` 和 `type`：
+- 在创建 `git` 提交记录，必须使用 `[type]: 具体内容` 的格式进行提交
 
     ```text
-    ✨ feature: Select when creating new things
-    🐞 fix: Select when fixing a bug
-    📝 docs: Select when editing documentation
-    💻 wip: Select when work is not finished
-    🚄 perfs: Select when working on performances
-    ⏪ rollback:Select when undoing something
-    🔵 other: Select when fixing a bug
+    feat: Select when creating new things
+    fix: Select when fixing a bug
+    docs: Select when editing documentation
+    ...
     ```
 
-    你必须使用预设的 `emoji` 和 `type`。如果你的提交记录包含了多种内容，你可以使用多行比如：
+    在 monorepo 中，必须使用 `[type](package): 具体内容` 的格式进行提交：
 
     ```text
-    ✨ feature: some feature u did
-    🐞 fix: some bug u fixed
+    feat(wdp-react): add some feature
+    fix(deepsea-tools): fix some bug
     ```
 
 - 除了 `React` 组件和页面以外所有的导出必须使用 `export` 关键字导出，不要使用 `export default` 关键字导出
@@ -130,6 +128,19 @@
 | **数组/异步回调**        | **必须**使用箭头函数             | `.map(item => item.id)`           |
 | **高阶函数返回的函数**   | **必须**使用 `function` 并具名   | `return function resolver() {}`   |
 | **组件内独立的 Handler** | **必须**使用 `function`          | `function onSubmit() {}`          |
+
+## Style Rules
+
+- 页面的 CSS 样式你应该尽量通过以下两种方式实现：
+    1. 对于 `Ant Design` 或者 `@heroui/react` 等组件库提供的组件，请在组件库提供的 `ConfigProvider` 等类似的全局配置组件进行修改，如果你需要修改某个组件的全局样式，你可以在 `@/components/Registry.tsx` 中进行修改，它包裹了整个应用，如果你只需要单独修改某个位置的某个组件，请使用 `ConfigProvider` 包裹你需要修改的组件
+    2. 对于一般样式，优先使用组件的 `className` 或者 `classNames` 或其他类名属性 + `tailwindcss` 实现
+    3. 有且仅有以上两种方式无法实现时，请你使用 `style` 属性或者在 css 文件中定义样式
+
+- 当你使用 `flex` 布局时，对于宽度或者高度需要保持固定的子元素设置 `flex-none`
+- 对于 `React` 组件（也就是非 `div` 等 `html` 元素）的样式，请谨慎使用 `!important` 修改样式，请优先使用 `ConfigProvider` 或者组件暴露的属性（比如 `radius` / `shape`等）修改样式，最后再考虑使用 `!important`
+- 请不要使用模板字符串的形式来实现动态样式，例如 ``className={`w-${width}px`}``，如果你想要实现条件类名，请使用 `deepsea-tools` 中导出的 `clsx` 函数，比如 `clsx("text-base", isPrimary ? "text-primary" : "text-secondary")`
+
+- 如果某个容器在不同状态下有时会出现纵向滚动条，有时不会，导致右侧按钮或内容边界横向抖动。请用 `CSS` 动态 `padding` 解决，不要硬编码滚动条宽度。做法是：先确定内容区域在没有滚动条时的理论宽度，例如整个窗口宽度减去左侧固定侧边栏宽度：`calc(100vw - 84px)`。然后设置左侧 `padding` 为基础值，比如 `28px`；右侧 `padding` 设置为基础值减去“理论宽度和当前容器实际宽度的差值”： `padding-left: 28px; padding-right: calc(28px - ((100vw - 84px) - 100%));` 其中 `100%` 是当前内容容器实际可用宽度。没有滚动条时差值为 `0`；有滚动条时差值等于滚动条占用宽度，从而自动抵消滚动条造成的横向偏移。响应式场景下，如果侧边栏宽度或基础 `padding` 改变，也要在对应断点同步更新这个公式。
 
 ## React Rules
 
@@ -454,7 +465,7 @@
 
 ## Next Rules
 
-针对 `Next.js` 16 项目的规则
+针对 `Next.js` 16 项目的规则，最新的有关 `Next.js` 的文档，你可以在 `node_modules/next/dist/docs/` 中找到
 
 ### server action
 
@@ -492,28 +503,30 @@
     import { prisma } from "@/prisma"
     import { User } from "@/prisma/generated/client"
     import { AddUserParams } from "@/schemas/addUser"
+    import { createSharedFn } from "@/server/createSharedFn"
+    import { isAdmin } from "@/server/isAdmin"
     import { ClientError } from "@/utils/clientError"
 
-    export async function addUser({ username, phone }: AddUserParams) {
-        const count = await prisma.user.count({ where: { username } })
+    export const addUser = createSharedFn({
+        name: "addUser",
+        schema: addUserSchema,
+        // 如果需要对函数调用的用户进行过滤，你可以使用 filter 属性进行过滤
+        filter: isAdmin,
+        // 如果需要将 server action 暴露为 api route，你可以传递 route 属性
+        route: {
+            // pathname 就是 api route 的路径
+            pathname: "/geclaw-resource",
+            // bodyType 就是函数接收的参数类型，可以传递 "json" 和 "formData"，默认为 "json"，应该与实际的函数参数保持一致
+            bodyType: "json",
+        },
+    })(async function addUser({ name, nickname, phoneNumber, role, image }) {
+        const count = await prisma.user.count({ where: { name } })
 
         // 如果函数内部需要抛出错误，请使用 `ClientError` 类，它的使用方法与 `Error` 类一致，同时支持更多用法，详细请参考 `@/utils/clientError` 文件
         if (count > 0) throw new ClientError("用户名已存在")
 
-        const count2 = await prisma.user.count({ where: { phone } })
-        if (count2 > 0) throw new ClientError("手机号已存在")
-        const user = await prisma.user.create({ data: { username, phone } })
         return user
-    }
-
-    // 如果这个 server action 只允许特定的用户指定，可以为 @/shared 目录下的响应函数添加一个 `filter` 属性
-    // `filter` 属性接受两种类型，一种是 `boolean` 类型，一种是 `(user: User) => boolean` 函数类型
-    // 当你传入 `boolean` 类型时， `true` 代表只有登录且未被禁用的用户才能访问，`false` 代表不做任何限制，包括未登录用户
-    // 当你传入 `(user: User) => boolean` 函数类型时，函数返回 `true` 代表用户可以访问，返回 `false` 代表用户不能访问
-    // filter 属性默认值为 `true`，代表只有登录且未被禁用的用户才能访问
-    addUser.filter = function filter(user: User) {
-        return user.role === "ADMIN"
-    }
+    })
     ```
 
 3. 在 `@/actions` 目录下创建一个名为 `addUser.ts` 的文件，它的内容应该如下：
@@ -521,15 +534,10 @@
     ```typescript
     "use server"
 
-    import { addUserSchema } from "@/schemas/addUser"
     import { createResponseFn } from "@/server/createResponseFn"
     import { addUser } from "@/shared/addUser"
 
-    export const addUserAction = createResponseFn({
-        fn: addUser,
-        schema: addUserSchema,
-        name: "addUser",
-    })
+    export const addUserAction = createResponseFn(addUser)
     ```
 
 4. 在 `@/presets` 目录下创建一个名为 `createUseAddUser.ts` 的文件，它的内容应该如下：
@@ -538,7 +546,7 @@
     import { useId } from "react"
 
     import { withUseMutationDefaults } from "soda-tanstack-query"
-    import { addUser } from "@/shared/addUser"
+    import type { addUser } from "@/shared/addUser"
 
     export const createUseAddUser = withUseMutationDefaults<typeof addUser>(() => {
         const key = useId()
@@ -631,43 +639,7 @@ export const usernameParser = getParser(usernameSchema)
 
 `@/utils` 目录下的文件必须只能是客户端可以访问的工具函数，或者客户端和服务器都可以访问的工具函数，如果一个工具函数只能在服务器访问，或者不能暴露给客户端，请将它放在 `@/server` 目录下
 
-### Middleware
-
-在 `Next.js` 16 中，`middleware.ts` 已经被弃用，请使用 `proxy.ts` 文件来实现中间件功能，并且导出的函数名必须为 `proxy`，例如：
-
-```typescript
-import { NextRequest, NextResponse } from "next/server"
-
-export async function proxy(request: NextRequest) {
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set("current-url", request.url)
-
-    const response = NextResponse.next({
-        request: {
-            headers: requestHeaders,
-        },
-    })
-
-    return response
-}
-```
-
 ### Api Route
 
-- 只有当你的某个功能必须通过 `HTTP` 接口的方式才能实现时，比如需要允许第三方调用的接口或者 `server action` 无法满足需求时，你才需要创建一个 `api route`，否则你应该创建一个 `server action`
-- 你依然需要遵守 `server action` 的规则，核心的实现逻辑与 `server action` 一致，比如 `schema` （负责校验数据）的创建、`shared` 函数（负责核心逻辑）的创建等，这些规则同样适用于 `api route`
-- 所以 `api route` 的创建规则与 `server action` 的创建规则一致，你只需要按照 `server action` 的创建规则创建即可，唯一不同的地方是，你需要将 `api route` 按照 Next.js 的 `api route` 规则创建，而不是 `@/actions` 目录下
-- 当然如果这个功能可以通过 `server action` 实现并且是给内部使用的，你也可以同时按照 `server action` 的创建规则创建一个 `server action`，这样 `server action` 和 `api route` 都可以使用，但是 `server action` 是给内部使用的，而 `api route` 是给外部使用的
-
-## Style Rules
-
-- 页面的 CSS 样式你应该尽量通过以下两种方式实现：
-    1. 对于 `Ant Design` 或者 `@heroui/react` 等组件库提供的组件，请在组件库提供的 `ConfigProvider` 等类似的全局配置组件进行修改，如果你需要修改某个组件的全局样式，你可以在 `@/components/Registry.tsx` 中进行修改，它包裹了整个应用，如果你只需要单独修改某个位置的某个组件，请使用 `ConfigProvider` 包裹你需要修改的组件
-    2. 对于一般样式，优先使用组件的 `className` 或者 `classNames` 或其他类名属性 + `tailwindcss` 实现
-    3. 有且仅有以上两种方式无法实现时，请你使用 `style` 属性或者在 css 文件中定义样式
-
-- 当你使用 `flex` 布局时，对于宽度或者高度需要保持固定的子元素设置 `flex-none`
-- 对于 `React` 组件（也就是非 `div` 等 `html` 元素）的样式，请谨慎使用 `!important` 修改样式，请优先使用 `ConfigProvider` 或者组件暴露的属性（比如 `radius` / `shape`等）修改样式，最后再考虑使用 `!important`
-- 请不要使用模板字符串的形式来实现动态样式，例如 ``className={`w-${width}px`}``，如果你想要实现条件类名，请使用 `deepsea-tools` 中导出的 `clsx` 函数，比如 `clsx("text-base", isPrimary ? "text-primary" : "text-secondary")`
-
-- 如果某个容器在不同状态下有时会出现纵向滚动条，有时不会，导致右侧按钮或内容边界横向抖动。请用 `CSS` 动态 `padding` 解决，不要硬编码滚动条宽度。做法是：先确定内容区域在没有滚动条时的理论宽度，例如整个窗口宽度减去左侧固定侧边栏宽度：`calc(100vw - 84px)`。然后设置左侧 `padding` 为基础值，比如 `28px`；右侧 `padding` 设置为基础值减去“理论宽度和当前容器实际宽度的差值”： `padding-left: 28px; padding-right: calc(28px - ((100vw - 84px) - 100%));` 其中 `100%` 是当前内容容器实际可用宽度。没有滚动条时差值为 `0`；有滚动条时差值等于滚动条占用宽度，从而自动抵消滚动条造成的横向偏移。响应式场景下，如果侧边栏宽度或基础 `padding` 改变，也要在对应断点同步更新这个公式。
+- 只有当你的某个功能必须通过 `HTTP` 接口的方式才能实现时，比如需要允许第三方调用的接口或者 `server action` 无法满足需求时，你才需要创建一个 `api route`
+- 当你需要创建一个 `api route` 时，你只需要创建一个 `server action`，然后传递 `route` 属性即可

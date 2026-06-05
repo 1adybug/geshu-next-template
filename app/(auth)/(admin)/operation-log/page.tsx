@@ -2,7 +2,6 @@
 
 import { type FC, useRef, useState } from "react"
 
-import JsonView from "@uiw/react-json-view"
 import { type ModalProps, type TableProps, Button, DatePicker, Form, Input, Modal, Table } from "antd"
 import FormItem from "antd/es/form/FormItem"
 import { formatTime, getEnumKey, isNonNullable, naturalParser, showTotal } from "deepsea-tools"
@@ -10,6 +9,7 @@ import { type Columns, getTimeRange, useScroll } from "soda-antd"
 import { transformState } from "soda-hooks"
 import { useQueryState } from "soda-next"
 
+import JsonViewer from "@/components/JsonViewer"
 import UserButton from "@/components/UserButton"
 
 import { useQueryOperationLog } from "@/hooks/useQueryOperationLog"
@@ -141,7 +141,7 @@ const Page: FC = () => {
                             onClick={() =>
                                 setInfo({
                                     title: "操作参数",
-                                    children: <JsonView className="!font-['Source_Han_Sans_SC_VF']" value={parseJson(value)} />,
+                                    children: <JsonViewer value={parseJson(value)} />,
                                 })
                             }
                         >

@@ -8,10 +8,9 @@ import { usePathname, useRouter } from "next/navigation"
 
 import type { User } from "@/prisma/generated/client"
 
-import { isAdmin } from "@/server/isAdmin"
-
 import { authClient } from "@/utils/authClient"
 import { getPathnameAndSearchParams } from "@/utils/getPathnameAndSearchParams"
+import { isAdmin } from "@/utils/isAdmin"
 
 import Brand from "./Brand"
 import { useUser } from "./UserProvider"

@@ -26,20 +26,21 @@ git remote set-url --push template no_push://template
 
 ### 变量清单
 
-| 变量名                        | 必填 | 说明                                    | 示例 / 默认值             |
-| ----------------------------- | ---- | --------------------------------------- | ------------------------- |
-| `COOKIE_PREFIX`               | 是   | 登录相关 Cookie 前缀                    | `geshu`                   |
-| `BETTER_AUTH_SECRET`          | 是   | Better Auth 签名密钥                    | `your_better_auth_secret` |
-| `BETTER_AUTH_URL`             | 按需 | 服务端 Better Auth 基础地址             | `https://example.com`     |
-| `NEXT_PUBLIC_BETTER_AUTH_URL` | 按需 | 客户端 Better Auth 基础地址             | `https://example.com`     |
-| `NEXT_OUTPUT`                 | 否   | Next 构建输出模式                       | `standalone` / `export`   |
-| `NEXT_TELEMETRY_DISABLED`     | 否   | 是否关闭 Next 遥测上报                  | `1`                       |
-| `REDIS_URL`                   | 按需 | Redis 地址（仅接入 Redis 限流存储时用） | `redis://127.0.0.1:6379`  |
-| `DEFAULT_EMAIL_DOMAIN`        | 否   | 手机号注册时生成临时邮箱所使用的域名    | `example.com`             |
-| `IS_INTRANET`                 | 否   | 是否使用内网短信通道                    | `0`                       |
-| `QJP_SMS_URL`                 | 按需 | 内网短信服务地址                        | `http://sms.example.com`  |
-| `ALIYUN_ACCESS_KEY_ID`        | 按需 | 阿里云短信 AccessKey ID                 | `your_access_key_id`      |
-| `ALIYUN_ACCESS_KEY_SECRET`    | 按需 | 阿里云短信 AccessKey Secret             | `your_access_key_secret`  |
+| 变量名                        | 必填 | 说明                                    | 示例 / 默认值                     |
+| ----------------------------- | ---- | --------------------------------------- | --------------------------------- |
+| `COOKIE_PREFIX`               | 是   | 登录相关 Cookie 前缀                    | `geshu`                           |
+| `BETTER_AUTH_SECRET`          | 是   | Better Auth 签名密钥                    | `your_better_auth_secret`         |
+| `BETTER_AUTH_URL`             | 按需 | 服务端 Better Auth 基础地址             | `https://example.com`             |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | 按需 | 客户端 Better Auth 基础地址             | `https://example.com`             |
+| `NEXT_OUTPUT`                 | 否   | Next 构建输出模式                       | `standalone` / `export`           |
+| `NEXT_TELEMETRY_DISABLED`     | 否   | 是否关闭 Next 遥测上报                  | `1`                               |
+| `REDIS_URL`                   | 按需 | Redis 地址（仅接入 Redis 限流存储时用） | `redis://127.0.0.1:6379`          |
+| `TRUSTED_CLIENT_IP_HEADER`    | 按需 | 指定可信反向代理写入的真实客户端 IP 头  | `x-client-ip` / `x-forwarded-for` |
+| `DEFAULT_EMAIL_DOMAIN`        | 否   | 手机号注册时生成临时邮箱所使用的域名    | `example.com`                     |
+| `IS_INTRANET`                 | 否   | 是否使用内网短信通道                    | `0`                               |
+| `QJP_SMS_URL`                 | 按需 | 内网短信服务地址                        | `http://sms.example.com`          |
+| `ALIYUN_ACCESS_KEY_ID`        | 按需 | 阿里云短信 AccessKey ID                 | `your_access_key_id`              |
+| `ALIYUN_ACCESS_KEY_SECRET`    | 按需 | 阿里云短信 AccessKey Secret             | `your_access_key_secret`          |
 
 ### 推荐的本地 `.env` 示例
 
@@ -59,6 +60,9 @@ NEXT_TELEMETRY_DISABLED="1"
 
 # 可选：仅在你启用 Redis 限流存储时使用
 REDIS_URL="redis://127.0.0.1:6379"
+
+# 可选：不配置时默认读取 x-client-ip 或 x-forwarded-for
+TRUSTED_CLIENT_IP_HEADER=""
 
 # 临时邮箱域名
 DEFAULT_EMAIL_DOMAIN="example.com"

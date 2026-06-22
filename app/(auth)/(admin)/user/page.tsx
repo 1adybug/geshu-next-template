@@ -215,8 +215,6 @@ const Page: FC = () => {
         ...rest,
     })
 
-    console.log(data)
-
     const { mutateAsync: unbanUserAsync, isPending: isUnbanUserPending } = useUnbanUser()
     const { mutateAsync: deleteUserAsync, isPending: isDeleteUserPending } = useDeleteUser()
 

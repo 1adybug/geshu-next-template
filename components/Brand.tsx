@@ -19,6 +19,7 @@ const Brand: FC<BrandProps> = ({ classNames: { mainWrapper, link, logoWrapper, l
     <h1 className={clsx(mainWrapper, className)} {...rest}>
         <Link href="/" className={clsx("flex items-center gap-3", link)}>
             <div className={clsx("flex flex-none", logoWrapper)}>
+                {/* 如果你使用的不是 geshu.svg 作为这里的 logo，请不要应用 -translate-y-[7.03%] */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/geshu.svg" alt="logo" width={32} className={clsx("h-8 w-8 -translate-y-[7.03%]", logo)} />
             </div>

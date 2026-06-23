@@ -1,6 +1,6 @@
 "use client"
 
-import { type FC, type ReactNode, useEffect } from "react"
+import type { FC, ReactNode } from "react"
 
 import { AntdRegistry } from "@ant-design/nextjs-registry"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -37,9 +37,8 @@ declare global {
 const Registry: FC<RegistryProps> = ({ children }) => {
     const [message, context] = useMessage()
 
-    useEffect(() => {
-        globalThis.message = message
-    }, [message])
+    // eslint-disable-next-line
+    if (typeof window !== "undefined") globalThis.message = message
 
     return (
         <QueryClientProvider client={queryClient}>

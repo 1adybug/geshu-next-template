@@ -9,6 +9,7 @@ import { deleteUser } from "@/shared/deleteUser"
 import { getUser } from "@/shared/getUser"
 import { login } from "@/shared/login"
 import { queryErrorLog } from "@/shared/queryErrorLog"
+import { queryGeshuOAuthLoginStatus } from "@/shared/queryGeshuOAuthLoginStatus"
 import { queryOperationLog } from "@/shared/queryOperationLog"
 import { querySystemSettings } from "@/shared/querySystemSettings"
 import { queryUser } from "@/shared/queryUser"
@@ -37,6 +38,7 @@ registerRoute(deleteUser)
 registerRoute(getUser)
 registerRoute(login)
 registerRoute(queryErrorLog)
+registerRoute(queryGeshuOAuthLoginStatus)
 registerRoute(queryOperationLog)
 registerRoute(querySystemSettings)
 registerRoute(queryUser)

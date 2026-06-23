@@ -10,7 +10,7 @@ const Layout: FC<LayoutProps> = ({ children }) => (
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden">
         <Header />
         <main className="min-h-0 flex-auto overflow-auto">
-            <div className="h-full min-w-[1024px] md:min-w-0">{children}</div>
+            <div className="h-full min-w-0">{children}</div>
         </main>
     </div>
 )

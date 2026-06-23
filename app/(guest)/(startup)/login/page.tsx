@@ -6,7 +6,7 @@ import { Button, Form, Input } from "antd"
 import { useForm } from "antd/es/form/Form"
 import FormItem from "antd/es/form/FormItem"
 import { getErrorMessage } from "deepsea-tools"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { schemaToRule } from "soda-antd"
 
 import { GeshuOAuthProviderId } from "@/constants"
@@ -21,9 +21,28 @@ import { otpSchema } from "@/schemas/otp"
 
 import { authClient } from "@/utils/authClient"
 
+const OAuthLoginErrorMessage = {
+    signup_disabled: "当前手机号还不能登录本系统，请联系管理员先为你开通账号。",
+    account_not_linked: "当前格数账号暂时还不能登录本系统，请联系管理员确认账号状态。",
+    unable_to_link_account: "账号关联没有成功，请稍后再试，或联系管理员帮你处理。",
+    oauth_code_verification_failed: "本次登录已失效，请重新尝试登录。",
+    user_info_is_missing: "没有获取到账户信息，请重新登录。若仍然失败，请联系管理员。",
+    email_is_missing: "没有获取到必要的账户信息，请联系管理员确认账号状态。",
+    id_is_missing: "没有获取到必要的账户信息，请联系管理员确认账号状态。",
+    name_is_missing: "没有获取到必要的账户信息，请联系管理员确认账号状态。",
+    issuer_mismatch: "格数账号登录暂时不可用，请联系管理员处理。",
+    issuer_missing: "格数账号登录暂时不可用，请联系管理员处理。",
+} as const
+
+function getOAuthLoginErrorMessage(error: string, description?: string) {
+    return OAuthLoginErrorMessage[error as keyof typeof OAuthLoginErrorMessage] || description || "格数账号登录没有成功，请重新尝试。"
+}
+
 const Page: FC = () => {
     const key = useId()
+    const pathname = usePathname()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [form] = useForm<LoginParams>()
     const [left, setLeft] = useState(0)
     const [isOAuthLoginPending, setIsOAuthLoginPending] = useState(false)
@@ -48,6 +67,28 @@ const Page: FC = () => {
         return () => clearTimeout(timeout)
     }, [left])
 
+    useEffect(() => {
+        const error = searchParams.get("error")
+        if (!error) return
+
+        const description = searchParams.get("error_description") ?? undefined
+
+        message.open({
+            key,
+            type: "error",
+            content: getOAuthLoginErrorMessage(error, description),
+        })
+
+        const nextSearchParams = new URLSearchParams(searchParams)
+        nextSearchParams.delete("error")
+        nextSearchParams.delete("error_description")
+
+        const search = nextSearchParams.toString()
+        const nextPathname = search ? `${pathname}?${search}` : pathname
+
+        window.history.replaceState(null, "", nextPathname)
+    }, [key, pathname, searchParams])
+
     function sendOtp() {
         sendPhoneNumberOtp(form.getFieldValue("account"))
     }
@@ -59,7 +100,7 @@ const Page: FC = () => {
             message.open({
                 key,
                 type: "error",
-                content: "账号平台登录未配置",
+                content: "暂时无法使用格数账号登录，请联系管理员处理。",
             })
 
             return
@@ -118,7 +159,7 @@ const Page: FC = () => {
                 <Button
                     className="mt-4"
                     block
-                    title={isOAuthLoginReady ? undefined : "账号平台登录未配置"}
+                    title={isOAuthLoginReady ? undefined : "暂时无法使用格数账号登录"}
                     loading={isOAuthLoginPending}
                     disabled={!isOAuthLoginReady}
                     onClick={onOAuthLogin}

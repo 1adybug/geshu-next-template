@@ -10,6 +10,6 @@ export interface SendOtpParams {
 export async function sendOtp({ phoneNumber, code }: SendOtpParams) {
     const { isIntranet } = getSmsConfig()
 
-    if (isIntranet) return sendQjpSms({ phone: phoneNumber, content: `格数科技项目管理，你的登录验证码为 ${code}` })
+    if (isIntranet) return sendQjpSms({ phone: phoneNumber, content: `格数科技项目模板，你的登录验证码为 ${code}` })
     return sendAliyunSms({ phone: phoneNumber, signName: "格数科技", templateCode: "SMS_478995533", params: { code } })
 }

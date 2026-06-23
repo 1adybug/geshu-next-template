@@ -22,7 +22,7 @@ const Brand: FC<BrandProps> = ({ classNames: { mainWrapper, link, logoWrapper, l
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/geshu.svg" alt="logo" width={32} className={clsx("h-8 w-8 -translate-y-[7.03%]", logo)} />
             </div>
-            <div className={clsx("text-lg font-bold", text)}>格数科技项目管理</div>
+            <div className={clsx("text-lg font-bold", text)}>格数科技项目模板</div>
         </Link>
     </h1>
 )

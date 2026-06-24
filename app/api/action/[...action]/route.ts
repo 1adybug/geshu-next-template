@@ -6,7 +6,10 @@ import { addUser } from "@/shared/addUser"
 import { banUser } from "@/shared/banUser"
 import { createFirstUser } from "@/shared/createFirstUser"
 import { deleteUser } from "@/shared/deleteUser"
+import { exportUser } from "@/shared/exportUser"
 import { getUser } from "@/shared/getUser"
+import { getUserImportTemplate } from "@/shared/getUserImportTemplate"
+import { importUser } from "@/shared/importUser"
 import { login } from "@/shared/login"
 import { queryErrorLog } from "@/shared/queryErrorLog"
 import { queryGeshuOAuthLoginStatus } from "@/shared/queryGeshuOAuthLoginStatus"
@@ -35,7 +38,10 @@ registerRoute(addUser)
 registerRoute(banUser)
 registerRoute(createFirstUser)
 registerRoute(deleteUser)
+registerRoute(exportUser)
 registerRoute(getUser)
+registerRoute(getUserImportTemplate)
+registerRoute(importUser)
 registerRoute(login)
 registerRoute(queryErrorLog)
 registerRoute(queryGeshuOAuthLoginStatus)

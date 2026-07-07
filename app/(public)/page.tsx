@@ -3,7 +3,7 @@ import type { FC } from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import Logout from "@/components/Logout"
+import { Logout } from "@/components/Logout"
 
 import { UserRole } from "@/schemas/userRole"
 

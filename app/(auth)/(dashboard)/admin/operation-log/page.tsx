@@ -86,14 +86,16 @@ const Page: FC = () => {
             title: "序号",
             key: "index",
             align: "center",
+            fixed: "left",
             render(value, record, index) {
                 return (pageNum - 1) * pageSize + index + 1
             },
         },
         {
-            title: "用户",
+            title: "用户名",
             dataIndex: "name",
             align: "center",
+            fixed: "left",
             sorter: true,
             sortOrder: getSortOrder(query, "name"),
             render(value, record) {
@@ -104,6 +106,7 @@ const Page: FC = () => {
             title: "昵称",
             dataIndex: "nickname",
             align: "center",
+            fixed: "left",
             sorter: true,
             sortOrder: getSortOrder(query, "nickname"),
         },
@@ -119,13 +122,6 @@ const Page: FC = () => {
             render(value) {
                 return value && getEnumKey(UserRole, value)
             },
-        },
-        {
-            title: "操作",
-            dataIndex: "action",
-            align: "center",
-            sorter: true,
-            sortOrder: getSortOrder(query, "action"),
         },
         {
             title: "参数",
@@ -190,6 +186,14 @@ const Page: FC = () => {
                 return formatDateTime(value)
             },
         },
+        {
+            title: "操作",
+            dataIndex: "action",
+            align: "center",
+            fixed: "right",
+            sorter: true,
+            sortOrder: getSortOrder(query, "action"),
+        },
     ]
 
     const onChange: TableProps<OperationLog>["onChange"] = function onChange(pagination, filters, sorter) {
@@ -246,7 +250,7 @@ const Page: FC = () => {
                     loading={isLoading}
                     rowKey="id"
                     onChange={onChange}
-                    scroll={{ y }}
+                    scroll={{ x: "max-content", y }}
                     pagination={{
                         current: pageNum,
                         pageSize,

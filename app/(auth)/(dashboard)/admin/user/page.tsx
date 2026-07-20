@@ -162,12 +162,14 @@ const Page: FC = () => {
             title: "序号",
             key: "index",
             align: "center",
+            fixed: "left",
             render: (value, record, index) => (pageNum - 1) * pageSize + index + 1,
         },
         {
             title: "用户名",
             dataIndex: "name",
             align: "center",
+            fixed: "left",
             sorter: true,
             sortOrder: getSortOrder(query, "name"),
         },
@@ -175,6 +177,7 @@ const Page: FC = () => {
             title: "昵称",
             dataIndex: "nickname",
             align: "center",
+            fixed: "left",
             sorter: true,
             sortOrder: getSortOrder(query, "nickname"),
         },
@@ -243,6 +246,7 @@ const Page: FC = () => {
             key: "operation",
             dataIndex: "id",
             align: "center",
+            fixed: "right",
             render(value, record) {
                 return (
                     <div className="inline-flex gap-1">
@@ -479,7 +483,7 @@ const Page: FC = () => {
                     loading={isLoading}
                     rowKey="id"
                     onChange={onChange}
-                    scroll={{ y }}
+                    scroll={{ x: "max-content", y }}
                     pagination={{
                         current: pageNum,
                         pageSize,

@@ -21,6 +21,7 @@ git remote set-url --push template no_push://template
 - `NODE_ENV` 由运行命令和框架控制，一般不需要手动设置
 - 开发服务读取进程环境变量 `PORT`，未设置时使用 Next.js 默认端口 `3000`
 - 开发环境的 `BETTER_AUTH_URL` 和 `NEXT_PUBLIC_BETTER_AUTH_URL` 自动使用 `http://localhost:<PORT>`，无需手动同步端口
+- 开发环境未设置 `GESHU_OAUTH_ISSUER` 时，默认使用 `http://localhost:<PORT>/api/auth`
 - `BETTER_AUTH_SECRET` 在生产环境是强制项，未配置会导致服务启动失败；开发环境会使用仅本地可用的兜底值
 - 格数账号平台登录由环境变量配置，因为 Better Auth 的 `genericOAuth` Provider 配置在当前版本中是启动时静态配置
 - `NEXT_PUBLIC_TIME_ZONE` 用于页面展示和自动备份窗口，留空时默认 `Asia/Shanghai`；该变量会进入浏览器构建产物，修改后需要重新构建镜像或前端资源，避免服务端 HTML 和浏览器 hydration 使用不同配置

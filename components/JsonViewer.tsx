@@ -25,10 +25,10 @@ function renderArrow({ children, className, style, ...props }: JsonViewerArrowPr
 
 export const JsonViewer: FC<JsonViewerProps> = ({ className, value, ...rest }) => {
     if (value === null || typeof value !== "object")
-        return <div className={clsx("whitespace-pre-wrap break-all !font-['Noto_Sans_SC_Variable']", className)}>{String(value)}</div>
+        return <div className={clsx("whitespace-pre-wrap break-all !font-['Inter_Variable','Noto_Sans_SC_Variable']", className)}>{String(value)}</div>
 
     return (
-        <JsonView className={clsx("!font-['Noto_Sans_SC_Variable']", className)} value={value} displayDataTypes={false} {...rest}>
+        <JsonView className={clsx("!font-['Inter_Variable','Noto_Sans_SC_Variable']", className)} value={value} displayDataTypes={false} {...rest}>
             <JsonView.Arrow render={renderArrow} />
             <JsonView.Quote render={() => <span />} />
             <JsonView.Row

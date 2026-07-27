@@ -43,7 +43,7 @@ export const Registry: FC<RegistryProps> = ({ children }) => {
     return (
         <QueryClientProvider client={queryClient}>
             <AntdRegistry hashPriority="high" layer>
-                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Noto Sans SC Variable" } }}>
+                <ConfigProvider locale={zhCN} theme={{ token: { fontFamily: "Inter Variable, Noto Sans SC Variable, sans-serif" } }}>
                     {context}
                     {children}
                 </ConfigProvider>

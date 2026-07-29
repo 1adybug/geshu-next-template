@@ -16,13 +16,13 @@ import { authClient } from "@/utils/authClient"
 const LinkResultSearchParam = "geshu_agent_link"
 
 const OAuthLinkErrorMessage = {
-    account_already_linked_to_different_user: "该 geshu-agent 账户已绑定其他本平台账户，不能重复绑定。",
-    unable_to_link_account: "geshu-agent 账户绑定失败，请稍后重试。",
+    account_already_linked_to_different_user: "该格数智能体账户已绑定其他本平台账户，不能重复绑定。",
+    unable_to_link_account: "格数智能体账户绑定失败，请稍后重试。",
     oauth_code_verification_failed: "本次授权已失效，请重新绑定。",
-    user_info_is_missing: "geshu-agent 没有返回账户标识，请重新绑定。",
-    id_is_missing: "geshu-agent 没有返回标准 sub，请联系管理员处理。",
-    issuer_mismatch: "geshu-agent 授权响应来源不正确，请联系管理员处理。",
-    issuer_missing: "geshu-agent 授权响应缺少来源标识，请联系管理员处理。",
+    user_info_is_missing: "格数智能体没有返回账户标识，请重新绑定。",
+    id_is_missing: "格数智能体没有返回标准 sub，请联系管理员处理。",
+    issuer_mismatch: "格数智能体授权响应来源不正确，请联系管理员处理。",
+    issuer_missing: "格数智能体授权响应缺少来源标识，请联系管理员处理。",
 } as const
 
 export interface GeshuAgentAccountLinkingProps {
@@ -30,7 +30,7 @@ export interface GeshuAgentAccountLinkingProps {
 }
 
 function getOAuthLinkErrorMessage(error: string, description?: string) {
-    return OAuthLinkErrorMessage[error as keyof typeof OAuthLinkErrorMessage] || description || "geshu-agent 账户绑定没有成功，请重新尝试。"
+    return OAuthLinkErrorMessage[error as keyof typeof OAuthLinkErrorMessage] || description || "格数智能体账户绑定没有成功，请重新尝试。"
 }
 
 export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ linked: initialLinked }) => {
@@ -54,7 +54,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
             message.open({
                 key: messageKey,
                 type: "success",
-                content: "geshu-agent 账户绑定成功",
+                content: "格数智能体账户绑定成功",
             })
         } else {
             const error = searchParams.get("error")
@@ -63,7 +63,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
             message.open({
                 key: messageKey,
                 type: "error",
-                content: error ? getOAuthLinkErrorMessage(error, description) : "geshu-agent 账户绑定没有成功，请重新尝试。",
+                content: error ? getOAuthLinkErrorMessage(error, description) : "格数智能体账户绑定没有成功，请重新尝试。",
             })
         }
 
@@ -84,7 +84,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
         message.open({
             key: messageKey,
             type: "loading",
-            content: "正在跳转 geshu-agent...",
+            content: "正在跳转格数智能体...",
             duration: 0,
         })
 
@@ -95,7 +95,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
                 errorCallbackURL: `/profile?${LinkResultSearchParam}=error`,
             })
 
-            if (response.error) throw new Error(response.error.message || "geshu-agent 账户绑定失败")
+            if (response.error) throw new Error(response.error.message || "格数智能体账户绑定失败")
             message.destroy(messageKey)
         } catch (error) {
             message.open({
@@ -118,10 +118,10 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
                 providerId: GeshuAgentOAuthProviderId,
             })
 
-            if (response.error) throw new Error(response.error.message || "解除 geshu-agent 账户绑定失败")
+            if (response.error) throw new Error(response.error.message || "解除格数智能体账户绑定失败")
 
             setLinked(false)
-            message.success("已解除 geshu-agent 账户绑定")
+            message.success("已解除格数智能体账户绑定")
             router.refresh()
         } catch (error) {
             message.error(getErrorMessage(error))
@@ -135,7 +135,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
     return (
         <Card
             className="overflow-hidden [&_.ant-card-body]:p-4 sm:[&_.ant-card-body]:p-6 [&_.ant-card-head]:px-4 sm:[&_.ant-card-head]:px-6"
-            title="geshu-agent 账户"
+            title="格数智能体账户"
             extra={<Tag color={linked ? "blue" : "default"}>{linked ? "已绑定" : "未绑定"}</Tag>}
         >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -143,16 +143,16 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
                     {linked ? <IconShieldCheck size={24} className="text-blue-600" /> : <IconLink size={24} />}
                 </div>
                 <div className="min-w-0 flex-auto">
-                    <div className="font-medium">{linked ? "当前本平台账户已关联 geshu-agent" : "尚未关联 geshu-agent"}</div>
+                    <div className="font-medium">{linked ? "当前本平台账户已关联格数智能体" : "尚未关联格数智能体"}</div>
                     <p className="mb-0 mt-1 text-sm text-neutral-500">
                         {linked
-                            ? "解除绑定只会删除本平台的账户映射和令牌，不会删除本地账户资料，也不会更改 geshu-agent 账户。"
-                            : "绑定时会跳转到 geshu-agent 完成授权。本平台不会使用手机号、邮箱或昵称自动匹配账户。"}
+                            ? "解除绑定只会删除本平台的账户映射和令牌，不会删除本地账户资料，也不会更改格数智能体账户。"
+                            : "绑定时会跳转到格数智能体完成授权。本平台不会使用手机号、邮箱或昵称自动匹配账户。"}
                     </p>
                 </div>
                 {linked ? (
                     <Popconfirm
-                        title="解除 geshu-agent 账户绑定？"
+                        title="解除格数智能体账户绑定？"
                         description="解除后将不能使用该账户登录；手机号登录和本平台资料不受影响。"
                         okText="解除绑定"
                         cancelText="取消"
@@ -164,7 +164,7 @@ export const GeshuAgentAccountLinking: FC<GeshuAgentAccountLinkingProps> = ({ li
                     </Popconfirm>
                 ) : (
                     <Button className="flex-none" type="primary" icon={<IconLink size={16} />} loading={isLinkPending} onClick={() => void linkAccount()}>
-                        绑定 geshu-agent
+                        绑定格数智能体
                     </Button>
                 )}
             </div>

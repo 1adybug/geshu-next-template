@@ -11,7 +11,7 @@ import {
 } from "react"
 
 import { IconAt, IconCalendarPlus, IconCheck, IconClockEdit, IconId, IconPencil, IconPhone, IconShieldCheck, IconUserCircle } from "@tabler/icons-react"
-import { Avatar, Button, Card, Tag, Tooltip } from "antd"
+import { Avatar, Button, Card, message, Tag, Tooltip } from "antd"
 import { type StrictOmit, clsx, getEnumKey } from "deepsea-tools"
 import { useRouter } from "next/navigation"
 
@@ -25,6 +25,7 @@ import { UserRole } from "@/schemas/userRole"
 import { formatDateTime } from "@/utils/formatDateTime"
 
 import { CurrentUserPhoneNumberEditor } from "./CurrentUserPhoneNumberEditor"
+import { GeshuAgentAccountLinking } from "./GeshuAgentAccountLinking"
 
 export interface ProfileDetailItemProps extends StrictOmit<ComponentProps<"div">, "children"> {
     icon?: ReactNode
@@ -50,6 +51,7 @@ export interface CurrentUserProfileProps extends StrictOmit<ComponentProps<"div"
     data: User
     allowUpdateNickname: boolean
     allowUpdatePhoneNumber: boolean
+    isGeshuAgentOAuthLinked: boolean
 }
 
 function getAvatarText(user: User) {
@@ -57,7 +59,14 @@ function getAvatarText(user: User) {
     return name.slice(0, 1).toUpperCase()
 }
 
-export const CurrentUserProfile: FC<CurrentUserProfileProps> = ({ className, data, allowUpdateNickname, allowUpdatePhoneNumber, ...rest }) => {
+export const CurrentUserProfile: FC<CurrentUserProfileProps> = ({
+    className,
+    data,
+    allowUpdateNickname,
+    allowUpdatePhoneNumber,
+    isGeshuAgentOAuthLinked,
+    ...rest
+}) => {
     const router = useRouter()
     const [currentUser, setCurrentUser] = useState(data)
     const [isEditingNickname, setIsEditingNickname] = useState(false)
@@ -184,6 +193,8 @@ export const CurrentUserProfile: FC<CurrentUserProfileProps> = ({ className, dat
                         </div>
                     </div>
                 </section>
+
+                <GeshuAgentAccountLinking linked={isGeshuAgentOAuthLinked} />
 
                 <Card
                     className="overflow-hidden [&_.ant-card-body]:p-4 sm:[&_.ant-card-body]:p-6 [&_.ant-card-head]:px-4 sm:[&_.ant-card-head]:px-6"

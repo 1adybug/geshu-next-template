@@ -84,7 +84,7 @@ export const Header: FC<HeaderProps> = ({ className, ...rest }) => {
         <Fragment>
             <header className={clsx("hidden h-16 flex-none items-center gap-2 border-b border-slate-100 bg-white px-4 md:flex", className)} {...rest}>
                 <Brand className="flex-none" />
-                <nav className="flex min-w-0 flex-auto items-center gap-2 overflow-x-auto" aria-label="主导航">
+                <nav className="flex min-w-0 flex-auto items-center gap-2 overflow-x-auto p-1" aria-label="主导航">
                     {visibleNavs.map(({ href, name }) => (
                         <Button
                             key={href}

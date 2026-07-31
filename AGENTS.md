@@ -124,6 +124,7 @@ return <div className={clsx("text-base", sizeClassName, className)} />
 - 使用 `flex` 布局时，宽度或高度必须保持固定的子元素应设置 `flex-none`。
 - 列表、工具栏、按钮组、表格操作列等区域应避免因为内容变化发生明显横向抖动。
 - 如果内容可能溢出，优先通过 `min-w-0`、`truncate`、`overflow-hidden`、`shrink-0`、`flex-none` 等工具类明确伸缩行为，并根据目标选择是否允许元素伸缩。
+- 谨慎使用 `overflow: hidden` 或 `overflow-hidden`。这类裁剪可能误伤 `shadcn/ui` 等组件超出自身边界的阴影、描边、聚焦环等视觉效果；如果容器内部存在此类组件，必须同时检查默认、悬停和聚焦等状态，并评估是否需要预留足够的内边距、缩小裁剪范围，或改用不会裁剪子元素视觉效果的布局方案。
 
 #### 滚动条抖动
 

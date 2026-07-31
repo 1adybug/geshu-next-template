@@ -10,7 +10,7 @@ import { useGetUser } from "@/hooks/useGetUser"
 
 import { getDateTime } from "@/utils/formatDateTime"
 
-export interface BanUserEditorProps extends Omit<ComponentProps<typeof Modal>, "children" | "onOk" | "onCancel"> {
+export interface BanUserEditorProps extends Omit<ComponentProps<typeof Modal>, "children" | "keyboard" | "onOk" | "onCancel"> {
     id?: string
     onClose?: () => void
 }
@@ -29,7 +29,7 @@ export const BanUserEditor: FC<BanUserEditorProps> = ({
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
-    const { enabled, closable, blur } = typeof mask === "boolean" ? { enabled: mask, closable: true, blur: true } : mask
+    const { enabled, blur } = typeof mask === "boolean" ? { enabled: mask, blur: true } : mask
     const [form] = useForm<BanUserFormData>()
     const selectedBanDate = Form.useWatch("banDate", form)
 
@@ -56,7 +56,8 @@ export const BanUserEditor: FC<BanUserEditorProps> = ({
         <Modal
             title={`封禁用户 ${data?.name}`}
             open={open}
-            mask={{ enabled, closable: closable && !isPending, blur }}
+            keyboard={false}
+            mask={{ enabled, closable: false, blur }}
             onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}

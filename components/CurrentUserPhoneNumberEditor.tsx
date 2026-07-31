@@ -15,7 +15,7 @@ import type { User } from "@/prisma/generated/client"
 import { otpSchema } from "@/schemas/otp"
 import { phoneNumberParser } from "@/schemas/phoneNumber"
 
-export interface CurrentUserPhoneNumberEditorProps extends Omit<ComponentProps<typeof Modal>, "children" | "onOk" | "onCancel"> {
+export interface CurrentUserPhoneNumberEditorProps extends Omit<ComponentProps<typeof Modal>, "children" | "keyboard" | "onOk" | "onCancel"> {
     data: User
     onClose?: () => void
     onSuccess?: (data: User) => void
@@ -36,7 +36,7 @@ export const CurrentUserPhoneNumberEditor: FC<CurrentUserPhoneNumberEditorProps>
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
-    const { enabled, closable, blur } = typeof mask === "boolean" ? { enabled: mask, closable: true, blur: true } : mask
+    const { enabled, blur } = typeof mask === "boolean" ? { enabled: mask, blur: true } : mask
     const isOpen = !!open
     const [form] = useForm<CurrentUserPhoneNumberEditorFormData>()
     const prevOpen = useRef(false)
@@ -188,7 +188,8 @@ export const CurrentUserPhoneNumberEditor: FC<CurrentUserPhoneNumberEditorProps>
             title="修改手机号"
             open={isOpen}
             destroyOnHidden
-            mask={{ enabled, closable: closable && !isSubmitting, blur }}
+            keyboard={false}
+            mask={{ enabled, closable: false, blur }}
             onOk={() => form.submit()}
             onCancel={() => onClose?.()}
             okText="保存"

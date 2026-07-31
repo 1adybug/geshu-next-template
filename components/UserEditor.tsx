@@ -1,4 +1,4 @@
-import { type ComponentProps, type FC, useEffect } from "react"
+import { type ComponentProps, type FC, useEffect, useRef } from "react"
 
 import { Button, Form, Input, Modal } from "antd"
 import { useForm } from "antd/es/form/Form"
@@ -19,7 +19,11 @@ import { UserRole } from "@/schemas/userRole"
 
 import { RoleSelect } from "./RoleSelect"
 
-export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "onOk" | "onClose"> {
+const addUserInitialValues: Partial<AddUserParams> = {
+    role: UserRole.用户,
+}
+
+export interface UserEditorProps extends Omit<ComponentProps<typeof Modal>, "title" | "children" | "keyboard" | "onOk" | "onClose"> {
     id?: string
     onClose?: () => void
 }
@@ -33,13 +37,16 @@ export const UserEditor: FC<UserEditorProps> = ({
     cancelButtonProps: { disabled: cancelButtonDisabled, ...cancelButtonProps } = {},
     ...rest
 }) => {
-    const { enabled, closable, blur } = typeof mask === "boolean" ? { enabled: mask, closable: true, blur: true } : mask
+    const { enabled, blur } = typeof mask === "boolean" ? { enabled: mask, blur: true } : mask
     const isUpdate = isNonNullable(id)
     const [form] = useForm<AddUserParams>()
+    const addUserDraft = useRef<Partial<AddUserParams>>({ ...addUserInitialValues })
     const { data, isLoading } = useGetUser(id, { enabled: !!open })
 
     const { mutateAsync: addUser, isPending: isAddUserPending } = useAddUser({
         onSuccess() {
+            addUserDraft.current = { ...addUserInitialValues }
+            form.resetFields()
             onClose?.()
         },
     })
@@ -53,9 +60,15 @@ export const UserEditor: FC<UserEditorProps> = ({
     useEffect(() => {
         if (!open) return
 
-        if (data) form.setFieldsValue(data as AddUserParams)
-        else form.resetFields()
-    }, [open, data, form])
+        form.resetFields()
+
+        if (isUpdate) {
+            if (data) form.setFieldsValue(data as AddUserParams)
+            return
+        }
+
+        form.setFieldsValue({ ...addUserDraft.current })
+    }, [data, form, isUpdate, open])
 
     useEffect(() => {
         if (isNonNullable(id)) return () => form.resetFields()
@@ -70,11 +83,17 @@ export const UserEditor: FC<UserEditorProps> = ({
         else addUser(values)
     }
 
+    function onValuesChange(_: Partial<AddUserParams>, values: AddUserParams) {
+        if (isUpdate) return
+        addUserDraft.current = { ...values }
+    }
+
     return (
         <Modal
             title={`${isUpdate ? "修改用户" : "新增用户"}`}
             open={open}
-            mask={{ enabled, closable: closable && !isPending, blur }}
+            keyboard={false}
+            mask={{ enabled, closable: false, blur }}
             onOk={() => form.submit()}
             okButtonProps={{ loading: isRequesting || okButtonLoading, ...okButtonProps }}
             cancelButtonProps={{ disabled: isPending || cancelButtonDisabled, ...cancelButtonProps }}
@@ -86,8 +105,9 @@ export const UserEditor: FC<UserEditorProps> = ({
                 form={form}
                 disabled={isRequesting}
                 labelCol={{ flex: "56px" }}
-                initialValues={{ role: UserRole.用户 }}
+                initialValues={addUserInitialValues}
                 onFinish={onFinish}
+                onValuesChange={onValuesChange}
             >
                 <FormItem<AddUserParams> name="name" label="用户名" rules={[schemaToRule(usernameSchema)]}>
                     <Input autoComplete="off" allowClear />
